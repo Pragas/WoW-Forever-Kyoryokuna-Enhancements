@@ -24,6 +24,14 @@ local GROWTH = {
 	{value = "DOWN", text = "Down"},
 }
 
+local COUNT_POSITIONS = {
+	{value = "BOTTOMRIGHT", text = "Bottom right corner"},
+	{value = "BOTTOMLEFT", text = "Bottom left corner"},
+	{value = "CENTER", text = "Centered"},
+	{value = "TOPRIGHT", text = "Top right corner"},
+	{value = "TOPLEFT", text = "Top left corner"},
+}
+
 ns.AddOptionsPage(PAGE, function(b)
 	local MB = ns.MissingBuffs
 	local on = W.IsOn("missingBuffs.enabled")
@@ -87,11 +95,21 @@ ns.AddOptionsPage(PAGE, function(b)
 		b:Text("No usual buffs of your class in your spellbook. Any other spell can be chosen at the bottom of the page.", GREY)
 	end
 	for _, choice in ipairs(suggested) do Row(choice) end
+	-- The same note for buffs and items: what Blizzard allows in combat
+	local COMBAT_NOTE = "(Not in combat: Blizzard's API doesn't let addons change clickable buttons during a fight. An icon already on the screen when the fight starts still works; one that shows during it becomes clickable when the fight ends.)"
+	b:Space(4)
+	b:Check("missingBuffs.clickToCast", "Click an icon to cast the buff",
+		"A click on the icon of a missing buff casts it on you, whoever you have targeted. For a family, the spell of the icon picked, else the one you used last.", on)
+	b:Text(COMBAT_NOTE, GREY, nil, 22)
 
 	if #items > 0 then
 		b:Header("Conjured items")
 		b:Text("Shown when your bags hold fewer than the minimum (any rank counts).", GREY)
 		for _, choice in ipairs(items) do Row(choice) end
+		b:Space(4)
+		b:Check("missingBuffs.clickToConjure", "Click an icon to conjure the item",
+			"A click on the icon of a missing conjured item casts the spell that makes it, with the best rank you know.", on)
+		b:Text(COMBAT_NOTE, GREY, nil, 22)
 	end
 
 	b:Space(6)
@@ -117,6 +135,8 @@ ns.AddOptionsPage(PAGE, function(b)
 		b:Slider(section .. ".alpha", "Opacity", 5, "%", "How see-through the icons are: lower is more faded.", on)
 		b:Slider(section .. ".spacing", "Space between icons", 1, " px", nil, on)
 		b:Dropdown(section .. ".growth", "Direction", GROWTH, "Where the icons go when more than one is missing. The side they grow from stays in place.", on)
+		b:Check(section .. ".showZero", "Show the number when there are none", "The number on a conjured item's icon is how many your bags hold. Off, an item you have none of shows no number.", on)
+		b:Dropdown(section .. ".countPosition", "Number position", COUNT_POSITIONS, "Where the number of a conjured item goes on its icon.", on)
 	end
 	Look("Essential group", "missingBuffsEssential")
 	Look("Utility group", "missingBuffsUtility")

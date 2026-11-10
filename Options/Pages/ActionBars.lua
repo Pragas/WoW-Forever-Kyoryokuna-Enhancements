@@ -14,6 +14,13 @@ ns.AddOptionsPage("Action Bars", function(b)
 	b:Text("The seconds left on a button whose spell is on cooldown. They show when the game's option \"Show cooldown numbers\" is on (Options > Action Bars).",
 		{0.7, 0.7, 0.7})
 	b:Slider("actionBars.cooldownScale", "Size", 5, "%", "100% is the game's own size.")
+	b:Check("actionBars.cooldownColors", "Color the numbers by the time left",
+		"One color while the cooldown is long, another for its last seconds, so you see at a glance what's about to be ready.")
+	local colors = W.IsOn("actionBars.cooldownColors")
+	b:Color("actionBars.cooldownColorLong", "Long cooldown", "The color of the numbers until the last seconds.", colors, true)
+	b:Color("actionBars.cooldownColorShort", "Last seconds", "The color of the numbers in the last seconds.", colors, true)
+	b:Slider("actionBars.cooldownColorThreshold", "Last seconds from", 1, " s",
+		"How many seconds before the end the color changes.", colors, true)
 
 	b:Header("Key press")
 	b:Check("actionBars.keyPress", "Show when a button's key is pressed",

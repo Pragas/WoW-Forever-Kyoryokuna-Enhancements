@@ -100,7 +100,7 @@ local ITEMS = {
 		{key = "WATER", ranks = {
 			{spell = 5504, items = {5350}}, {spell = 5505, items = {2288}}, {spell = 5506, items = {2136}},
 			{spell = 6127, items = {3772}}, {spell = 10138, items = {8077}}, {spell = 10139, items = {8078}},
-			{spell = 10140, items = {8079}}, {spell = 37420, items = {30703}}, {spell = 27090, items = {22018}},
+			{spell = 10140, items = {8079}}, {spell = 27090, items = {22018}}, {spell = 37420, items = {30703}},
 		}},
 	},
 	WARLOCK = {
@@ -158,8 +158,32 @@ local function ItemCount(id)
 	return type(count) == "number" and count or nil
 end
 
+-- The text the game shows under a spell's name ("Rank 4"), and the rank in it; 0 when there's none
+local function SpellSubtext(id)
+	local subtext
+	if C_Spell and C_Spell.GetSpellSubtext then subtext = C_Spell.GetSpellSubtext(id)
+	elseif GetSpellSubtext then subtext = GetSpellSubtext(id) end
+	subtext = ns.Known(subtext)
+	return type(subtext) == "string" and subtext or ""
+end
+
+local function RankIn(text)
+	text = ns.Known(text)
+	return type(text) == "string" and tonumber(text:match("%d+")) or 0
+end
+
+-- Whether the character knows this exact spell (this rank)
+local function IsKnownSpell(id)
+	for _, check in ipairs({C_SpellBook and C_SpellBook.IsSpellKnown, IsPlayerSpell, IsSpellKnown}) do
+		local ok, known = pcall(check, id)
+		if ok and ns.Known(known) then return true end
+	end
+	return false
+end
+
 -- The spells this character has learned (not passive, not of another specialization), by name:
--- {ids = {every rank's ID}, icon}
+-- {ids = {every rank's ID}, icon, best = the ID of the highest rank}. The spellbook doesn't always list
+-- the ranks in order, so the best is found by its rank (a click casts that exact one).
 local spellbook = {}
 local spellbookSignature = ""
 
@@ -177,8 +201,14 @@ local function ReadSpellbook()
 					if item and item.itemType == spellType and item.spellID and not item.isPassive and not item.isOffSpec then
 						local name = ns.Known(item.name) or SpellName(item.spellID)
 						if name then
-							local entry = found[name] or {ids = {}, icon = item.iconID or SpellIcon(item.spellID)}
+							local entry = found[name] or {ids = {}, icon = item.iconID or SpellIcon(item.spellID), bestRank = -1}
 							entry.ids[#entry.ids + 1] = item.spellID
+							-- The rank the spellbook gives with it, else the one under the spell's name
+							local rank = RankIn(item.subName)
+							if rank == 0 then rank = RankIn(SpellSubtext(item.spellID)) end
+							if rank > entry.bestRank or (rank == 0 and entry.bestRank == 0) then
+								entry.best, entry.bestRank = item.spellID, rank
+							end
 							found[name] = entry
 						end
 					end
@@ -186,8 +216,9 @@ local function ReadSpellbook()
 			end
 		end
 	end
+	-- Every spell and rank: a new rank of a spell already known (same name) counts as a change too
 	local names = {}
-	for name in pairs(found) do names[#names + 1] = name end
+	for name, entry in pairs(found) do names[#names + 1] = name .. "=" .. table.concat(entry.ids, ",") end
 	table.sort(names)
 	local signature = table.concat(names, "\n")
 	local changed = signature ~= spellbookSignature
@@ -235,17 +266,30 @@ local function BuildChoices()
 	end
 	for _, family in ipairs(ITEMS[playerClass] or {}) do
 		local choice = {key = family.key, kind = "ITEM", group = UTILITY, items = {}}
+		local inBook
 		for _, rank in ipairs(family.ranks) do
 			local name = SpellName(rank.spell)
 			if name then
 				inCatalog[name] = true
-				-- Named and shown after the best rank known (e.g. Create Healthstone (Major))
-				if spellbook[name] then
-					choice.label = name
-					choice.icon = ItemIcon(rank.items[1]) or spellbook[name].icon
-				end
+				if spellbook[name] then inBook = name end
 			end
 			for _, item in ipairs(rank.items) do choice.items[#choice.items + 1] = item end
+		end
+		-- The best rank known, from the highest down (the ranks are in order, checked on Wowhead): named,
+		-- shown and cast after it (e.g. Create Healthstone (Major), Conjure Water rank 4)
+		local best
+		for i = #family.ranks, 1, -1 do
+			if IsKnownSpell(family.ranks[i].spell) then best = family.ranks[i] break end
+		end
+		if best then
+			choice.label = SpellName(best.spell) or inBook
+			choice.icon = ItemIcon(best.items[1]) or SpellIcon(best.spell)
+			choice.castName, choice.castID = choice.label, best.spell
+		elseif inBook then
+			-- The game didn't say which ranks are known: the best one the spellbook lists
+			choice.label = inBook
+			choice.icon = spellbook[inBook].icon
+			choice.castName, choice.castID = inBook, spellbook[inBook].best
 		end
 		if choice.label then items[#items + 1] = choice end
 	end
@@ -435,6 +479,11 @@ local ANCHORS = {CENTER = "CENTER", RIGHT = "LEFT", LEFT = "RIGHT", UP = "BOTTOM
 local HINTS = {[ESSENTIAL] = "Essential: drag to move", [UTILITY] = "Utility: drag to move"}
 local FRAME_NAMES = {[ESSENTIAL] = "KyoryokunaEnhancementsMissingBuffsEssential", [UTILITY] = "KyoryokunaEnhancementsMissingBuffsUtility"}
 
+-- Where the number of an item sits on its icon: a corner (a little inside the border) or the middle
+local COUNT_OFFSETS = {
+	BOTTOMRIGHT = {-2, 2}, BOTTOMLEFT = {2, 2}, CENTER = {0, 0}, TOPRIGHT = {-2, -2}, TOPLEFT = {2, -2},
+}
+
 local holders, icons = {}, {}
 local moving = false
 local lastActive
@@ -532,7 +581,14 @@ local function Layout(group, shown)
 		elseif growth == "DOWN" then icon:SetPoint("TOP", frame, "TOP", 0, -offset)
 		else icon:SetPoint("LEFT", frame, "LEFT", offset, 0) end
 		icon.texture:SetTexture(info.texture)
-		icon.count:SetText(info.count and tostring(info.count) or "")
+		info.frame = icon
+		-- How many of an item: none shows no number unless asked
+		local count = info.count
+		icon.count:SetText((count and (count > 0 or settings.showZero)) and tostring(count) or "")
+		icon.count:ClearAllPoints()
+		local point = COUNT_OFFSETS[settings.countPosition] and settings.countPosition or "BOTTOMRIGHT"
+		local offset = COUNT_OFFSETS[point]
+		icon.count:SetPoint(point, icon, point, offset[1], offset[2])
 		icon:SetAlpha(settings.alpha / 100)
 		icon:Show()
 	end
@@ -554,8 +610,97 @@ local function IconOf(choice, watch, entry)
 	return (last and choice.memberIcons[last]) or choice.icon or PLACEHOLDER_ICON
 end
 
+-- Click to cast ------------------------------------------------------------------------------------
+-- A click on the icon of a missing conjured item casts the spell that makes it; on a missing buff's,
+-- the buff (on the character). Each is an option of its own. Casting needs the game's
+-- "secure" buttons, which addons can't make, show, hide, move or change in combat: so they're kept apart
+-- from the icons (placed over them, on the screen itself, never anchored to them, so the icons stay
+-- free to change in combat), and only set out of combat. In combat they stay as they were: one already
+-- there still works, one for an icon that shows in the fight comes when it ends.
+
+local clickers = {}
+
+local function GetClicker(index)
+	local clicker = clickers[index]
+	if clicker then return clicker end
+	clicker = CreateFrame("Button", "KyoryokunaEnhancementsConjure" .. index, UIParent, "SecureActionButtonTemplate")
+	clicker:RegisterForClicks("AnyUp", "AnyDown")
+	clicker:SetFrameStrata("MEDIUM")
+	clicker:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+	clicker:SetAttribute("type", "spell")
+	clicker:SetScript("OnEnter", function(self)
+		if self.spellID and GameTooltip.SetSpellByID then
+			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+			GameTooltip:SetSpellByID(self.spellID)
+			GameTooltip:Show()
+		end
+	end)
+	clicker:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	clicker:Hide()
+	clickers[index] = clicker
+	return clicker
+end
+
+-- targets: the icons that cast on a click, with what to cast and on whom
+local function SyncClickers(targets)
+	if InCombatLockdown and InCombatLockdown() then return end
+	local settings = ns.db.missingBuffs
+	local count = 0
+	if settings.enabled and not moving then
+		for _, target in ipairs(targets) do
+			local x, y = target.frame:GetCenter()
+			local size = target.frame:GetWidth()
+			if x and y and size then
+				count = count + 1
+				local clicker = GetClicker(count)
+				clicker:ClearAllPoints()
+				clicker:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
+				clicker:SetSize(size, size)
+				-- By its ID, so it's that exact rank (by its name the game may pick another)
+				clicker:SetAttribute("spell", target.castID or target.castName)
+				-- A buff on the character itself, whoever is targeted
+				clicker:SetAttribute("unit", target.unit)
+				clicker.spellID = target.castID
+				clicker:Show()
+			end
+		end
+	end
+	for i = count + 1, #clickers do clickers[i]:Hide() end
+end
+
+-- The spell a click on a buff's icon casts: the one of the icon picked, else the one last seen on the
+-- character, else the first one known
+local function CastOf(choice, watch, entry)
+	if watch and watch.icon and choice.memberIcons[watch.icon] then return watch.icon end
+	local last = entry.lastSeen[choice.key]
+	if last and choice.memberIcons[last] then return last end
+	return choice.members[1]
+end
+
+-- What a click on each icon watched would cast, for /ke buffscan: {{label, spell, id, rank text}}
+function MissingBuffs.CastInfo()
+	local list = {}
+	local entry = MissingBuffs.GetCharacter()
+	if not entry then return list end
+	for _, choices in ipairs({MissingBuffs.GetChoices()}) do
+		for _, choice in ipairs(choices) do
+			local watch = entry.buffs[choice.key]
+			if watch then
+				local name, id = choice.castName, choice.castID
+				if choice.kind == "BUFF" then
+					name = CastOf(choice, watch, entry)
+					id = name and spellbook[name] and spellbook[name].best
+				end
+				list[#list + 1] = {label = choice.label, spell = name, id = id, rank = id and SpellSubtext(id) or ""}
+			end
+		end
+	end
+	return list
+end
+
 local function HideAll()
 	for _, holder in pairs(holders) do holder:Hide() end
+	SyncClickers({})
 end
 
 function MissingBuffs.Update()
@@ -595,15 +740,32 @@ function MissingBuffs.Update()
 				-- While moving, everything chosen shows, so the groups can be placed as they will look
 				if moving or (missing and not dead) then
 					local group = shown[watch.group] or shown[ESSENTIAL]
-					group[#group + 1] = {texture = IconOf(choice, watch, entry), count = itemCount}
+					group[#group + 1] = {texture = IconOf(choice, watch, entry), count = itemCount, choice = choice}
 				end
 			end
 		end
 	end
+	local settings = ns.db.missingBuffs
+	local targets = {}
 	for group, list in pairs(shown) do
 		if moving and #list == 0 then list[1] = {texture = PLACEHOLDER_ICON} end
 		Layout(group, list)
+		for _, info in ipairs(list) do
+			local choice = info.choice
+			if choice and info.frame then
+				if choice.kind == "ITEM" and settings.clickToConjure and choice.castName then
+					targets[#targets + 1] = {frame = info.frame, castName = choice.castName, castID = choice.castID}
+				elseif choice.kind == "BUFF" and settings.clickToCast then
+					local name = CastOf(choice, entry.buffs[choice.key], entry)
+					local known = name and spellbook[name]
+					if known then
+						targets[#targets + 1] = {frame = info.frame, castName = name, castID = known.best, unit = "player"}
+					end
+				end
+			end
+		end
 	end
+	SyncClickers(targets)
 end
 
 -- Moving the icons (from the page; ends when the options close)
@@ -648,7 +810,9 @@ ns.RegisterEvent("PLAYER_LOGIN", function()
 	MissingBuffs.Update()
 end)
 ns.RegisterEvent("SPELLS_CHANGED", OnSpellsChanged)
-for _, event in ipairs({"PLAYER_ENTERING_WORLD", "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "BAG_UPDATE_DELAYED"}) do
+-- PLAYER_REGEN_ENABLED: the fight is over, the click buttons can follow the icons again
+for _, event in ipairs({"PLAYER_ENTERING_WORLD", "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "BAG_UPDATE_DELAYED",
+	"PLAYER_REGEN_ENABLED", "UI_SCALE_CHANGED"}) do
 	ns.RegisterEvent(event, function() MissingBuffs.Update() end)
 end
 

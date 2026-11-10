@@ -4,7 +4,8 @@
 
 -- Sharing and keeping the settings (Import / Export page):
 --   - export: all the settings in one line of text, to copy and give to someone. What's personal stays
---     out (language, minimap button);
+--     out (language, minimap button), and so do the missing buffs, in codes and backups alike: each
+--     player sets them up for each class and character;
 --   - import: such a line read back. It's only ever read as text, never run: each "section.key=value"
 --     must be a setting that exists, of the right kind, and the usual checks (limits, choices) follow.
 --     Settings the line doesn't have (e.g. from an older version) keep their value;
@@ -23,6 +24,18 @@ local PERSONAL = {
 	["general.minimapIcon"] = true,
 	["general.minimapAngle"] = true,
 }
+
+-- Never in a code nor in a backup: the missing buffs are each player's own, set up for each class and
+-- character (which ones, and where and how they show)
+local OWN_SECTIONS = {
+	missingBuffs = true,
+	missingBuffsEssential = true,
+	missingBuffsUtility = true,
+}
+
+local function IsShared(section, key)
+	return not OWN_SECTIONS[section] and not PERSONAL[section .. "." .. key]
+end
 
 local function SortedKeys(t)
 	local keys = {}
@@ -75,9 +88,8 @@ function ns.ExportSettings()
 	local parts = {PREFIX}
 	for _, section in ipairs(SortedKeys(ns.DEFAULTS)) do
 		for _, key in ipairs(SortedKeys(ns.DEFAULTS[section])) do
-			local path = section .. "." .. key
-			if not PERSONAL[path] then
-				parts[#parts + 1] = path .. "=" .. EncodeValue(ns.db[section][key])
+			if IsShared(section, key) then
+				parts[#parts + 1] = section .. "." .. key .. "=" .. EncodeValue(ns.db[section][key])
 			end
 		end
 	end
@@ -100,7 +112,7 @@ function ns.ParseSettings(text)
 		local section, key, value = parts[i]:match("^([%a]+)%.([%w]+)=(.+)$")
 		local defaults = section and ns.DEFAULTS[section]
 		local default = defaults and defaults[key]
-		if default ~= nil and not PERSONAL[section .. "." .. key] then
+		if default ~= nil and IsShared(section, key) then
 			local decoded = DecodeValue(value, default)
 			if decoded ~= nil then
 				settings[section] = settings[section] or {}
@@ -117,7 +129,7 @@ end
 -- refreshes everything that depends on them
 local function ApplySettings(settings)
 	for section, values in pairs(settings) do
-		if ns.DEFAULTS[section] and type(values) == "table" then
+		if ns.DEFAULTS[section] and not OWN_SECTIONS[section] and type(values) == "table" then
 			for key, value in pairs(values) do
 				if ns.DEFAULTS[section][key] ~= nil then
 					ns.db[section][key] = ns.CopyValue(value)
@@ -186,7 +198,7 @@ end
 function ns.CreateBackup(label, quiet, name)
 	local settings = {}
 	for section in pairs(ns.DEFAULTS) do
-		settings[section] = ns.CopyValue(ns.db[section])
+		if not OWN_SECTIONS[section] then settings[section] = ns.CopyValue(ns.db[section]) end
 	end
 	local backups = ns.db.backups
 	table.insert(backups, 1, {

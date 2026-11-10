@@ -8,6 +8,18 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.3.1
+
+- Fixed: a click on an icon could cast a lower rank (e.g. Conjure Water rank 3 with rank 4 known). A new rank of a spell already known (same name) wasn't noticed until a /reload, and the "highest" rank was the last one listed in the spellbook, which doesn't always list them in order. Now a conjured item's rank is found from the addon's list of ranks (checked on Wowhead), from the highest down, asking the game which one the character knows; a buff's rank comes from the spellbook (or the text under the spell's name). The list follows a new rank at once, and a click casts that exact rank (by its ID). `/ke buffscan` also shows what a click on each icon casts, with its ID.
+
+- Missing buffs, conjured items: "Click an icon to conjure the item" (off by default). A click on the icon of a missing conjured item casts the spell that makes it, with the best rank known; its tooltip shows on hover. And "Click an icon to cast the buff" (off by default), in both groups: a click on a missing buff's icon casts it on you, whoever is targeted (for a family, the spell of the icon picked, else the one used last). In combat Blizzard's API doesn't let addons change clickable buttons: an icon already there when the fight starts still works, one that shows during it becomes clickable when the fight ends. The page says so under both options.
+
+- Action Bars page: the cooldown numbers colored by the time left (off by default). One color while the cooldown is long (red by default), another for its last seconds (a toasted yellow by default), both changeable, and when the color changes (5 seconds by default, 1 to 30). The game writes the numbers with the addon's rules, so it works in combat too: the addon never reads the time left.
+
+- New defaults: a new install starts with only the minimap button on, in English. Everything else is off (dark mode and each of its parts, the queue timer and its bar, missing buffs), for each player to turn on what they want. Settings already saved don't change.
+- Missing buffs are never in the Import / Export code nor in the backups: which ones, and where and how they show, are each player's own. Importing a code or restoring a backup no longer changes them.
+- The number on a conjured item's icon: no number when there are none (an option of each group turns it back on), and it can be in any corner (bottom right, bottom left, top right, top left) or in the middle.
+
 ## 0.3.0
 
 - Missing buffs (new Missing Buffs page, second in the list): what your character should always have, read from its spellbook. Tick what to watch; while something is missing, its icon shows on the screen, grey and faded (so it never looks like something that's there), in and out of combat (not while dead).

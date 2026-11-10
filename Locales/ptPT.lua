@@ -133,8 +133,8 @@ ns.LOCALES.ptPT = {
 	-- Import / Export
 	["Import / Export"] = "Importar / Exportar",
 	["Export"] = "Exportar",
-	["A code with all your settings, to share with someone. Click the box (or the button) and press Ctrl+C to copy it. Your language, the minimap button and each character's missing buffs aren't in it."] =
-		"Um código com todas as tuas definições, para partilhar com alguém. Clica na caixa (ou no botão) e carrega em Ctrl+C para o copiar. A língua, o botão do minimapa e os buffs em falta de cada personagem não vão no código.",
+	["A code with all your settings, to share with someone. Click the box (or the button) and press Ctrl+C to copy it. Your language, the minimap button and the missing buffs aren't in it: those are each player's own."] =
+		"Um código com todas as tuas definições, para partilhar com alguém. Clica na caixa (ou no botão) e carrega em Ctrl+C para o copiar. A língua, o botão do minimapa e os buffs em falta não vão no código: são de cada jogador.",
 	["Your code"] = "O teu código",
 	["Select the code"] = "Selecionar o código",
 	["Press Ctrl+C to copy the code."] = "Carrega em Ctrl+C para copiar o código.",
@@ -150,8 +150,8 @@ ns.LOCALES.ptPT = {
 	["%d settings imported. Your previous settings were kept as a backup."] =
 		"%d definições importadas. As tuas definições anteriores ficaram guardadas numa cópia de segurança.",
 	["Backups"] = "Cópias de segurança",
-	["Copies of all your settings, to put back if you change something and don't like it. The last 10 are kept; one is also made by itself before an import or a restore."] =
-		"Cópias de todas as tuas definições, para repor se mudares alguma coisa e não gostares. Ficam guardadas as últimas 10; também é feita uma automaticamente antes de importar ou repor.",
+	["Copies of all your settings (but the missing buffs), to put back if you change something and don't like it. The last 10 are kept; one is also made by itself before an import or a restore."] =
+		"Cópias de todas as tuas definições (menos os buffs em falta), para repor se mudares alguma coisa e não gostares. Ficam guardadas as últimas 10; também é feita uma automaticamente antes de importar ou repor.",
 	["Create a backup"] = "Criar uma cópia de segurança",
 	["Name of the backup (optional)"] = "Nome da cópia (opcional)",
 	["Edit"] = "Editar",
@@ -253,4 +253,35 @@ ns.LOCALES.ptPT = {
 	["Hide the other spells"] = "Esconder os outros feitiços",
 	["Buffs read: %d. In combat: %s. Readable: %s."] = "Buffs lidos: %d. Em combate: %s. Legíveis: %s.",
 	["the buffs the addon can read on you now"] = "os buffs que o addon consegue ler em ti agora",
+	["Show the number when there are none"] = "Mostrar o número quando não há nenhum",
+	["The number on a conjured item's icon is how many your bags hold. Off, an item you have none of shows no number."] =
+		"O número no ícone de um item conjurado é quantos tens nas bags. Desligado, um item de que não tens nenhum não mostra número.",
+	["Number position"] = "Posição do número",
+	["Where the number of a conjured item goes on its icon."] = "Onde fica o número de um item conjurado no seu ícone.",
+	["Bottom right corner"] = "Canto inferior direito",
+	["Bottom left corner"] = "Canto inferior esquerdo",
+	["Top right corner"] = "Canto superior direito",
+	["Top left corner"] = "Canto superior esquerdo",
+
+	-- Cooldown numbers colored by the time left (Action Bars page)
+	["Color the numbers by the time left"] = "Colorir os números pelo tempo que falta",
+	["One color while the cooldown is long, another for its last seconds, so you see at a glance what's about to be ready."] =
+		"Uma cor enquanto o cooldown é longo e outra para os últimos segundos, para veres logo o que está quase pronto.",
+	["Long cooldown"] = "Cooldown longo",
+	["The color of the numbers until the last seconds."] = "A cor dos números até aos últimos segundos.",
+	["Last seconds"] = "Últimos segundos",
+	["The color of the numbers in the last seconds."] = "A cor dos números nos últimos segundos.",
+	["Last seconds from"] = "Últimos segundos a partir de",
+	["How many seconds before the end the color changes."] = "Quantos segundos antes do fim muda a cor.",
+
+	-- Click to conjure (Missing Buffs page)
+	["Click an icon to conjure the item"] = "Clicar num ícone para conjurar o item",
+	["A click on the icon of a missing conjured item casts the spell that makes it, with the best rank you know."] =
+		"Um clique no ícone de um item conjurado em falta lança o feitiço que o cria, com o melhor rank que sabes.",
+	["(Not in combat: Blizzard's API doesn't let addons change clickable buttons during a fight. An icon already on the screen when the fight starts still works; one that shows during it becomes clickable when the fight ends.)"] =
+		"(Não em combate: a API da Blizzard não deixa os addons mudar botões clicáveis durante uma luta. Um ícone que já esteja no ecrã quando a luta começa continua a funcionar; um que apareça durante a luta fica clicável quando ela acaba.)",
+	["Click an icon to cast the buff"] = "Clicar num ícone para lançar o buff",
+	["A click on the icon of a missing buff casts it on you, whoever you have targeted. For a family, the spell of the icon picked, else the one you used last."] =
+		"Um clique no ícone de um buff em falta lança-o em ti, seja quem for o teu alvo. Numa família, o feitiço do ícone escolhido ou, sem escolha, o último que usaste.",
+	["A click on each icon casts:"] = "Um clique em cada ícone lança:",
 }

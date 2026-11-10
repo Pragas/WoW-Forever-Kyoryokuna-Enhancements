@@ -13,7 +13,7 @@ local ROW_HEIGHT = 26
 
 ns.AddOptionsPage("Import / Export", function(b)
 	b:Header("Export")
-	b:Text("A code with all your settings, to share with someone. Click the box (or the button) and press Ctrl+C to copy it. Your language, the minimap button and each character's missing buffs aren't in it.", GREY)
+	b:Text("A code with all your settings, to share with someone. Click the box (or the button) and press Ctrl+C to copy it. Your language, the minimap button and the missing buffs aren't in it: those are each player's own.", GREY)
 	local exportBox = b:EditBox("Your code")
 	-- Always the settings as they are now (unless it's being copied)
 	b:AddControl({frame = exportBox, Refresh = function()
@@ -53,7 +53,7 @@ ns.AddOptionsPage("Import / Export", function(b)
 	end)
 
 	b:Header("Backups")
-	b:Text("Copies of all your settings, to put back if you change something and don't like it. The last 10 are kept; one is also made by itself before an import or a restore.", GREY)
+	b:Text("Copies of all your settings (but the missing buffs), to put back if you change something and don't like it. The last 10 are kept; one is also made by itself before an import or a restore.", GREY)
 	local nameBox = b:EditBox("Name of the backup (optional)", nil, 300)
 	nameBox:SetMaxLetters(ns.MAX_BACKUP_NAME)
 	local function Create()

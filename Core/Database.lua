@@ -10,6 +10,8 @@ local addonName, ns = ...
 
 local DB_VERSION = 1
 
+-- A new install starts with nothing turned on but the minimap button, in English: each player sets up
+-- what they want (settings already saved never change)
 ns.DEFAULTS = {
 	general = {
 		language = "enUS",
@@ -19,20 +21,20 @@ ns.DEFAULTS = {
 		minimapAngle = 250,
 	},
 
-	-- Dark mode (Modules\DarkMode.lua): off by default; how dark (%), and which parts of the interface
+	-- Dark mode (Modules\DarkMode.lua): how dark (%), and which parts of the interface
 	darkMode = {
 		enabled = false,
 		darkness = 80,
-		unitFrames = true,
-		actionBars = true,
-		castBars = true,
-		minimap = true,
-		tooltips = true,
-		objectives = true,
-		personalResource = true,
-		bags = true,
-		gameMenu = true,
-		groupFrames = true,
+		unitFrames = false,
+		actionBars = false,
+		castBars = false,
+		minimap = false,
+		tooltips = false,
+		objectives = false,
+		personalResource = false,
+		bags = false,
+		gameMenu = false,
+		groupFrames = false,
 	},
 
 	-- Action bars (Modules\ActionBars.lua): texts on the buttons, the size of the cooldown numbers (% of
@@ -41,6 +43,11 @@ ns.DEFAULTS = {
 		hideKeybinds = false,
 		hideMacroNames = false,
 		cooldownScale = 100,
+		-- The numbers colored by the time left: red while long, a toasted yellow in the last seconds
+		cooldownColors = false,
+		cooldownColorLong = {1, 0.2, 0.2},
+		cooldownColorShort = {0.85, 0.65, 0.13},
+		cooldownColorThreshold = 5,
 		keyPress = false,
 		keyPressStyle = "FLASH",
 		hideMicroMenuBorder = false,
@@ -54,16 +61,21 @@ ns.DEFAULTS = {
 
 	-- How long is left to accept a dungeon or battleground that's ready (Modules\QueueTimer.lua)
 	queueTimer = {
-		enabled = true,
-		bar = true,
+		enabled = false,
+		bar = false,
 	},
 
 	-- Missing buffs (Modules\MissingBuffs.lua), in two groups with a look and a place each (from the center
 	-- of the screen; the side they grow from stays there). What's watched is kept for each character, in
 	-- characters (see Validate).
 	missingBuffs = {
-		enabled = true,
+		enabled = false,
+		-- A click on a conjured item's icon casts the spell that makes it; on a buff's, the buff
+		clickToConjure = false,
+		clickToCast = false,
 	},
+	-- The number on an item's icon (how many the bags hold): hidden at 0 unless asked, in a corner or in
+	-- the middle
 	missingBuffsEssential = {
 		iconSize = 40,
 		alpha = 50,
@@ -71,6 +83,8 @@ ns.DEFAULTS = {
 		growth = "CENTER",
 		x = 0,
 		y = 180,
+		showZero = false,
+		countPosition = "BOTTOMRIGHT",
 	},
 	missingBuffsUtility = {
 		iconSize = 32,
@@ -79,17 +93,20 @@ ns.DEFAULTS = {
 		growth = "CENTER",
 		x = 0,
 		y = 130,
+		showZero = false,
+		countPosition = "BOTTOMRIGHT",
 	},
 }
 
 local GROUP_LIMITS = {iconSize = {20, 80}, alpha = {10, 100}, spacing = {0, 20}, x = {-1500, 1500}, y = {-1000, 1000}}
 local GROWTH = {CENTER = true, RIGHT = true, LEFT = true, UP = true, DOWN = true}
+local COUNT_POSITIONS = {BOTTOMRIGHT = true, BOTTOMLEFT = true, CENTER = true, TOPRIGHT = true, TOPLEFT = true}
 
 -- {minimum, maximum} of each number, by section
 ns.LIMITS = {
 	general = {minimapAngle = {0, 360}},
 	darkMode = {darkness = {5, 100}},
-	actionBars = {cooldownScale = {50, 200}},
+	actionBars = {cooldownScale = {50, 200}, cooldownColorThreshold = {1, 30}},
 	missingBuffsEssential = GROUP_LIMITS,
 	missingBuffsUtility = GROUP_LIMITS,
 }
@@ -99,8 +116,8 @@ ns.CHOICES = {
 	general = {language = {enUS = true, ptPT = true}},
 	actionBars = {keyPressStyle = {FLASH = true, BORDER = true}},
 	experienceBar = {texture = {FLAT = true, SMOOTH = true, CLASSIC = true, RAID = true}},
-	missingBuffsEssential = {growth = GROWTH},
-	missingBuffsUtility = {growth = GROWTH},
+	missingBuffsEssential = {growth = GROWTH, countPosition = COUNT_POSITIONS},
+	missingBuffsUtility = {growth = GROWTH, countPosition = COUNT_POSITIONS},
 }
 
 local function CopyValue(value)

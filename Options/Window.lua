@@ -250,6 +250,15 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 		for _, name in ipairs(scan.names) do
 			DEFAULT_CHAT_FRAME:AddMessage("  " .. name)
 		end
+		-- What a click on each icon casts: the spell and its exact ID (rank)
+		local casts = ns.MissingBuffs.CastInfo()
+		if #casts > 0 then
+			ns.Print(L["A click on each icon casts:"])
+			for _, cast in ipairs(casts) do
+				DEFAULT_CHAT_FRAME:AddMessage(string.format("  %s: %s (ID %s) %s", tostring(cast.label), tostring(cast.spell),
+					tostring(cast.id), cast.rank))
+			end
+		end
 	elseif command == "help" then
 		ns.Print(L["Commands:"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke - " .. L["open the options"])
