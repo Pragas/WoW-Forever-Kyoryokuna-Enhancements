@@ -88,6 +88,20 @@ ns.AddOptionsPage(PAGE, function(b)
 	b:Text("When something you chose is missing, its icon shows on the screen, grey and faded, in and out of combat (not while you're dead). Each thing goes to one of two groups, Essential or Utility, each with its own place and look.", GREY)
 	b:Check("missingBuffs.enabled", "Show what's missing")
 
+	-- First, so the groups can be put in place before setting the rest up
+	b:Header("Place on the screen")
+	local move = b:Button("Move", function() MB.SetMoving(not MB.IsMoving()) end,
+		"Shows both groups with a green frame: drag each where you want, then click again (closing the options also ends it).")
+	b:AddControl({frame = move, Refresh = function()
+		move:SetText(MB.IsMoving() and L["Done"] or L["Move"])
+	end})
+	b:Button("Reset position", function()
+		for _, section in ipairs({"missingBuffsEssential", "missingBuffsUtility"}) do
+			ns.Set(section .. ".x", ns.DEFAULTS[section].x)
+			ns.Set(section .. ".y", ns.DEFAULTS[section].y)
+		end
+	end, "Puts both groups back in their first place, above the middle of the screen.")
+
 	local suggested, items, others = MB.GetChoices()
 	b:Header(string.format(L["Buffs of %s (%s)"], MB.GetCharacterName(), MB.GetClassName()), true)
 	b:Text("Tick the buffs to watch, and pick their group. Buffs that can't be on together, like the armors of a mage, are one line: any of them is enough, and you can pick the icon. The same buff from someone else counts too.", GREY)
@@ -137,22 +151,10 @@ ns.AddOptionsPage(PAGE, function(b)
 		b:Dropdown(section .. ".growth", "Direction", GROWTH, "Where the icons go when more than one is missing. The side they grow from stays in place.", on)
 		b:Check(section .. ".showZero", "Show the number when there are none", "The number on a conjured item's icon is how many your bags hold. Off, an item you have none of shows no number.", on)
 		b:Dropdown(section .. ".countPosition", "Number position", COUNT_POSITIONS, "Where the number of a conjured item goes on its icon.", on)
+		b:Slider(section .. ".countSize", "Number size", 1, nil, "How big the number of a conjured item is on its icon.", on)
 	end
 	Look("Essential group", "missingBuffsEssential")
 	Look("Utility group", "missingBuffsUtility")
-
-	b:Header("Place on the screen")
-	local move = b:Button("Move", function() MB.SetMoving(not MB.IsMoving()) end,
-		"Shows both groups with a green frame: drag each where you want, then click again (closing the options also ends it).")
-	b:AddControl({frame = move, Refresh = function()
-		move:SetText(MB.IsMoving() and L["Done"] or L["Move"])
-	end})
-	b:Button("Reset position", function()
-		for _, section in ipairs({"missingBuffsEssential", "missingBuffsUtility"}) do
-			ns.Set(section .. ".x", ns.DEFAULTS[section].x)
-			ns.Set(section .. ".y", ns.DEFAULTS[section].y)
-		end
-	end, "Puts both groups back in their first place, above the middle of the screen.")
 
 	b:Header("Other spells")
 	b:Text("Every other spell of your spellbook, for a buff that isn't in the lists above.", GREY)

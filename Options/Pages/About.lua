@@ -21,9 +21,11 @@ ns.AddOptionsPage("About", function(b)
 	b:Text(ns.VERSION, nil, true)
 	b:Text("Author", LABEL)
 	b:Text(ns.AUTHOR, nil, true)
+	b:Button("See what's new", function() ns.ShowWhatsNew() end,
+		"The window of what's new in each version, and the known issues.")
 
 	b:Header("What it is")
-	b:Text("Kyoryokuna Enhancements brings small improvements to the game. It's just starting: its first features are on the way.", GREY)
+	b:Text("Kyoryokuna Enhancements brings small improvements to the game: the buffs and conjured items you're missing, action bars, the experience bar, the time left to enter a battleground, and a dark mode. Everything starts off, for you to turn on what you want.", GREY)
 
 	b:Header("Copyright")
 	b:Text(ns.COPYRIGHT, nil, true)

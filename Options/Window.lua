@@ -31,7 +31,7 @@ local function SelectPage(page)
 	page.button:LockHighlight()
 
 	if not page.scroll then
-		local scroll = CreateFrame("ScrollFrame", nil, window)
+		local scroll = CreateFrame("ScrollFrame", nil, window.body)
 		scroll:SetPoint("TOPLEFT", window, "TOPLEFT", NAV_WIDTH + 24, -48)
 		scroll:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -16, 16)
 		local content = CreateFrame("Frame", nil, scroll)
@@ -50,6 +50,91 @@ local function SelectPage(page)
 	page.scroll:SetVerticalScroll(0)
 	page.scroll:Show()
 	ns.Widgets.RefreshAll()
+end
+
+-- The buttons of the title bar (X, and minimize beside it): a small dark square with a thin grey border,
+-- lighter under the mouse, and the sign drawn in gold bars, so they never depend on a font or on the
+-- game's own textures.
+local BUTTON_SIZE = 24
+local SIGN_COLOR = {1, 0.82, 0, 1}
+
+local function SquareButton(parent)
+	local button = CreateFrame("Button", nil, parent)
+	button:SetSize(BUTTON_SIZE, BUTTON_SIZE)
+	local border = button:CreateTexture(nil, "BACKGROUND")
+	border:SetPoint("TOPLEFT", button, "TOPLEFT", 3, -3)
+	border:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -3, 3)
+	border:SetColorTexture(0.6, 0.6, 0.6, 1)
+	local fill = button:CreateTexture(nil, "BORDER")
+	fill:SetPoint("TOPLEFT", border, "TOPLEFT", 1, -1)
+	fill:SetPoint("BOTTOMRIGHT", border, "BOTTOMRIGHT", -1, 1)
+	fill:SetColorTexture(0.12, 0.12, 0.14, 1)
+	local highlight = button:CreateTexture(nil, "HIGHLIGHT")
+	highlight:SetAllPoints(fill)
+	highlight:SetColorTexture(1, 1, 1, 0.15)
+	button.fill = fill
+	return button
+end
+
+-- One bar of a sign, in the middle of the button, turned by an angle (in degrees)
+local function SignBar(button, width, height, angle)
+	local bar = button:CreateTexture(nil, "ARTWORK")
+	bar:SetSize(width, height)
+	bar:SetPoint("CENTER", button.fill, "CENTER", 0, 0)
+	bar:SetColorTexture(unpack(SIGN_COLOR))
+	if angle and bar.SetRotation then bar:SetRotation(math.rad(angle)) end
+	return bar
+end
+
+-- The X: two bars crossed
+local function CloseButton(parent)
+	local button = SquareButton(parent)
+	SignBar(button, 12, 2, 45)
+	SignBar(button, 12, 2, -45)
+	return button
+end
+
+-- Minimized: only the title bar with its buttons, to see and drag what's on the screen (e.g. the things
+-- the options move), as wide as before. The button beside the X shrinks it (a minus) and brings it back
+-- (a plus).
+local MINIMIZED_HEIGHT = 44
+
+local function StyleSizeButton(button, minimized)
+	if not button.horizontal then
+		button.horizontal = SignBar(button, 10, 2)
+		button.vertical = SignBar(button, 2, 10)
+	end
+	-- Minus while whole, plus while minimized
+	button.vertical:SetShown(minimized)
+end
+
+local function SetMinimized(minimized)
+	minimized = minimized and true or false
+	if not window or window.minimized == minimized then return end
+	window.minimized = minimized
+	ns.Widgets.ClosePopup()
+	-- Kept by its top left corner, so the title bar stays where it is
+	local left, top = window:GetLeft(), window:GetTop()
+	if left and top then
+		window:ClearAllPoints()
+		window:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+	end
+	window.body:SetShown(not minimized)
+	if minimized then
+		window:SetSize(WIDTH, MINIMIZED_HEIGHT)
+	else
+		window:SetSize(WIDTH, HEIGHT)
+	end
+	StyleSizeButton(window.sizeButton, minimized)
+	if GameTooltip:IsOwned(window.sizeButton) then window.sizeButton:GetScript("OnEnter")(window.sizeButton) end
+end
+
+function ns.IsOptionsMinimized()
+	return window ~= nil and window.minimized == true
+end
+
+function ns.SetOptionsMinimized(minimized)
+	SetMinimized(minimized)
 end
 
 local function CreateWindow()
@@ -85,20 +170,45 @@ local function CreateWindow()
 	version:SetPoint("LEFT", title, "RIGHT", 8, -1)
 	version:SetText("v" .. ns.VERSION)
 
-	local close = CreateFrame("Button", nil, window, "UIPanelCloseButton")
+	local close = CloseButton(window)
 	close:SetPoint("TOPRIGHT", window, "TOPRIGHT", -4, -4)
-	-- The template closes its parent with the game's panel system, which the game blocks for addons in
-	-- combat: it's simply hidden instead
+	-- Simply hidden: the game's panel system (HideUIPanel) is blocked for addons in combat
 	close:SetScript("OnClick", function() window:Hide() end)
 
-	local divider = window:CreateTexture(nil, "ARTWORK")
+	window.title, window.version = title, version
+
+	-- Beside the X: minimize ("-") and bring the window back ("+")
+	local size = SquareButton(window)
+	size:SetPoint("RIGHT", close, "LEFT", 2, 0)
+	size:SetScript("OnClick", function() SetMinimized(not window.minimized) end)
+	size:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		if window.minimized then
+			GameTooltip:SetText(L["Maximize"])
+			GameTooltip:AddLine(L["The window back to its full size."], 1, 1, 1, true)
+		else
+			GameTooltip:SetText(L["Minimize"])
+			GameTooltip:AddLine(L["Only the title bar stays, to see and drag what's on the screen."], 1, 1, 1, true)
+		end
+		GameTooltip:Show()
+	end)
+	size:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	window.sizeButton = size
+	window.minimized = false
+	StyleSizeButton(size, false)
+
+	-- What a minimized window hides: the list of pages and the pages
+	window.body = CreateFrame("Frame", nil, window)
+	window.body:SetAllPoints(window)
+
+	local divider = window.body:CreateTexture(nil, "ARTWORK")
 	divider:SetColorTexture(1, 1, 1, 0.12)
 	divider:SetWidth(1)
 	divider:SetPoint("TOPLEFT", window, "TOPLEFT", NAV_WIDTH + 12, -44)
 	divider:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", NAV_WIDTH + 12, 14)
 
 	for i, page in ipairs(pages) do
-		local button = CreateFrame("Button", nil, window)
+		local button = CreateFrame("Button", nil, window.body)
 		button:SetSize(NAV_WIDTH - 8, 26)
 		button:SetPoint("TOPLEFT", window, "TOPLEFT", 12, -46 - (i - 1) * 28)
 		button:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
@@ -118,9 +228,19 @@ function ns.OpenOptions()
 	if not ns.db then return end
 	if not window then CreateWindow() end
 	window:Show()
+	-- Opened again: always whole
+	SetMinimized(false)
 	local page = selectedPage or pages[1]
 	selectedPage = nil
 	SelectPage(page)
+	-- The first time, and after an update: the welcome window over it (Options\Welcome.lua)
+	if ns.CheckWelcome and not (window.welcome and window.welcome:IsShown()) then
+		ns.CheckWelcome(window)
+	end
+end
+
+function ns.GetOptionsWindow()
+	return window
 end
 
 -- A page made again (its content depends on something that changed, e.g. the spells of the character);

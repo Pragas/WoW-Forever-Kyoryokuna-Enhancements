@@ -1,0 +1,122 @@
+-- KyoryokunaEnhancements
+-- Copyright (c) 2026 Pragas. All Rights Reserved.
+-- See LICENSE for terms. Unauthorized copying, modification or redistribution is prohibited.
+
+-- What's new, for the welcome window (Options\Welcome.lua) and the chat message after an update, as in
+-- Kyoryokuna Plates.
+--
+-- The game can't read CHANGELOG.md, so each release gets short notes here, written for the player (the
+-- CHANGELOG stays the detailed record). Newest first; every new version adds its notes at the top, with
+-- their Portuguese in Locales\ptPT.lua.
+--
+-- The window shows:
+--   - the first time the addon is used: what the addon is, and how to start;
+--   - after an update: the notes of every version since the last one the player saw;
+--   - then never again until the next version (the version seen is saved).
+
+local _, ns = ...
+local L = ns.L
+
+ns.RELEASE_NOTES = {
+	{
+		version = "0.4.0",
+		new = {
+			"A welcome window: the first time you open the addon, and after each update with what's new and what was fixed.",
+			"A button beside the X of the options window shrinks it to its title bar, to see and drag what's on the screen, and brings it back.",
+			"Missing buffs: the size of the number on a conjured item's icon, and Move and Reset position at the top of the page.",
+		},
+	},
+	{
+		version = "0.3.1",
+		new = {
+			"Missing buffs: click an icon to conjure the item or to cast the buff (options; out of combat, a limit of the game).",
+			"Action bars: the cooldown numbers can change color by the time left.",
+			"The number on a conjured item's icon: hidden when there are none, and in any corner or in the middle.",
+		},
+		fixed = {
+			"A click on an icon could cast a lower rank of the spell: it now casts the highest one you know.",
+			"Missing buffs are no longer in the Import / Export code nor in the backups: they're each character's own.",
+		},
+	},
+	{
+		version = "0.3.0",
+		new = {
+			"Missing buffs: the buffs and conjured items your character should have, read from its spellbook, shown grey and faded on the screen while missing, in two groups (Essential and Utility) with their own place and look.",
+		},
+	},
+	{
+		version = "0.2.0",
+		new = {
+			"Action bars, experience bar, queue timer and dark mode, each on its own page.",
+			"Import / Export page: share your settings with a code, and keep backups to put back later.",
+		},
+	},
+}
+
+-- What isn't fixed: limits of the game itself, shown under the notes
+ns.KNOWN_ISSUES = {
+	"In combat the game may hide your buffs from addons: the missing buffs icons then stay as they were last known.",
+	"In combat the game doesn't let addons change clickable buttons: an icon that shows during a fight becomes clickable when it ends.",
+}
+
+-- "1.10.2" as three numbers
+local function Parse(version)
+	local a, b, c = tostring(version or ""):match("^(%d+)%.?(%d*)%.?(%d*)")
+	return tonumber(a) or 0, tonumber(b) or 0, tonumber(c) or 0
+end
+
+-- -1, 0 or 1 as version a is older, the same or newer than b
+function ns.CompareVersions(a, b)
+	local a1, a2, a3 = Parse(a)
+	local b1, b2, b3 = Parse(b)
+	if a1 ~= b1 then return a1 < b1 and -1 or 1 end
+	if a2 ~= b2 then return a2 < b2 and -1 or 1 end
+	if a3 ~= b3 then return a3 < b3 and -1 or 1 end
+	return 0
+end
+
+-- What the welcome window has to show now: "first" (a new install), "update" with the notes of the
+-- versions not seen yet (newest first), or nil
+function ns.GetWelcomeState()
+	if not ns.db or not ns.VERSION or not ns.VERSION:match("^%d") then return nil end
+	if ns.db.firstWelcome then return "first", {} end
+	local seen = ns.db.seenVersion
+	if type(seen) ~= "string" then
+		-- Used before this window existed: the notes of this version
+		seen = nil
+	elseif ns.CompareVersions(seen, ns.VERSION) >= 0 then
+		return nil
+	end
+	local notes = {}
+	for _, entry in ipairs(ns.RELEASE_NOTES) do
+		local newerThanSeen = not seen and ns.CompareVersions(entry.version, ns.VERSION) == 0
+			or seen and ns.CompareVersions(entry.version, seen) > 0
+		if newerThanSeen and ns.CompareVersions(entry.version, ns.VERSION) <= 0 then
+			notes[#notes + 1] = entry
+		end
+	end
+	return "update", notes
+end
+
+-- The OK of the window: not shown again until the next version
+function ns.MarkWelcomeSeen()
+	if not ns.db then return end
+	ns.db.seenVersion = ns.VERSION
+	ns.db.firstWelcome = nil
+end
+
+-- In the chat once per session, a few seconds after logging in (after the game's own messages)
+local told = false
+ns.RegisterEvent("PLAYER_ENTERING_WORLD", function()
+	if told then return end
+	told = true
+	local function Tell()
+		local state = ns.GetWelcomeState()
+		if state == "first" then
+			ns.Print(L["Thanks for installing! Type /ke to open the options."])
+		elseif state == "update" then
+			ns.Print(string.format(L["Updated to version %s. Type /ke to see what's new."], ns.VERSION))
+		end
+	end
+	if C_Timer and C_Timer.After then C_Timer.After(5, function() ns.SafeCall(Tell) end) else Tell() end
+end)

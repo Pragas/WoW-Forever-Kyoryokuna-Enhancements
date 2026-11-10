@@ -75,7 +75,7 @@ ns.DEFAULTS = {
 		clickToCast = false,
 	},
 	-- The number on an item's icon (how many the bags hold): hidden at 0 unless asked, in a corner or in
-	-- the middle
+	-- the middle, with a size of its own
 	missingBuffsEssential = {
 		iconSize = 40,
 		alpha = 50,
@@ -85,6 +85,7 @@ ns.DEFAULTS = {
 		y = 180,
 		showZero = false,
 		countPosition = "BOTTOMRIGHT",
+		countSize = 14,
 	},
 	missingBuffsUtility = {
 		iconSize = 32,
@@ -95,10 +96,11 @@ ns.DEFAULTS = {
 		y = 130,
 		showZero = false,
 		countPosition = "BOTTOMRIGHT",
+		countSize = 14,
 	},
 }
 
-local GROUP_LIMITS = {iconSize = {20, 80}, alpha = {10, 100}, spacing = {0, 20}, x = {-1500, 1500}, y = {-1000, 1000}}
+local GROUP_LIMITS = {iconSize = {20, 80}, alpha = {10, 100}, spacing = {0, 20}, countSize = {8, 40}, x = {-1500, 1500}, y = {-1000, 1000}}
 local GROWTH = {CENTER = true, RIGHT = true, LEFT = true, UP = true, DOWN = true}
 local COUNT_POSITIONS = {BOTTOMRIGHT = true, BOTTOMLEFT = true, CENTER = true, TOPRIGHT = true, TOPLEFT = true}
 
@@ -279,6 +281,9 @@ ns.RegisterEvent("ADDON_LOADED", function(_, loadedName)
 	if type(KyoryokunaEnhancementsDB) ~= "table" then
 		KyoryokunaEnhancementsDB = {}
 	end
+	-- Nothing saved yet: the addon's first use. The welcome window then says what the addon is, until
+	-- its OK is clicked (Core\ReleaseNotes.lua)
+	if KyoryokunaEnhancementsDB.version == nil then KyoryokunaEnhancementsDB.firstWelcome = true end
 	Validate(KyoryokunaEnhancementsDB)
 	ns.db = KyoryokunaEnhancementsDB
 	ns.language = ns.db.general.language

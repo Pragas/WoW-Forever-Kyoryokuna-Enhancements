@@ -8,6 +8,17 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.4.0
+
+- A welcome window over the options, as in Kyoryokuna Plates: the first time the addon is opened (what it is, how to start), and after each update (what's new and what was fixed in every version since the last one seen), with the known issues (limits of the game itself) under it. Its OK shows the first page, and it doesn't come back until the next version. The About page has a "See what's new" button to show it again. After an update, a message in the chat a few seconds after logging in says so (on the first install, how to open the options). The notes are short texts for the player (Core\ReleaseNotes.lua), in English and Portuguese.
+- About page: "What it is" now says what the addon does.
+- Queue page: its text no longer speaks of dungeons. WoW Forever has no dungeon finder (groups are made by hand and walk in), so only battlegrounds, which do have a queue, show the time left.
+
+- Missing buffs, each group's look: "Number size", the size of the number on a conjured item's icon (14 by default, as before; 8 to 40).
+- Missing buffs page: "Place on the screen" (Move, Reset position) is now right under "Show what's missing", so the groups can be put in place first and then set up.
+- Options window: a button beside the X (a minus) shrinks the window to its title bar, so what's on the screen (e.g. the missing buffs groups while moving them) can be seen and dragged; the same button (now a plus) brings it back as it was. The title bar stays where it is, and can still be dragged. Moving the missing buffs goes on while it's minimized. The window always opens whole. It keeps its width: only its height shrinks.
+- Options window: the X has the same new look as the minimize button beside it, a small dark square with a gold sign.
+
 ## 0.3.1
 
 - Fixed: a click on an icon could cast a lower rank (e.g. Conjure Water rank 3 with rank 4 known). A new rank of a spell already known (same name) wasn't noticed until a /reload, and the "highest" rank was the last one listed in the spellbook, which doesn't always list them in order. Now a conjured item's rank is found from the addon's list of ranks (checked on Wowhead), from the highest down, asking the game which one the character knows; a buff's rank comes from the spellbook (or the text under the spell's name). The list follows a new rank at once, and a click casts that exact rank (by its ID). `/ke buffscan` also shows what a click on each icon casts, with its ID.

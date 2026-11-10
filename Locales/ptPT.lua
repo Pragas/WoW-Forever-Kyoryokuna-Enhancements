@@ -56,8 +56,8 @@ ns.LOCALES.ptPT = {
 	["Version"] = "Versão",
 	["Author"] = "Autor",
 	["What it is"] = "O que é",
-	["Kyoryokuna Enhancements brings small improvements to the game. It's just starting: its first features are on the way."] =
-		"O Kyoryokuna Enhancements traz pequenas melhorias ao jogo. Está a começar: as primeiras funcionalidades estão a caminho.",
+	["Kyoryokuna Enhancements brings small improvements to the game: the buffs and conjured items you're missing, action bars, the experience bar, the time left to enter a battleground, and a dark mode. Everything starts off, for you to turn on what you want."] =
+		"O Kyoryokuna Enhancements traz pequenas melhorias ao jogo: os buffs e itens conjurados que te faltam, as barras de ações, a barra de experiência, o tempo que falta para entrar numa battleground, e um modo escuro. Tudo começa desligado, para ligares o que quiseres.",
 	["Copyright"] = "Copyright",
 	["This addon may be used freely for personal use. Copying, modifying or redistributing its code, in whole or in part, is not allowed without written permission from the author. See the LICENSE file for the full terms."] =
 		"Este addon pode ser usado livremente para uso pessoal. Não é permitido copiar, modificar ou redistribuir o seu código, no todo ou em parte, sem autorização escrita do autor. Vê o ficheiro LICENSE para os termos completos.",
@@ -123,8 +123,8 @@ ns.LOCALES.ptPT = {
 
 	-- Queue
 	["Time left to accept"] = "Tempo para aceitar",
-	["When a dungeon (dungeon finder) or a battleground is ready, the game's window to enter it shows how long is left to accept: green, then yellow from 20 seconds, red from 10."] =
-		"Quando uma dungeon (dungeon finder) ou uma battleground fica pronta, a janela do jogo para entrar mostra quanto tempo falta para aceitar: verde, depois amarelo a partir dos 20 segundos e vermelho a partir dos 10.",
+	["When a battleground is ready, the game's window to enter it shows how long is left to accept: green, then yellow from 20 seconds, red from 10."] =
+		"Quando uma battleground fica pronta, a janela do jogo para entrar mostra quanto tempo falta para aceitar: verde, depois amarelo a partir dos 20 segundos e vermelho a partir dos 10.",
 	["Show the time left"] = "Mostrar o tempo que falta",
 	["With a bar that empties"] = "Com uma barra que vai esvaziando",
 	["Under the game's window."] = "Por baixo da janela do jogo.",
@@ -258,6 +258,8 @@ ns.LOCALES.ptPT = {
 		"O número no ícone de um item conjurado é quantos tens nas bags. Desligado, um item de que não tens nenhum não mostra número.",
 	["Number position"] = "Posição do número",
 	["Where the number of a conjured item goes on its icon."] = "Onde fica o número de um item conjurado no seu ícone.",
+	["Number size"] = "Tamanho do número",
+	["How big the number of a conjured item is on its icon."] = "O tamanho do número de um item conjurado no seu ícone.",
 	["Bottom right corner"] = "Canto inferior direito",
 	["Bottom left corner"] = "Canto inferior esquerdo",
 	["Top right corner"] = "Canto superior direito",
@@ -284,4 +286,56 @@ ns.LOCALES.ptPT = {
 	["A click on the icon of a missing buff casts it on you, whoever you have targeted. For a family, the spell of the icon picked, else the one you used last."] =
 		"Um clique no ícone de um buff em falta lança-o em ti, seja quem for o teu alvo. Numa família, o feitiço do ícone escolhido ou, sem escolha, o último que usaste.",
 	["A click on each icon casts:"] = "Um clique em cada ícone lança:",
+	-- The options window, minimized
+	["Minimize"] = "Minimizar",
+	["Maximize"] = "Maximizar",
+	["Only the title bar stays, to see and drag what's on the screen."] = "Fica só a barra do título, para veres e arrastares o que está no ecrã.",
+	["The window back to its full size."] = "A janela volta ao tamanho inteiro.",
+	-- The welcome window and what's new
+	["OK"] = "OK",
+	["Version %s"] = "Versão %s",
+	["Getting started"] = "Para começar",
+	["What's new in %s"] = "Novidades da %s",
+	["New"] = "Novo",
+	["Fixed"] = "Corrigido",
+	["Known issues"] = "Problemas conhecidos",
+	["Limits of the game itself, which no addon can get around:"] = "Limites do próprio jogo, que nenhum addon consegue contornar:",
+	["See what's new"] = "Ver as novidades",
+	["The window of what's new in each version, and the known issues."] =
+		"A janela das novidades de cada versão, e os problemas conhecidos.",
+	["Thanks for installing! Type /ke to open the options."] = "Obrigado por instalares! Escreve /ke para abrir as opções.",
+	["Updated to version %s. Type /ke to see what's new."] = "Atualizado para a versão %s. Escreve /ke para veres as novidades.",
+	["Each page on the left is one feature: turn it on at the top of its page, then set it up."] =
+		"Cada página à esquerda é uma funcionalidade: liga-a no topo da página e depois configura-a.",
+	["Missing Buffs: tick what your character should always have, then Move to put the icons in place (the button beside the X shrinks this window meanwhile)."] =
+		"Buffs em falta: marca o que a tua personagem deve ter sempre e depois Mover para pôr os ícones no sítio (entretanto, o botão ao lado do X encolhe esta janela).",
+	["Import / Export keeps backups of your settings and shares them with a code."] =
+		"O Importar / Exportar guarda cópias das tuas definições e partilha-as com um código.",
+	-- Release notes
+	["A welcome window: the first time you open the addon, and after each update with what's new and what was fixed."] =
+		"Uma janela de boas-vindas: da primeira vez que abres o addon, e depois de cada atualização com as novidades e o que foi corrigido.",
+	["A button beside the X of the options window shrinks it to its title bar, to see and drag what's on the screen, and brings it back."] =
+		"Um botão ao lado do X da janela das opções encolhe-a até à barra do título, para veres e arrastares o que está no ecrã, e volta a abri-la.",
+	["Missing buffs: the size of the number on a conjured item's icon, and Move and Reset position at the top of the page."] =
+		"Buffs em falta: o tamanho do número no ícone de um item conjurado, e Mover e Repor a posição no topo da página.",
+	["Missing buffs: click an icon to conjure the item or to cast the buff (options; out of combat, a limit of the game)."] =
+		"Buffs em falta: clicar num ícone para conjurar o item ou lançar o buff (opções; fora de combate, um limite do jogo).",
+	["Action bars: the cooldown numbers can change color by the time left."] =
+		"Barras de ações: os números dos cooldowns podem mudar de cor com o tempo que falta.",
+	["The number on a conjured item's icon: hidden when there are none, and in any corner or in the middle."] =
+		"O número no ícone de um item conjurado: escondido quando não há nenhum, e em qualquer canto ou ao centro.",
+	["A click on an icon could cast a lower rank of the spell: it now casts the highest one you know."] =
+		"Um clique num ícone podia lançar um rank mais baixo do feitiço: agora lança o mais alto que conheces.",
+	["Missing buffs are no longer in the Import / Export code nor in the backups: they're each character's own."] =
+		"Os buffs em falta já não vão no código de Importar / Exportar nem nas cópias: são de cada personagem.",
+	["Missing buffs: the buffs and conjured items your character should have, read from its spellbook, shown grey and faded on the screen while missing, in two groups (Essential and Utility) with their own place and look."] =
+		"Buffs em falta: os buffs e itens conjurados que a tua personagem deve ter, lidos do seu spellbook, mostrados a cinzento e desvanecidos no ecrã enquanto faltam, em dois grupos (Essenciais e Utilidade) com sítio e aspeto próprios.",
+	["Action bars, experience bar, queue timer and dark mode, each on its own page."] =
+		"Barras de ações, barra de experiência, temporizador da fila e modo escuro, cada um na sua página.",
+	["Import / Export page: share your settings with a code, and keep backups to put back later."] =
+		"Página Importar / Exportar: partilha as tuas definições com um código, e guarda cópias para repor mais tarde.",
+	["In combat the game may hide your buffs from addons: the missing buffs icons then stay as they were last known."] =
+		"Em combate o jogo pode esconder os teus buffs dos addons: os ícones dos buffs em falta ficam então como estavam da última vez.",
+	["In combat the game doesn't let addons change clickable buttons: an icon that shows during a fight becomes clickable when it ends."] =
+		"Em combate o jogo não deixa os addons mudar botões clicáveis: um ícone que aparece durante um combate passa a ser clicável quando ele acaba.",
 }

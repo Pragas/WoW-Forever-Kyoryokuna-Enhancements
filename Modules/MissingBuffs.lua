@@ -557,6 +557,8 @@ local function GetIcon(group, index)
 	-- How many of an item there are
 	icon.count = icon:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
 	icon.count:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -2, 2)
+	-- The game's number font and its outline, kept to give it the size of the settings
+	icon.countFont, _, icon.countFlags = icon.count:GetFont()
 	list[index] = icon
 	return icon
 end
@@ -589,6 +591,7 @@ local function Layout(group, shown)
 		local point = COUNT_OFFSETS[settings.countPosition] and settings.countPosition or "BOTTOMRIGHT"
 		local offset = COUNT_OFFSETS[point]
 		icon.count:SetPoint(point, icon, point, offset[1], offset[2])
+		icon.count:SetFont(icon.countFont or STANDARD_TEXT_FONT or "Fonts\\ARIALN.TTF", settings.countSize, icon.countFlags or "OUTLINE")
 		icon:SetAlpha(settings.alpha / 100)
 		icon:Show()
 	end
