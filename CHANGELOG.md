@@ -8,6 +8,23 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.5.0
+
+- New "Supplies" page (third in the list): macros of food and drink, made and kept up to date by the addon. Each character ticks the ones it wants (none at first; kept for that character, not in Import / Export):
+  - "KE Food": eats the best food in the bags; "KE Drink": drinks the best drink; "KE Food+Drink": both at once (sitting, both bars fill together), with the food's icon or the drink's ("Icon" beside it; the food's by default). Named in the addon's language (KE Comida, KE Água, KE Comida+Água in Portuguese).
+  - Any food or drink counts, bought, looted or conjured, for every class: an item is food or drink by the spell it casts when used ("Food" or "Drink", in the game's language). The best is the one with the highest level needed that the character can already use, conjured first when even; when it runs out, the next one.
+  - Food that makes you well fed (its tooltip says so) is left in the bags, unless "Use food with a buff too" is on.
+  - With nothing in the bags, a mage's macro conjures more with the highest rank known (water first for the one that does both), through a hidden button that casts that exact rank; anyone else's says in the chat there's none.
+  - The macros are this character's (/macro), dragged to an action bar once. The addon rewrites them as the bags change, at a new level, with a new spell, and renames them with the language. Blizzard's API doesn't let addons change macros in combat: they follow when the fight ends. A macro unticked is deleted. With no room in the character's macros (18), the chat says so.
+  - Beside each one ticked, "Pick up" puts the macro on the mouse, to click an empty slot of an action bar: no need to open the macros window. The page also shows what the macros use now, and a button opens the macros window.
+
+- New "Proc Alerts" page (phase 1, the mage): when a proc happens, the game's own spell alert art shows on the sides of the character, as in the newer game. Based on SpellActivationOverlay, by ennvina (MIT License; credited on the About page and in LICENSE), made again for WoW Forever only.
+  - Mage: Missile Barrage (Arcane Missiles art on both sides), Clearcasting (an arc on both sides, no pulse), Fingers of Frost (one charge on the left, two on both sides) and Heating Up (grows with its stacks; at 3, Hot Streak, it's whole and pulses). Each one ticked on its own (all off at first). Ice Barrier, which only lights its button, comes with the glowing buttons (phase 3).
+  - In combat WoW Forever hides many auras from addons. For those (the game says which, C_Secrets), the addon asks the game's own AuraContainer to show the art while the aura is there with the stacks asked for, so the alerts keep working in combat. Auras the addon can read are shown by the addon itself.
+  - Look: size (50% to 200%), distance between the sides, height, opacity (80% by default) and the pulse (off at first). "Test" shows each proc of the class in turn with its name, shrinking the options meanwhile.
+  - The page warns when the game's own spell alerts (Spell Alert Opacity) are on, with a button to turn them off, and when SpellActivationOverlay is on: either would show the alerts twice.
+  - The art is the game's own (file IDs): the addon ships none.
+
 ## 0.4.0
 
 - A welcome window over the options, as in Kyoryokuna Plates: the first time the addon is opened (what it is, how to start), and after each update (what's new and what was fixed in every version since the last one seen), with the known issues (limits of the game itself) under it. Its OK shows the first page, and it doesn't come back until the next version. The About page has a "See what's new" button to show it again. After an update, a message in the chat a few seconds after logging in says so (on the first install, how to open the options). The notes are short texts for the player (Core\ReleaseNotes.lua), in English and Portuguese.

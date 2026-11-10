@@ -1,0 +1,50 @@
+<!--
+	KyoryokunaEnhancements
+	Copyright (c) 2026 Pragas. All Rights Reserved.
+
+	The frame the game's AuraContainer fills for each proc alert while the game hides the aura from addons
+	(Modules\ProcAlerts.lua). Its layout follows SpellActivationOverlay's SAOAuraButtonTemplate, by ennvina,
+	used under the MIT License (see LICENSE, "Third-party notices"): the game shows the application bar
+	(and so the art on it) only while the aura is there with the stacks asked for.
+-->
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<!-- An alert drawn by the addon itself (an aura it can read): the art, and a slow pulse -->
+	<Frame name="KyoryokunaEnhancementsProcOverlayTemplate" virtual="true">
+		<Animations>
+			<AnimationGroup parentKey="pulse" looping="REPEAT">
+				<Scale scaleX="1.08" scaleY="1.08" duration="0.5" smoothing="IN_OUT" order="1"/>
+				<Scale scaleX="0.9259" scaleY="0.9259" duration="0.5" smoothing="IN_OUT" order="2"/>
+			</AnimationGroup>
+		</Animations>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="art" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+	</Frame>
+	<Frame name="KyoryokunaEnhancementsProcAuraTemplate" virtual="true">
+		<Frames>
+			<Frame parentKey="pulsableItem" setAllPoints="true">
+				<Animations>
+					<AnimationGroup parentKey="pulse" looping="REPEAT">
+						<Scale scaleX="1.08" scaleY="1.08" duration="0.5" smoothing="IN_OUT" order="1"/>
+						<Scale scaleX="0.9259" scaleY="0.9259" duration="0.5" smoothing="IN_OUT" order="2"/>
+					</AnimationGroup>
+				</Animations>
+				<Frames>
+					<StatusBar parentKey="applicationBar" setAllPoints="true" hidden="true" clipChildren="false" fillStyle="Standard">
+						<Frames>
+							<Cooldown parentKey="cooldown" inherits="CooldownFrameTemplate" setAllPoints="true" drawBling="false" drawEdge="false" drawSwipe="false" hideCountdownNumbers="true" reverse="true"/>
+						</Frames>
+						<Layers>
+							<Layer level="OVERLAY">
+								<Texture parentKey="art" setAllPoints="true"/>
+							</Layer>
+						</Layers>
+					</StatusBar>
+				</Frames>
+			</Frame>
+		</Frames>
+	</Frame>
+</Ui>

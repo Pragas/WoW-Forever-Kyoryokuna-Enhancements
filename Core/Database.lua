@@ -74,6 +74,27 @@ ns.DEFAULTS = {
 		clickToConjure = false,
 		clickToCast = false,
 	},
+	-- Supplies (Modules\Supplies.lua): which macros each character wants is kept with it, in characters;
+	-- whether food with a buff counts is shared
+	supplies = {
+		buffFood = false,
+		-- The icon of the macro that eats and drinks: the food's or the drink's
+		bothIcon = "FOOD",
+	},
+	-- Proc alerts (Modules\ProcAlerts.lua): the art's size (%), the distance between the sides, its height
+	-- from the middle of the screen, its opacity (%), the pulse, and each proc on or off
+	procAlerts = {
+		enabled = false,
+		size = 100,
+		distance = 0,
+		y = 0,
+		opacity = 80,
+		pulse = false,
+		missileBarrage = false,
+		clearcasting = false,
+		fingersOfFrost = false,
+		heatingUp = false,
+	},
 	-- The number on an item's icon (how many the bags hold): hidden at 0 unless asked, in a corner or in
 	-- the middle, with a size of its own
 	missingBuffsEssential = {
@@ -109,6 +130,7 @@ ns.LIMITS = {
 	general = {minimapAngle = {0, 360}},
 	darkMode = {darkness = {5, 100}},
 	actionBars = {cooldownScale = {50, 200}, cooldownColorThreshold = {1, 30}},
+	procAlerts = {size = {50, 200}, distance = {-100, 400}, y = {-400, 400}, opacity = {10, 100}},
 	missingBuffsEssential = GROUP_LIMITS,
 	missingBuffsUtility = GROUP_LIMITS,
 }
@@ -120,6 +142,7 @@ ns.CHOICES = {
 	experienceBar = {texture = {FLAT = true, SMOOTH = true, CLASSIC = true, RAID = true}},
 	missingBuffsEssential = {growth = GROWTH, countPosition = COUNT_POSITIONS},
 	missingBuffsUtility = {growth = GROWTH, countPosition = COUNT_POSITIONS},
+	supplies = {bothIcon = {FOOD = true, DRINK = true}},
 }
 
 local function CopyValue(value)
@@ -197,6 +220,11 @@ local function Validate(db)
 				if type(buff) ~= "string" or type(name) ~= "string" then entry.lastSeen[buff] = nil end
 			end
 			if entry.copyOffered ~= true then entry.copyOffered = nil end
+			-- The macros of food and drink it wants (Modules\Supplies.lua)
+			if type(entry.supplies) ~= "table" then entry.supplies = {} end
+			for key, on in pairs(entry.supplies) do
+				if (key ~= "FOOD" and key ~= "DRINK" and key ~= "BOTH") or on ~= true then entry.supplies[key] = nil end
+			end
 		end
 	end
 	db.version = DB_VERSION
@@ -256,6 +284,9 @@ function ns.OnSettingChanged(path)
 	if path:find("^queueTimer%.") and ns.QueueTimer then ns.QueueTimer.Refresh() end
 	-- missingBuffs, missingBuffsEssential, missingBuffsUtility
 	if path:find("^missingBuffs") and ns.MissingBuffs then ns.MissingBuffs.Update() end
+	if path:find("^procAlerts%.") and ns.ProcAlerts then ns.ProcAlerts.Update() end
+	-- A new language renames the macros
+	if (path:find("^supplies%.") or path == "general.language") and ns.Supplies then ns.Supplies.Update() end
 	if ns.RefreshOptions then ns.RefreshOptions() end
 end
 
@@ -271,6 +302,8 @@ function ns.OnAllSettingsChanged()
 	if ns.ExperienceBar then ns.ExperienceBar.Apply() end
 	if ns.QueueTimer then ns.QueueTimer.Refresh() end
 	if ns.MissingBuffs then ns.MissingBuffs.Update() end
+	if ns.Supplies then ns.Supplies.Update() end
+	if ns.ProcAlerts then ns.ProcAlerts.Update() end
 	if ns.RefreshOptions then ns.RefreshOptions() end
 end
 

@@ -27,6 +27,9 @@ ns.AddOptionsPage("About", function(b)
 	b:Header("What it is")
 	b:Text("Kyoryokuna Enhancements brings small improvements to the game: the buffs and conjured items you're missing, action bars, the experience bar, the time left to enter a battleground, and a dark mode. Everything starts off, for you to turn on what you want.", GREY)
 
+	b:Header("Credits")
+	b:Text("The proc alerts are based on SpellActivationOverlay, by ennvina, used under the MIT License (see the LICENSE file).", GREY)
+
 	b:Header("Copyright")
 	b:Text(ns.COPYRIGHT, nil, true)
 	b:Text("This addon may be used freely for personal use. Copying, modifying or redistributing its code, in whole or in part, is not allowed without written permission from the author. See the LICENSE file for the full terms.", GREY)

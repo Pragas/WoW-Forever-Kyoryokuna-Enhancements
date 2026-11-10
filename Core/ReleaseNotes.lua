@@ -19,6 +19,13 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.5.0",
+		new = {
+			"Supplies (new page): macros that eat and drink the best food and drink in your bags, kept up to date by the addon: food only, drink only, or both at once. A mage's conjures more when there's none.",
+			"Proc Alerts (new page): the game's spell alert art on the sides of your character when a proc happens, in combat too. For now the mage's: Missile Barrage, Clearcasting, Fingers of Frost and Heating Up.",
+		},
+	},
+	{
 		version = "0.4.0",
 		new = {
 			"A welcome window: the first time you open the addon, and after each update with what's new and what was fixed.",

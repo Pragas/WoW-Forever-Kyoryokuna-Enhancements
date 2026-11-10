@@ -338,4 +338,81 @@ ns.LOCALES.ptPT = {
 		"Em combate o jogo pode esconder os teus buffs dos addons: os ícones dos buffs em falta ficam então como estavam da última vez.",
 	["In combat the game doesn't let addons change clickable buttons: an icon that shows during a fight becomes clickable when it ends."] =
 		"Em combate o jogo não deixa os addons mudar botões clicáveis: um ícone que aparece durante um combate passa a ser clicável quando ele acaba.",
+	-- Supplies
+	["Supplies"] = "Mantimentos",
+	["Food and drink macros"] = "Macros de comida e bebida",
+	["Macros of this character that eat and drink the best food and drink in your bags, bought, looted or conjured. Tick the ones you want: the addon makes each macro for you. Then click its \"Pick up\" and click an empty slot of an action bar to place it. That's all: the addon keeps it up to date by itself as your bags change (the strongest you can use; when it runs out, the next one)."] =
+		"Macros desta personagem que comem e bebem a melhor comida e bebida das tuas bags, comprada, de loot ou conjurada. Marca as que queres: o addon cria cada macro por ti. Depois carrega no seu \"Pegar\" e clica num lugar vazio de uma barra de ações para a pôr lá. É só isso: o addon mantém-na atualizada sozinho à medida que as bags mudam (a mais forte que podes usar; quando acaba, a seguinte).",
+	["Pick up"] = "Pegar",
+	["The icon of this macro on your action bar: the food's or the drink's."] = "O ícone desta macro na tua barra de ações: o da comida ou o da bebida.",
+	["Puts the macro on your mouse: click an empty slot of an action bar to place it there. No need to open the macros window."] =
+		"Põe a macro no rato: clica num lugar vazio de uma barra de ações para a pôr lá. Não precisas de abrir a janela das macros.",
+	["Food only"] = "Só comida",
+	["Drink only"] = "Só bebida",
+	["Food and drink"] = "Comida e bebida",
+	["Eats the best food in your bags (health)."] = "Come a melhor comida das tuas bags (vida).",
+	["Drinks the best drink in your bags (mana)."] = "Bebe a melhor bebida das tuas bags (mana).",
+	["Eats and drinks at once, each the best you have: both bars fill together while you sit."] =
+		"Come e bebe ao mesmo tempo, cada uma a melhor que tens: as duas barras enchem juntas enquanto estás sentado.",
+	["KE Food"] = "KE Comida",
+	["KE Drink"] = "KE Água",
+	["KE Food+Drink"] = "KE Comida+Água",
+	["Kept for this character only: a warrior may want only the food, a mage all three. A macro unticked is deleted. With nothing in your bags, a mage's macro conjures more (your highest rank); anyone else's says there's none."] =
+		"Guardado só para esta personagem: um warrior pode querer só a comida, um mage as três. Uma macro desmarcada é apagada. Sem nada nas bags, a macro de um mage conjura mais (o teu rank mais alto); a dos outros diz que não há.",
+	["(Not in combat: Blizzard's API doesn't let addons change macros during a fight. They follow when it ends, and nobody can eat or drink in combat anyway.)"] =
+		"(Não em combate: a API da Blizzard não deixa os addons mudar macros durante um combate. Atualizam-se quando ele acaba, e em combate ninguém pode comer nem beber.)",
+	["Food with a buff"] = "Comida com buff",
+	["Use food with a buff too"] = "Usar também comida com buff",
+	["Food that makes you well fed (more stamina, spirit...) is usually kept for raids and dungeons. Off, the macros leave it in your bags."] =
+		"A comida que te deixa well fed (mais stamina, spirit...) costuma ser guardada para raids e dungeons. Desligado, as macros deixam-na nas bags.",
+	["Now"] = "Agora",
+	["What the macros use now:"] = "O que as macros usam agora:",
+	["Food"] = "Comida",
+	["Drink"] = "Bebida",
+	["none in your bags"] = "nenhuma nas bags",
+	["Open the macros window"] = "Abrir a janela das macros",
+	["To drag the macros to your action bars (also with /macro)."] = "Para arrastares as macros para as barras de ações (também com /macro).",
+	["No food in your bags."] = "Não tens comida nas bags.",
+	["No drink in your bags."] = "Não tens bebida nas bags.",
+	["No food or drink in your bags."] = "Não tens comida nem bebida nas bags.",
+	["Supplies: no room for its macros. Free a slot in this character's macros (/macro), then type /reload."] =
+		"Mantimentos: não há espaço para as macros. Liberta um lugar nas macros desta personagem (/macro) e escreve /reload.",
+	["Supplies (new page): macros that eat and drink the best food and drink in your bags, kept up to date by the addon: food only, drink only, or both at once. A mage's conjures more when there's none."] =
+		"Mantimentos (página nova): macros que comem e bebem a melhor comida e bebida das tuas bags, mantidas atualizadas pelo addon: só comida, só bebida, ou as duas de uma vez. A de um mage conjura mais quando não há.",
+	-- Proc alerts
+	["Proc Alerts"] = "Alertas de procs",
+	["Proc alerts"] = "Alertas de procs",
+	["When one of your procs happens (e.g. Fingers of Frost), the game's spell alert art shows on the sides of your character, as in the newer game. It works in combat too: when the game hides an aura from addons, the game itself shows the art."] =
+		"Quando um dos teus procs acontece (por exemplo, Fingers of Frost), a arte dos alertas de feitiços do jogo aparece dos lados da tua personagem, como no jogo mais recente. Funciona também em combate: quando o jogo esconde uma aura dos addons, é o próprio jogo que mostra a arte.",
+	["Show proc alerts"] = "Mostrar os alertas de procs",
+	["The game's own spell alerts are on (Options > Combat > Spell Alert Opacity): some procs would show twice."] =
+		"Os alertas de feitiços do próprio jogo estão ligados (Opções > Combate > Spell Alert Opacity): alguns procs iam aparecer duas vezes.",
+	["Turn off the game's spell alerts"] = "Desligar os alertas do jogo",
+	["Sets the game's Spell Alert Opacity to off. It can be turned on again in the game's options."] =
+		"Desliga a Spell Alert Opacity do jogo. Pode voltar a ser ligada nas opções do jogo.",
+	["The SpellActivationOverlay addon is on: with both, the alerts show twice. Turn one of them off."] =
+		"O addon SpellActivationOverlay está ligado: com os dois, os alertas aparecem duas vezes. Desliga um deles.",
+	["Procs of your class (%s)"] = "Procs da tua classe (%s)",
+	["Your class's procs come in a next version: for now, the mage's."] = "Os procs da tua classe chegam numa próxima versão: para já, os do mage.",
+	["Tick the ones to show."] = "Marca os que queres mostrar.",
+	["Look"] = "Aspeto",
+	["The size of the art, from half to twice the game's."] = "O tamanho da arte, de metade ao dobro da do jogo.",
+	["Distance between the sides"] = "Distância entre os lados",
+	["How far apart the left and right art are: more keeps them away from your character."] =
+		"A distância entre a arte da esquerda e a da direita: mais afasta-a da tua personagem.",
+	["Height"] = "Altura",
+	["Up or down from the middle of the screen."] = "Para cima ou para baixo do meio do ecrã.",
+	["How see-through the art is: lower is more faded."] = "Quão transparente é a arte: mais baixo, mais desvanecida.",
+	["Pulse"] = "Pulsar",
+	["The art grows and shrinks slowly while the proc is there (some procs never pulse, as in the game)."] =
+		"A arte cresce e encolhe devagar enquanto o proc está ativo (alguns procs nunca pulsam, como no jogo).",
+	["Test"] = "Testar",
+	["Shows each proc of your class in turn, for a few seconds, with its name. The options shrink to their title bar meanwhile (+ brings them back)."] =
+		"Mostra cada proc da tua classe à vez, durante uns segundos, com o nome. Entretanto, as opções encolhem até à barra do título (o + volta a abri-las).",
+	["Proc alerts: none for your class yet."] = "Alertas de procs: ainda não há para a tua classe.",
+	["Credits"] = "Créditos",
+	["The proc alerts are based on SpellActivationOverlay, by ennvina, used under the MIT License (see the LICENSE file)."] =
+		"Os alertas de procs baseiam-se no SpellActivationOverlay, de ennvina, usado sob a licença MIT (ver o ficheiro LICENSE).",
+	["Proc Alerts (new page): the game's spell alert art on the sides of your character when a proc happens, in combat too. For now the mage's: Missile Barrage, Clearcasting, Fingers of Frost and Heating Up."] =
+		"Alertas de procs (página nova): a arte dos alertas de feitiços do jogo dos lados da tua personagem quando um proc acontece, também em combate. Para já os do mage: Missile Barrage, Clearcasting, Fingers of Frost e Heating Up.",
 }

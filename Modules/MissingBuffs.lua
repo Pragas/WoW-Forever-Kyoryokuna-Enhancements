@@ -302,6 +302,20 @@ local function BuildChoices()
 	table.sort(others, function(a, b) return a.label < b.label end)
 end
 
+-- The highest rank this character knows of the spell that conjures an item family of its class (e.g.
+-- "WATER"): its ID and name, or nil (also for Modules\Supplies.lua)
+function MissingBuffs.BestConjure(key)
+	local _, class = UnitClass("player")
+	for _, family in ipairs(ITEMS[class] or {}) do
+		if family.key == key then
+			for i = #family.ranks, 1, -1 do
+				local spell = family.ranks[i].spell
+				if IsKnownSpell(spell) then return spell, SpellName(spell) end
+			end
+		end
+	end
+end
+
 function MissingBuffs.GetChoices()
 	if not suggested then BuildChoices() end
 	return suggested, items, others

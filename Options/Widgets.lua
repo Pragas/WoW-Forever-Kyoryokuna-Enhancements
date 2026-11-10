@@ -315,7 +315,8 @@ end
 -- A check box with an icon, for a choice that isn't one setting (e.g. a spell of the character): get()
 -- tells whether it's ticked, set(checked) keeps it. The label is shown as given (e.g. a spell's name,
 -- already in the game's language). extras: small dropdowns on the right of the row, shown while it's
--- ticked: {{width, label, get, set, options = function() return {{value, text}} end}} (texts as given).
+-- ticked: {{width, label, get, set, options = function() return {{value, text}} end}} (texts as given),
+-- or a plain button {width, label, tooltip, text, onClick}.
 function Builder:IconCheck(label, icon, get, set, tooltip, dependsOn, extras)
 	local check = CreateCheckButton(self.content)
 	check:SetPoint("TOPLEFT", self.content, "TOPLEFT", LEFT, self.y)
@@ -339,6 +340,8 @@ function Builder:IconCheck(label, icon, get, set, tooltip, dependsOn, extras)
 		button:SetSize(extra.width, 20)
 		button:SetPoint("TOPLEFT", self.content, "TOPLEFT", right, self.y - 2)
 		button:SetScript("OnClick", function(self)
+			-- A plain button (a fixed text and an action), or a dropdown
+			if extra.onClick then extra.onClick() return end
 			OpenPopup(self, extra.options(), extra.get(), function(value) extra.set(value) end)
 		end)
 		button:SetScript("OnEnter", function(self) ShowTooltip(self, extra.label, extra.tooltip) end)
@@ -358,9 +361,13 @@ function Builder:IconCheck(label, icon, get, set, tooltip, dependsOn, extras)
 		local checked = get() and true or false
 		check:SetChecked(checked)
 		for _, button in ipairs(self.extras) do
-			local current, shown = button.extra.get(), tostring(button.extra.get())
-			for _, option in ipairs(button.extra.options()) do
-				if option.value == current then shown = option.text break end
+			local shown = button.extra.text
+			if not shown then
+				local current = button.extra.get()
+				shown = tostring(current)
+				for _, option in ipairs(button.extra.options()) do
+					if option.value == current then shown = option.text break end
+				end
 			end
 			button:SetText(shown)
 			button:SetShown(checked)
