@@ -110,12 +110,24 @@ local function CreateWindow()
 end
 
 function ns.OpenOptions()
+	if ns.NEEDS_RESTART then ns.ShowRestartNotice() return end
 	if not ns.db then return end
 	if not window then CreateWindow() end
 	window:Show()
 	local page = selectedPage or pages[1]
 	selectedPage = nil
 	SelectPage(page)
+end
+
+-- A page by its place in the list (1 is General) or by its name
+function ns.SelectOptionsPage(which)
+	if not window then return end
+	for i, page in ipairs(pages) do
+		if i == which or page.name == which then
+			SelectPage(page)
+			return
+		end
+	end
 end
 
 function ns.ToggleOptions()
@@ -198,12 +210,21 @@ end
 SLASH_KYORYOKUNAENHANCEMENTS1 = "/ke"
 SLASH_KYORYOKUNAENHANCEMENTS2 = "/kyoryokunaenhancements"
 SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
+	-- Waiting for the game to be restarted (Init.lua): every command says so
+	if ns.NEEDS_RESTART then ns.ShowRestartNotice() return end
 	local command = strtrim and strtrim(message or ""):lower() or (message or ""):lower()
 	if command == "errors" then
 		ns.PrintErrors()
+	elseif command == "darkscan" then
+		-- How many pieces each part of the dark mode finds in the game now
+		ns.Print(L["Dark mode: pieces found by part"])
+		for _, part in ipairs(ns.DarkMode.Scan()) do
+			DEFAULT_CHAT_FRAME:AddMessage("  " .. part.key .. ": " .. part.found)
+		end
 	elseif command == "help" then
 		ns.Print(L["Commands:"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke - " .. L["open the options"])
+		DEFAULT_CHAT_FRAME:AddMessage("  /ke darkscan - " .. L["what the dark mode finds of each part"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke errors - " .. L["show recorded errors"])
 	else
 		ns.ToggleOptions()

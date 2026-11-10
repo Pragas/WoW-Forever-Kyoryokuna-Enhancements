@@ -33,6 +33,8 @@ local function Handler(message)
 end
 
 function ns.SafeCall(func, ...)
+	-- Waiting for the game to be restarted (Init.lua): nothing runs
+	if ns.NEEDS_RESTART then return end
 	local results = {xpcall(func, Handler, ...)}
 	if not results[1] then
 		Store(results[2])
