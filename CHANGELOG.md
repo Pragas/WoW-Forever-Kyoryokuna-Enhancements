@@ -8,6 +8,22 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.3.0
+
+- Missing buffs (new Missing Buffs page, second in the list): what your character should always have, read from its spellbook. Tick what to watch; while something is missing, its icon shows on the screen, grey and faded (so it never looks like something that's there), in and out of combat (not while dead).
+  - Buffs: suggested ones for every class (e.g. for a mage: the armors, Arcane Intellect, Dampen / Amplify Magic), and a button to pick any other spell of the spellbook.
+  - Conjured items: mana gems, conjured food and water (mage); healthstones, soulstones, spellstones and firestones (warlock). Shown when the bags hold fewer than a minimum (1 by default, up to 20), with the count on the icon. Any rank counts.
+  - Two groups, Essential and Utility, each with its own place and look (icon size, opacity, space, direction). Each thing ticked goes to the group you pick: buffs start in Essential, items in Utility.
+  - Buffs that can't be on together (a mage's armors, a hunter's aspects, a paladin's auras and blessings, a warlock's armors, a shaman's shields) are one line and one icon: any of them is enough. Its icon can be picked (e.g. Dampen Magic or Amplify Magic), or be the one of the spell last used. The same buff from someone else counts, and so do the group versions (Arcane Brilliance, Prayer of Fortitude, Gift of the Wild...). Every rank counts.
+  - The choice is kept for each character. A new character with nothing chosen is told in the chat (once) when another character of its class has a choice, and the page has a button to copy it.
+  - Move (drag both groups with a green frame) and Reset position.
+  - In combat the game may hide your auras from addons: the icons then stay as they were last known. `/ke buffscan` shows what the addon can read on you at that moment.
+  - The choices of each character aren't in the Import / Export code.
+
+- A setting with a list of choices no longer takes a value that isn't one of them.
+
+- The message asking to restart the game after an update now shows: it was written at login, while the game was still making its interface, and got lost. It now shows 5 seconds after the world appears.
+
 ## 0.2.0
 
 - Options in pages of their own: General (language, minimap button), Action Bars, Experience Bar, Queue, Dark Mode, Import / Export and About.

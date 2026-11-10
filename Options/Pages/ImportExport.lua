@@ -13,7 +13,7 @@ local ROW_HEIGHT = 26
 
 ns.AddOptionsPage("Import / Export", function(b)
 	b:Header("Export")
-	b:Text("A code with all your settings, to share with someone. Click the box (or the button) and press Ctrl+C to copy it. Your language and the minimap button aren't in it.", GREY)
+	b:Text("A code with all your settings, to share with someone. Click the box (or the button) and press Ctrl+C to copy it. Your language, the minimap button and each character's missing buffs aren't in it.", GREY)
 	local exportBox = b:EditBox("Your code")
 	-- Always the settings as they are now (unless it's being copied)
 	b:AddControl({frame = exportBox, Refresh = function()

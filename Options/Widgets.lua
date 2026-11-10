@@ -312,6 +312,71 @@ function Builder:Check(path, label, tooltip, dependsOn, indent)
 	return Register(control, dependsOn)
 end
 
+-- A check box with an icon, for a choice that isn't one setting (e.g. a spell of the character): get()
+-- tells whether it's ticked, set(checked) keeps it. The label is shown as given (e.g. a spell's name,
+-- already in the game's language). extras: small dropdowns on the right of the row, shown while it's
+-- ticked: {{width, label, get, set, options = function() return {{value, text}} end}} (texts as given).
+function Builder:IconCheck(label, icon, get, set, tooltip, dependsOn, extras)
+	local check = CreateCheckButton(self.content)
+	check:SetPoint("TOPLEFT", self.content, "TOPLEFT", LEFT, self.y)
+	local texture = check:CreateTexture(nil, "ARTWORK")
+	texture:SetSize(20, 20)
+	texture:SetPoint("LEFT", check, "RIGHT", 2, 0)
+	texture:SetTexture(icon)
+	texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+	local text = check:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	text:SetPoint("LEFT", texture, "RIGHT", 6, 0)
+	text:SetJustifyH("LEFT")
+	text:SetText(label)
+
+	local control = {frame = check, interactive = {check}, extras = {}}
+	-- The dropdowns, from the right edge of the page to the left
+	local right = CONTENT_WIDTH - LEFT
+	for i = #(extras or {}), 1, -1 do
+		local extra = extras[i]
+		right = right - extra.width
+		local button = CreateFrame("Button", nil, self.content, "UIPanelButtonTemplate")
+		button:SetSize(extra.width, 20)
+		button:SetPoint("TOPLEFT", self.content, "TOPLEFT", right, self.y - 2)
+		button:SetScript("OnClick", function(self)
+			OpenPopup(self, extra.options(), extra.get(), function(value) extra.set(value) end)
+		end)
+		button:SetScript("OnEnter", function(self) ShowTooltip(self, extra.label, extra.tooltip) end)
+		button:SetScript("OnLeave", HideTooltip)
+		button.extra = extra
+		control.extras[#control.extras + 1] = button
+		control.interactive[#control.interactive + 1] = button
+		right = right - 6
+	end
+	-- A long name is cut rather than running under the dropdowns
+	local labelX = LEFT + 24 + 2 + 20 + 6
+	text:SetWidth(math.max(60, right - labelX - 4))
+	text:SetWordWrap(false)
+	check:SetHitRectInsets(0, -math.min(text:GetStringWidth(), right - labelX) - 32, 0, 0)
+
+	function control:Refresh()
+		local checked = get() and true or false
+		check:SetChecked(checked)
+		for _, button in ipairs(self.extras) do
+			local current, shown = button.extra.get(), tostring(button.extra.get())
+			for _, option in ipairs(button.extra.options()) do
+				if option.value == current then shown = option.text break end
+			end
+			button:SetText(shown)
+			button:SetShown(checked)
+		end
+	end
+	check:SetScript("OnClick", function(self)
+		set(self:GetChecked() and true or false)
+	end)
+	check:SetScript("OnEnter", function(self) ShowTooltip(self, label, tooltip) end)
+	check:SetScript("OnLeave", HideTooltip)
+
+	self.y = self.y - CHECK_HEIGHT
+	self.hasContent = true
+	return Register(control, dependsOn)
+end
+
 -- A slider bound to a number setting; its limits come from the database
 function Builder:Slider(path, label, step, suffix, tooltip, dependsOn, indent)
 	local x = LEFT + 4 + (indent and INDENT or 0)

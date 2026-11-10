@@ -70,7 +70,11 @@ local function CreateWindow()
 	})
 	window:SetBackdropColor(0.06, 0.06, 0.08, 0.96)
 	window:SetBackdropBorderColor(0.6, 0.6, 0.6, 1)
-	window:SetScript("OnHide", ns.Widgets.ClosePopup)
+	window:SetScript("OnHide", function()
+		ns.Widgets.ClosePopup()
+		-- Moving the missing buffs ends with the options
+		if ns.MissingBuffs and ns.MissingBuffs.IsMoving() then ns.MissingBuffs.SetMoving(false) end
+	end)
 	-- Escape closes it
 	tinsert(UISpecialFrames, "KyoryokunaEnhancementsOptionsWindow")
 
@@ -117,6 +121,23 @@ function ns.OpenOptions()
 	local page = selectedPage or pages[1]
 	selectedPage = nil
 	SelectPage(page)
+end
+
+-- A page made again (its content depends on something that changed, e.g. the spells of the character);
+-- shown again where it was scrolled to if it's the one open, else made the next time it's opened
+function ns.RebuildOptionsPage(name)
+	if not window then return end
+	for _, page in ipairs(pages) do
+		if page.name == name and page.scroll then
+			local scrolled = page.scroll:GetVerticalScroll()
+			page.scroll:Hide()
+			page.scroll = nil
+			if page == selectedPage and window:IsShown() then
+				SelectPage(page)
+				page.scroll:SetVerticalScroll(scrolled)
+			end
+		end
+	end
 end
 
 -- A page by its place in the list (1 is General) or by its name
@@ -221,9 +242,18 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 		for _, part in ipairs(ns.DarkMode.Scan()) do
 			DEFAULT_CHAT_FRAME:AddMessage("  " .. part.key .. ": " .. part.found)
 		end
+	elseif command == "buffscan" then
+		-- The buffs the addon can read on the character now (in combat the game may hide them)
+		local scan = ns.MissingBuffs.Scan()
+		ns.Print(string.format(L["Buffs read: %d. In combat: %s. Readable: %s."], scan.count,
+			scan.inCombat and L["Yes"] or L["No"], scan.readable and L["Yes"] or L["No"]))
+		for _, name in ipairs(scan.names) do
+			DEFAULT_CHAT_FRAME:AddMessage("  " .. name)
+		end
 	elseif command == "help" then
 		ns.Print(L["Commands:"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke - " .. L["open the options"])
+		DEFAULT_CHAT_FRAME:AddMessage("  /ke buffscan - " .. L["the buffs the addon can read on you now"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke darkscan - " .. L["what the dark mode finds of each part"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke errors - " .. L["show recorded errors"])
 	else
