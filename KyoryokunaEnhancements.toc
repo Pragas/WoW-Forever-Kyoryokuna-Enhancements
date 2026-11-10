@@ -1,0 +1,25 @@
+## Interface: 16001
+## Title: |cffffe00aKyoryokuna|r |cff2ecc71Enhancements|r
+## Notes: Small improvements for the game. Type /ke to open the options.
+## Author: Pragas
+## Version: 0.1.0
+## X-Copyright: Copyright (c) 2026 Pragas. All Rights Reserved.
+## X-License: All Rights Reserved
+## IconTexture: Interface\AddOns\KyoryokunaEnhancements\Media\IconSmall
+## SavedVariables: KyoryokunaEnhancementsDB
+## AddonCompartmentFunc: KyoryokunaEnhancements_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: KyoryokunaEnhancements_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: KyoryokunaEnhancements_OnAddonCompartmentLeave
+
+Locales\enUS.lua
+Locales\ptPT.lua
+
+Core\Init.lua
+Core\Utils.lua
+Core\Errors.lua
+Core\Database.lua
+
+Options\Widgets.lua
+Options\Window.lua
+Options\Pages\General.lua
+Options\Pages\About.lua

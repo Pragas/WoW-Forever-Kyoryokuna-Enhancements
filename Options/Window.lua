@@ -1,0 +1,211 @@
+-- KyoryokunaEnhancements
+-- Copyright (c) 2026 Pragas. All Rights Reserved.
+-- See LICENSE for terms. Unauthorized copying, modification or redistribution is prohibited.
+
+-- The options window, like the other Kyoryokuna addons': a list of pages on the left and the chosen page
+-- on the right, which scrolls when it's taller than the window. It opens with /ke, from the addon button
+-- of the minimap (the addon compartment) and from the game's own settings (Options > AddOns). Each page
+-- is built the first time it's shown. Also here: the chat commands.
+
+local _, ns = ...
+local L = ns.L
+
+local WIDTH, HEIGHT = 780, 580
+local NAV_WIDTH = 170
+local CONTENT_WIDTH = 540
+
+local pages = {}
+local window, selectedPage
+
+-- Pages register themselves (Options\Pages\*.lua) in the order they should appear
+function ns.AddOptionsPage(name, build)
+	pages[#pages + 1] = {name = name, build = build}
+end
+
+local function SelectPage(page)
+	if selectedPage and selectedPage.scroll then
+		selectedPage.scroll:Hide()
+		selectedPage.button:UnlockHighlight()
+	end
+	selectedPage = page
+	page.button:LockHighlight()
+
+	if not page.scroll then
+		local scroll = CreateFrame("ScrollFrame", nil, window)
+		scroll:SetPoint("TOPLEFT", window, "TOPLEFT", NAV_WIDTH + 24, -48)
+		scroll:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -16, 16)
+		local content = CreateFrame("Frame", nil, scroll)
+		content:SetSize(CONTENT_WIDTH, 100)
+		scroll:SetScrollChild(content)
+		scroll:EnableMouseWheel(true)
+		scroll:SetScript("OnMouseWheel", function(self, delta)
+			local maxScroll = math.max(0, content:GetHeight() - self:GetHeight())
+			self:SetVerticalScroll(math.min(maxScroll, math.max(0, self:GetVerticalScroll() - delta * 40)))
+		end)
+		local builder = ns.Widgets.NewBuilder(content)
+		ns.SafeCall(page.build, builder)
+		content:SetHeight(builder:Height())
+		page.scroll = scroll
+	end
+	page.scroll:SetVerticalScroll(0)
+	page.scroll:Show()
+	ns.Widgets.RefreshAll()
+end
+
+local function CreateWindow()
+	window = CreateFrame("Frame", "KyoryokunaEnhancementsOptionsWindow", UIParent, "BackdropTemplate")
+	window:SetSize(WIDTH, HEIGHT)
+	window:SetPoint("CENTER")
+	window:SetFrameStrata("HIGH")
+	window:SetClampedToScreen(true)
+	window:SetMovable(true)
+	window:EnableMouse(true)
+	window:RegisterForDrag("LeftButton")
+	window:SetScript("OnDragStart", window.StartMoving)
+	window:SetScript("OnDragStop", window.StopMovingOrSizing)
+	window:SetBackdrop({
+		bgFile = "Interface\\Buttons\\WHITE8X8",
+		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+		edgeSize = 16, insets = {left = 4, right = 4, top = 4, bottom = 4},
+	})
+	window:SetBackdropColor(0.06, 0.06, 0.08, 0.96)
+	window:SetBackdropBorderColor(0.6, 0.6, 0.6, 1)
+	window:SetScript("OnHide", ns.Widgets.ClosePopup)
+	-- Escape closes it
+	tinsert(UISpecialFrames, "KyoryokunaEnhancementsOptionsWindow")
+
+	local title = window:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+	title:SetPoint("TOPLEFT", window, "TOPLEFT", 18, -16)
+	title:SetText(ns.TITLE)
+	local version = window:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+	version:SetPoint("LEFT", title, "RIGHT", 8, -1)
+	version:SetText("v" .. ns.VERSION)
+
+	local close = CreateFrame("Button", nil, window, "UIPanelCloseButton")
+	close:SetPoint("TOPRIGHT", window, "TOPRIGHT", -4, -4)
+	-- The template closes its parent with the game's panel system, which the game blocks for addons in
+	-- combat: it's simply hidden instead
+	close:SetScript("OnClick", function() window:Hide() end)
+
+	local divider = window:CreateTexture(nil, "ARTWORK")
+	divider:SetColorTexture(1, 1, 1, 0.12)
+	divider:SetWidth(1)
+	divider:SetPoint("TOPLEFT", window, "TOPLEFT", NAV_WIDTH + 12, -44)
+	divider:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", NAV_WIDTH + 12, 14)
+
+	for i, page in ipairs(pages) do
+		local button = CreateFrame("Button", nil, window)
+		button:SetSize(NAV_WIDTH - 8, 26)
+		button:SetPoint("TOPLEFT", window, "TOPLEFT", 12, -46 - (i - 1) * 28)
+		button:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
+		button:GetHighlightTexture():SetVertexColor(0.18, 0.8, 0.44, 0.18)
+		local text = button:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+		text:SetPoint("LEFT", button, "LEFT", 10, 0)
+		text:SetText(L[page.name])
+		button:SetScript("OnClick", function() SelectPage(page) end)
+		page.button = button
+	end
+
+	window:Hide()
+end
+
+function ns.OpenOptions()
+	if not ns.db then return end
+	if not window then CreateWindow() end
+	window:Show()
+	local page = selectedPage or pages[1]
+	selectedPage = nil
+	SelectPage(page)
+end
+
+function ns.ToggleOptions()
+	if window and window:IsShown() then
+		window:Hide()
+	else
+		ns.OpenOptions()
+	end
+end
+
+function ns.RefreshOptions()
+	if window and window:IsShown() then
+		ns.Widgets.RefreshAll()
+	end
+end
+
+-- After a change of language: the window and its pages are made again with the new texts, and it opens
+-- again on the same page if it was open
+function ns.RebuildOptions()
+	if not window then return end
+	local wasShown = window:IsShown()
+	local pageIndex
+	for i, page in ipairs(pages) do
+		if page == selectedPage then pageIndex = i end
+		page.scroll = nil
+		page.button = nil
+	end
+	window:Hide()
+	window = nil
+	selectedPage = pages[pageIndex or 1]
+	if wasShown then ns.OpenOptions() end
+end
+
+-- The game's settings (Options > AddOns): a short page with a button that opens this window -------
+
+local function RegisterSettingsCategory()
+	if not (Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory) then return end
+	local panel = CreateFrame("Frame")
+	local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+	title:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -16)
+	title:SetText(ns.TITLE)
+	local text = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	text:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -12)
+	text:SetText(L["All options are in the addon's own window. You can also type /ke."])
+	local button = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+	button:SetSize(200, 26)
+	button:SetPoint("TOPLEFT", text, "BOTTOMLEFT", 0, -12)
+	button:SetText(L["Open options"])
+	button:SetScript("OnClick", function()
+		if SettingsPanel and SettingsPanel:IsShown() and not InCombatLockdown() then
+			HideUIPanel(SettingsPanel)
+		end
+		ns.OpenOptions()
+	end)
+	local category = Settings.RegisterCanvasLayoutCategory(panel, ns.SHORT_TITLE)
+	Settings.RegisterAddOnCategory(category)
+end
+
+ns.RegisterEvent("PLAYER_LOGIN", RegisterSettingsCategory)
+
+-- Addon compartment (the addon button of the minimap) ----------------------------------------------
+
+function KyoryokunaEnhancements_OnAddonCompartmentClick()
+	ns.ToggleOptions()
+end
+
+function KyoryokunaEnhancements_OnAddonCompartmentEnter(_, button)
+	GameTooltip:SetOwner(button or UIParent, "ANCHOR_LEFT")
+	GameTooltip:SetText(ns.TITLE)
+	GameTooltip:AddLine(L["Click to open the options."], 1, 1, 1)
+	GameTooltip:Show()
+end
+
+function KyoryokunaEnhancements_OnAddonCompartmentLeave()
+	GameTooltip:Hide()
+end
+
+-- Chat commands ------------------------------------------------------------------------------------
+
+SLASH_KYORYOKUNAENHANCEMENTS1 = "/ke"
+SLASH_KYORYOKUNAENHANCEMENTS2 = "/kyoryokunaenhancements"
+SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
+	local command = strtrim and strtrim(message or ""):lower() or (message or ""):lower()
+	if command == "errors" then
+		ns.PrintErrors()
+	elseif command == "help" then
+		ns.Print(L["Commands:"])
+		DEFAULT_CHAT_FRAME:AddMessage("  /ke - " .. L["open the options"])
+		DEFAULT_CHAT_FRAME:AddMessage("  /ke errors - " .. L["show recorded errors"])
+	else
+		ns.ToggleOptions()
+	end
+end
