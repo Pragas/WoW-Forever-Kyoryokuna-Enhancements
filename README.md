@@ -58,4 +58,4 @@ Every version and what changed in it are in the [CHANGELOG](CHANGELOG.md) and on
 
 ---
 
-Copyright (c) 2026 Pragas. All Rights Reserved. Free for personal use; see [LICENSE](LICENSE). The proc alerts are based on [SpellActivationOverlay](https://github.com/ennvina/spellactivationoverlay) by ennvina, used under the MIT License (its notice is in the LICENSE). World of Warcraft is a trademark of Blizzard Entertainment, Inc. This addon is not affiliated with or endorsed by Blizzard Entertainment.
+Copyright (c) 2026 Pragas. All Rights Reserved. Free for personal use; see [LICENSE](LICENSE). World of Warcraft is a trademark of Blizzard Entertainment, Inc. This addon is not affiliated with or endorsed by Blizzard Entertainment.
