@@ -452,7 +452,9 @@ local function ReadActiveNames()
 	if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return nil end
 	local names, count = {}, 0
 	for i = 1, 255 do
-		local aura = C_UnitAuras.GetAuraDataByIndex("player", i, "HELPFUL")
+		-- In combat WoW Forever may refuse (an error, not a hidden value): then the auras are hidden
+		local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
+		if not ok then return nil end
 		if not aura then break end
 		local name = ns.Known(aura.name)
 		if not name then return nil end

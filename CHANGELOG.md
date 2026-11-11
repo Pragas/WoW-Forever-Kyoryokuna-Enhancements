@@ -8,10 +8,26 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.8.1
+
+- /ke procscan: what the proc alerts know now (whether the game's AuraContainer was made, and for each proc ticked: how secret the game says its aura is, whether the game shows it, and what the addon can read of it), to find why a proc doesn't show.
+- Proc alerts in combat: the frames the game fills come again from the template file of 0.7.0 (its parts: the bar the game shows, the art, a cooldown that draws nothing), to rule it out as the reason the real Fingers of Frost didn't show. The code only makes the parts itself if the game gave none.
+- Fixed: in combat the game refuses to give hidden auras (an error, not a hidden value); the missing buffs recorded it as an error every time. They now take it as "hidden" and keep what they last knew.
+- Fingers of Frost: WoW Forever has four spells of that name (asked of the game with /ke procscan find): the alert now also follows 400669 and 401741 (400670, the one used before, never fired; 400647 is the talent itself, left out).
+- /ke procscan watch (the game's own spell alerts written in the chat as they come), /ke procscan armor and /ke procscan fof (checks of the game's container), /ke procscan find <name> (every spell ID with that name).
+
+## 0.8.0
+
+- Proc alerts, "Animation" (instead of the "Pulse" check; one that was on is now Pulse): None (default), Pulse (grows and comes back), Breathe (fades a little and comes back, same size), Blink (fades out fast and back, then waits) or Float (rises and comes back down). "Speed (one cycle)", 0.5 to 3 seconds (1 by default, as the game's own spell alerts), and "Strength", 2% to 20% (8% by default): how much it grows, fades or rises. Procs that stay still in the game still do. "Appear softly" (off at first): the art fades in when the proc comes, also the art the game shows in combat. Every animation is the addon's own, made once for each setting.
+
+## 0.7.1
+
+- Proc alerts: the pulse of the art and the frames the game fills in combat are now made by the addon's own code (the XML file only names the frame the game needs). The pulse has the rhythm of the game's own spell alerts: the art grows 8% in half a second and comes back in the next half.
+
 ## 0.7.0
 
 - Proc alerts, phase 3: glowing buttons. While an ability can be used, its button on the game's action bars glows (the main bar, the bottom, side and extra bars; the ability itself or a macro that casts it), with the game's spell alert art (a gold glow and its running "ants"). The glow is the addon's own frame on the button: the button is never changed, so it works in combat.
-  - Abilities that only light their button (as in SpellActivationOverlay; each off at first): Ice Barrier (mage, in combat), Overpower, Execute and Revenge (warrior), Counterattack (hunter), Holy Shock (in combat), Exorcism (in combat, on a demon or an undead that can be attacked) and Hammer of Wrath (paladin), Stormstrike (shaman, in combat). Marked "button glows" on the page.
+  - Abilities that only light their button (each off at first): Ice Barrier (mage, in combat), Overpower, Execute and Revenge (warrior), Counterattack (hunter), Holy Shock (in combat), Exorcism (in combat, on a demon or an undead that can be attacked) and Hammer of Wrath (paladin), Stormstrike (shaman, in combat). Marked "button glows" on the page.
   - Abilities with art and a button (Victory Rush, Riposte, Mongoose Bite): an "Alert" choice beside each, Art (default, as before), Button or Both. Nothing else lights a button unless ticked, so the bars never glow all over.
 - Proc alerts: "Move" and "Reset position" (Place on the screen), as for missing buffs: a green frame, above the options, to drag the alerts anywhere (kept as a distance from the middle of the screen, x and y), showing a proc with art meanwhile; it ends with the options. They replace the "Height" slider.
   - Any rank counts: a higher rank (another ID) on a bar is the one looked at.
@@ -20,7 +36,7 @@ Versions follow MAJOR.MINOR.PATCH:
 
 ## 0.6.0
 
-- Proc alerts, phase 2: every class of WoW Forever, from SpellActivationOverlay's Forever rules (each one off at first; a character sees only its class's):
+- Proc alerts, phase 2: every class of WoW Forever (each one off at first; a character sees only its class's):
   - Druid: Eclipse (one aura whose stacks tell lunar, on the left, or solar, on the right; small, then full), Omen of Clarity, Nature's Grace (on top).
   - Hunter: Rapid Killing; Mongoose Bite when usable, in combat (on top, turned).
   - Paladin: Infusion of Light (both of its IDs).
@@ -29,8 +45,8 @@ Versions follow MAJOR.MINOR.PATCH:
   - Shaman: Maelstrom Weapon (on top, lighter with each stack, whole at 5).
   - Warlock: Nightfall, Decimation (on top), Eye of Kilrogg (green, on top).
   - Warrior: Victory Rush when usable (red, on top).
-  - Simplified from SpellActivationOverlay: Omen of Clarity always has the same art (it has its own in cat and bear form there). Reactive abilities without art there (Overpower, Execute, Revenge, Counterattack, Holy Shock, Exorcism, Hammer of Wrath, Stormstrike, Ice Barrier) only light their button: they come with the glowing buttons (phase 3).
-- "When usable" abilities ("counter"): shown while the ability is known, not on cooldown (the global one aside) and usable, or only short of rage or energy, as SpellActivationOverlay tells them; looked at again on what's usable, cooldowns, combat and the target, and when a cooldown ends. What the game hides in combat keeps the last answer.
+  - Omen of Clarity always has the same art (also in cat and bear form). Reactive abilities without art (Overpower, Execute, Revenge, Counterattack, Holy Shock, Exorcism, Hammer of Wrath, Stormstrike, Ice Barrier) only light their button: they come with the glowing buttons (phase 3).
+- "When usable" abilities ("counter"): shown while the ability is known, not on cooldown (the global one aside) and usable, or only short of rage or energy; looked at again on what's usable, cooldowns, combat and the target, and when a cooldown ends. What the game hides in combat keeps the last answer.
 - New places for the art: on top of the character (wide and low), and on top turned a quarter clockwise; and art can have a color and a transparency of its own.
 - "Test" beside each proc (it reads "Close test" while on): a fixed test that keeps that proc's alert on the screen (at its most stacks, with its name) while the look is set; again to hide it, or another proc's to switch. It shows even with the alerts off, and ends with the options window. The turning "Test all" replaces it.
 
@@ -48,7 +64,7 @@ Versions follow MAJOR.MINOR.PATCH:
   - The macros are this character's (/macro), dragged to an action bar once. The addon rewrites them as the bags change, at a new level, with a new spell, and renames them with the language. Blizzard's API doesn't let addons change macros in combat: they follow when the fight ends. A macro unticked is deleted. With no room in the character's macros (18), the chat says so.
   - Beside each one ticked, "Pick up" puts the macro on the mouse, to click an empty slot of an action bar: no need to open the macros window. The page also shows what the macros use now, and a button opens the macros window.
 
-- New "Proc Alerts" page (phase 1, the mage): when a proc happens, the game's own spell alert art shows on the sides of the character, as in the newer game. Based on SpellActivationOverlay, by ennvina (MIT License; credited on the About page and in LICENSE), made again for WoW Forever only.
+- New "Proc Alerts" page (phase 1, the mage): when a proc happens, the game's own spell alert art shows on the sides of the character, as in the newer game. Made for WoW Forever.
   - Mage: Missile Barrage (Arcane Missiles art on both sides), Clearcasting (an arc on both sides, no pulse), Fingers of Frost (one charge on the left, two on both sides) and Heating Up (grows with its stacks; at 3, Hot Streak, it's whole and pulses). Each one ticked on its own (all off at first). Ice Barrier, which only lights its button, comes with the glowing buttons (phase 3).
   - In combat WoW Forever hides many auras from addons. For those (the game says which, C_Secrets), the addon asks the game's own AuraContainer to show the art while the aura is there with the stacks asked for, so the alerts keep working in combat. Auras the addon can read are shown by the addon itself.
   - Look: size (50% to 200%), distance between the sides, height, opacity (80% by default) and the pulse (off at first). "Test" shows each proc of the class in turn with its name, shrinking the options meanwhile.

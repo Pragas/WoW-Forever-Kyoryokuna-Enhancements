@@ -90,7 +90,12 @@ ns.DEFAULTS = {
 		x = 0,
 		y = 0,
 		opacity = 80,
-		pulse = false,
+		-- How the art moves while the proc is there (NONE, PULSE, BREATHE, BLINK, FLOAT), how long a cycle
+		-- lasts (seconds), how strong it is (%), and whether it appears softly
+		animation = "NONE",
+		animTime = 1,
+		animStrength = 8,
+		fadeIn = false,
 		missileBarrage = false,
 		clearcasting = false,
 		fingersOfFrost = false,
@@ -164,7 +169,8 @@ ns.LIMITS = {
 	general = {minimapAngle = {0, 360}},
 	darkMode = {darkness = {5, 100}},
 	actionBars = {cooldownScale = {50, 200}, cooldownColorThreshold = {1, 30}},
-	procAlerts = {size = {50, 200}, distance = {-100, 400}, x = {-1500, 1500}, y = {-1000, 1000}, opacity = {10, 100}},
+	procAlerts = {size = {50, 200}, distance = {-100, 400}, x = {-1500, 1500}, y = {-1000, 1000}, opacity = {10, 100},
+		animTime = {0.5, 3}, animStrength = {2, 20}},
 	missingBuffsEssential = GROUP_LIMITS,
 	missingBuffsUtility = GROUP_LIMITS,
 }
@@ -177,7 +183,8 @@ ns.CHOICES = {
 	missingBuffsEssential = {growth = GROWTH, countPosition = COUNT_POSITIONS},
 	missingBuffsUtility = {growth = GROWTH, countPosition = COUNT_POSITIONS},
 	supplies = {bothIcon = {FOOD = true, DRINK = true}},
-	procAlerts = {victoryRushAlert = ALERT_KINDS, riposteAlert = ALERT_KINDS, mongooseBiteAlert = ALERT_KINDS},
+	procAlerts = {victoryRushAlert = ALERT_KINDS, riposteAlert = ALERT_KINDS, mongooseBiteAlert = ALERT_KINDS,
+		animation = {NONE = true, PULSE = true, BREATHE = true, BLINK = true, FLOAT = true}},
 }
 
 local function CopyValue(value)
@@ -212,6 +219,11 @@ local function Validate(db)
 		if type(db[name]) == "table" and not ns.DEFAULTS[name] and name ~= "errors" and name ~= "backups" and name ~= "characters" then
 			db[name] = nil
 		end
+	end
+	-- Before the choice of animations, the proc alerts had a "Pulse" check: on, it's the pulse now
+	if type(db.procAlerts) == "table" and db.procAlerts.pulse ~= nil then
+		if db.procAlerts.pulse == true and db.procAlerts.animation == nil then db.procAlerts.animation = "PULSE" end
+		db.procAlerts.pulse = nil
 	end
 	for name, defaults in pairs(ns.DEFAULTS) do
 		if type(db[name]) ~= "table" then db[name] = {} end

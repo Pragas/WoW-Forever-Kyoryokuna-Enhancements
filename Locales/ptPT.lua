@@ -402,16 +402,29 @@ ns.LOCALES.ptPT = {
 		"A distância entre a arte da esquerda e a da direita: mais afasta-a da tua personagem.",
 	["Height"] = "Altura",
 	["How see-through the art is: lower is more faded."] = "Quão transparente é a arte: mais baixo, mais desvanecida.",
+	["Animation"] = "Animação",
+	["How the art moves while the proc is there. Some procs always stay still, as in the game."] =
+		"Como a arte se mexe enquanto o proc está ativo. Alguns procs ficam sempre parados, como no jogo.",
+	["None"] = "Nenhuma",
 	["Pulse"] = "Pulsar",
-	["The art grows and shrinks slowly while the proc is there (some procs never pulse, as in the game)."] =
-		"A arte cresce e encolhe devagar enquanto o proc está ativo (alguns procs nunca pulsam, como no jogo).",
+	["Breathe"] = "Respirar",
+	["Blink"] = "Piscar",
+	["Float"] = "Flutuar",
+	["Speed (one cycle)"] = "Velocidade (um ciclo)",
+	["How long one cycle lasts: less is faster. The game's own spell alerts take 1 second."] =
+		"Quanto dura um ciclo: menos é mais rápido. Os alertas de feitiços do próprio jogo demoram 1 segundo.",
+	["Strength"] = "Intensidade",
+	["How much it changes: how much it grows (Pulse), fades (Breathe, Blink) or rises (Float)."] =
+		"Quanto muda: quanto cresce (Pulsar), desvanece (Respirar, Piscar) ou sobe (Flutuar).",
+	["Appear softly"] = "Aparecer suavemente",
+	["The art fades in when the proc comes, instead of showing at once."] =
+		"A arte surge aos poucos quando o proc chega, em vez de aparecer de repente.",
+	["Proc alerts: animations to pick (pulse, breathe, blink or float), with their speed and strength, and the art can appear softly."] =
+		"Alertas de procs: animações à escolha (pulsar, respirar, piscar ou flutuar), com velocidade e intensidade, e a arte pode aparecer suavemente.",
 	["Test"] = "Testar",
 	["Shows each proc of your class in turn, for a few seconds, with its name. The options shrink to their title bar meanwhile (+ brings them back)."] =
 		"Mostra cada proc da tua classe à vez, durante uns segundos, com o nome. Entretanto, as opções encolhem até à barra do título (o + volta a abri-las).",
 	["Proc alerts: none for your class yet."] = "Alertas de procs: ainda não há para a tua classe.",
-	["Credits"] = "Créditos",
-	["The proc alerts are based on SpellActivationOverlay, by ennvina, used under the MIT License (see the LICENSE file)."] =
-		"Os alertas de procs baseiam-se no SpellActivationOverlay, de ennvina, usado sob a licença MIT (ver o ficheiro LICENSE).",
 	["Proc Alerts (new page): the game's spell alert art on the sides of your character when a proc happens, in combat too. For now the mage's: Missile Barrage, Clearcasting, Fingers of Frost and Heating Up."] =
 		"Alertas de procs (página nova): a arte dos alertas de feitiços do jogo dos lados da tua personagem quando um proc acontece, também em combate. Para já os do mage: Missile Barrage, Clearcasting, Fingers of Frost e Heating Up.",
 	["Options: the pages in a new order, the simplest first."] = "Opções: as páginas numa nova ordem, as mais simples primeiro.",
@@ -445,4 +458,9 @@ ns.LOCALES.ptPT = {
 	["Puts the alerts back in the middle of the screen."] = "Põe os alertas outra vez no meio do ecrã.",
 	["Glowing buttons: an ability's button on your action bars glows while it can be used (Ice Barrier, Overpower, Execute, Revenge, Counterattack, Holy Shock, Exorcism, Hammer of Wrath, Stormstrike). Each ability with art can warn by its art, its button or both. The alerts can be moved anywhere on the screen."] =
 		"Botões a brilhar: o botão de uma habilidade nas tuas barras de ações brilha enquanto ela pode ser usada (Ice Barrier, Overpower, Execute, Revenge, Counterattack, Holy Shock, Exorcism, Hammer of Wrath, Stormstrike). Cada habilidade com arte pode avisar pela imagem, pelo botão ou pelos dois. Os alertas podem ser movidos para qualquer sítio do ecrã.",
+	["Proc alerts: a smoother pulse of the art."] = "Alertas de procs: a arte pulsa de forma mais suave.",
+	["Proc alerts now:"] = "Alertas de procs agora:",
+	["what the proc alerts know now"] = "o que os alertas de procs sabem agora",
+	["Missing buffs no longer record an error every time the game hides your auras in combat."] =
+		"Os buffs em falta já não registam um erro sempre que o jogo esconde as tuas auras em combate.",
 }

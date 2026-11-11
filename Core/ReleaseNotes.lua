@@ -19,6 +19,24 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.8.1",
+		fixed = {
+			"Missing buffs no longer record an error every time the game hides your auras in combat.",
+		},
+	},
+	{
+		version = "0.8.0",
+		new = {
+			"Proc alerts: animations to pick (pulse, breathe, blink or float), with their speed and strength, and the art can appear softly.",
+		},
+	},
+	{
+		version = "0.7.1",
+		new = {
+			"Proc alerts: a smoother pulse of the art.",
+		},
+	},
+	{
 		version = "0.7.0",
 		new = {
 			"Glowing buttons: an ability's button on your action bars glows while it can be used (Ice Barrier, Overpower, Execute, Revenge, Counterattack, Holy Shock, Exorcism, Hammer of Wrath, Stormstrike). Each ability with art can warn by its art, its button or both. The alerts can be moved anywhere on the screen.",

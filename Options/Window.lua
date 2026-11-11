@@ -381,11 +381,39 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 					tostring(cast.id), cast.rank))
 			end
 		end
+	elseif command:find("^procscan find ") then
+		-- Every spell ID with that name (as the player typed it)
+		local name = strtrim and strtrim((message or ""):sub(#"procscan find " + 1)) or (message or ""):sub(15)
+		if ns.ProcAlerts.FindSpells(name) then
+			ns.Print("looking for every spell named \"" .. name .. "\" (a few seconds)...")
+		end
+	elseif command == "procscan watch" then
+		-- Each spell alert of the game written in the chat as it comes (again: off)
+		local on = ns.ProcAlerts.ToggleWatch()
+		ns.Print(on and "watching the game's spell alerts: on (/ke procscan watch again to stop)"
+			or "watching the game's spell alerts: off")
+	elseif command == "procscan armor" or command == "procscan fof" then
+		-- The game's container tried with a buff the mage always has, or with Fingers of Frost only (again:
+		-- off)
+		ns.Print(L["Proc alerts now:"])
+		local ok, said = pcall(ns.ProcAlerts.CheckContainer, command == "procscan fof" and "fof" or "armor")
+		DEFAULT_CHAT_FRAME:AddMessage("  " .. tostring(ok and said or ("the check broke: " .. tostring(said))))
+	elseif command == "procscan" then
+		-- What the proc alerts know now: the game's container, and each proc ticked (as the game gives
+		-- it: not translated)
+		ns.Print(L["Proc alerts now:"])
+		-- Whatever breaks, it says so instead of stopping in silence
+		local ok, lines = pcall(ns.ProcAlerts.Scan)
+		if not ok then lines = {"the scan broke: " .. tostring(lines)} end
+		for _, line in ipairs(lines) do
+			DEFAULT_CHAT_FRAME:AddMessage("  " .. line)
+		end
 	elseif command == "help" then
 		ns.Print(L["Commands:"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke - " .. L["open the options"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke buffscan - " .. L["the buffs the addon can read on you now"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke darkscan - " .. L["what the dark mode finds of each part"])
+		DEFAULT_CHAT_FRAME:AddMessage("  /ke procscan - " .. L["what the proc alerts know now"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke errors - " .. L["show recorded errors"])
 	else
 		ns.ToggleOptions()

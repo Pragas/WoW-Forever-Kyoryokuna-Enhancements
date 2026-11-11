@@ -10,6 +10,14 @@ local L = ns.L
 local W = ns.Widgets
 
 local GREY = {0.7, 0.7, 0.7}
+
+local ANIMATIONS = {
+	{value = "NONE", text = "None"},
+	{value = "PULSE", text = "Pulse"},
+	{value = "BREATHE", text = "Breathe"},
+	{value = "BLINK", text = "Blink"},
+	{value = "FLOAT", text = "Float"},
+}
 local WARNING = {1, 0.6, 0.2}
 
 ns.AddOptionsPage("Proc Alerts", function(b)
@@ -97,7 +105,14 @@ ns.AddOptionsPage("Proc Alerts", function(b)
 	b:Slider("procAlerts.size", "Size", 5, "%", "The size of the art, from half to twice the game's.", on)
 	b:Slider("procAlerts.distance", "Distance between the sides", 10, " px", "How far apart the left and right art are: more keeps them away from your character.", on)
 	b:Slider("procAlerts.opacity", "Opacity", 5, "%", "How see-through the art is: lower is more faded.", on)
-	b:Check("procAlerts.pulse", "Pulse", "The art grows and shrinks slowly while the proc is there (some procs never pulse, as in the game).", on)
+
+	b:Header("Animation")
+	b:Dropdown("procAlerts.animation", "Animation", ANIMATIONS,
+		"How the art moves while the proc is there. Some procs always stay still, as in the game.", on)
+	local moves = W.All(on, function() return ns.Get("procAlerts.animation") ~= "NONE" end)
+	b:Slider("procAlerts.animTime", "Speed (one cycle)", 0.1, " s", "How long one cycle lasts: less is faster. The game's own spell alerts take 1 second.", moves)
+	b:Slider("procAlerts.animStrength", "Strength", 1, "%", "How much it changes: how much it grows (Pulse), fades (Breathe, Blink) or rises (Float).", moves)
+	b:Check("procAlerts.fadeIn", "Appear softly", "The art fades in when the proc comes, instead of showing at once.", on)
 	b:Space(6)
 	b:Button("Test all", function()
 		-- The art is around the middle of the screen, under this window: only its title bar stays

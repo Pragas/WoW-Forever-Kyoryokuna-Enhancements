@@ -2,10 +2,9 @@
 -- Copyright (c) 2026 Pragas. All Rights Reserved.
 -- See LICENSE for terms. Unauthorized copying, modification or redistribution is prohibited.
 
--- Proc alerts: when a proc happens (e.g. Fingers of Frost), the game's own spell alert art shows on the
--- sides of the character, pulsing, like the spell alerts of the newer game. Based on SpellActivationOverlay,
--- by ennvina, used under the MIT License (see LICENSE, "Third-party notices"): which procs, their art,
--- places and sizes, and how to show them in combat, come from it, made again for WoW Forever only.
+-- Proc alerts: when a proc happens (e.g. Fingers of Frost), the game's own spell alert art shows around
+-- the character, pulsing, like the spell alerts of the newer game; abilities that become usable can also
+-- light their button on the action bars.
 --
 -- Two ways to know a proc is there:
 --   - an aura the addon can read: the addon reads it (UNIT_AURA) and shows its own art;
@@ -13,7 +12,7 @@
 --     know, so it asks the game's AuraContainer to show the art itself while the aura is there, with the
 --     stacks asked for. The game tells which auras are secret (C_Secrets).
 --
--- The art is the game's own (file IDs); nothing is shipped. Phase 1: the mage.
+-- The art is the game's own (file IDs); nothing is shipped.
 
 local _, ns = ...
 local L = ns.L
@@ -21,7 +20,7 @@ local L = ns.L
 local ProcAlerts = {}
 ns.ProcAlerts = ProcAlerts
 
--- The size of the art, as SpellActivationOverlay draws it: a side is 128 x 256, at 80%
+-- The size of the art: a side is 128 x 256, at 80%
 local SIZE_SCALE = 0.8
 local LONG_SIDE, SHORT_SIDE = 256, 128
 
@@ -55,7 +54,7 @@ local BOTH_SIDES = {"LEFT", "RIGHT_FLIPPED"}
 local TOP = {"TOP"}
 local TOP_TURNED = {"TOP_CW"}
 
--- The procs of each class (in WoW Forever, from SpellActivationOverlay): the setting that turns it on,
+-- The procs of each class in WoW Forever: the setting that turns it on,
 -- the spell (an aura's ID; for a "counter", an ability that becomes usable, like Victory Rush after a
 -- kill), a name for when the game doesn't give one, combatOnly (only shown in combat), and its art:
 -- {stacks (nil: any; a number: exactly that many), art, sides, scale, shade (0-255, grey to white) or
@@ -68,8 +67,10 @@ local EFFECTS = {
 		{key = "clearcasting", spell = 12536, name = "Clearcasting", overlays = {
 			{art = ART.GENERIC_ARC_05, sides = BOTH_SIDES, scale = 1.5, pulse = false},
 		}},
-		-- One charge on the left, the second one on the right too
-		{key = "fingersOfFrost", spell = 400670, name = "Fingers of Frost", overlays = {
+		-- One charge on the left, the second one on the right too. WoW Forever has four spells of that name
+		-- (asked of the game, /ke procscan find): 400647 is the talent itself (always on, left out); the buff
+		-- is one of the others
+		{key = "fingersOfFrost", spell = 400670, also = {400669, 401741}, name = "Fingers of Frost", overlays = {
 			{art = ART.FROZEN_FINGERS, sides = {"LEFT"}},
 			{stacks = 2, art = ART.FROZEN_FINGERS, sides = {"RIGHT_FLIPPED"}},
 		}},
@@ -326,8 +327,106 @@ local function Paint(texture, overlay, side)
 	texture:SetVertexColor(r, g, b, (overlay.alpha or 255) / 255)
 end
 
-local function MustPulse(overlay)
-	return Settings().pulse and overlay.pulse ~= false
+-- Animations ---------------------------------------------------------------------------------------
+
+-- While a proc is there its art can move (each player picks; some procs always stay still, as in the
+-- game): one cycle lasts the time asked, and the strength (%) is how much it changes:
+--   PULSE    grows and comes back (by the strength; 8% in 1 second is the game's own spell alerts)
+--   BREATHE  fades a little and comes back, its size never changes (3 times the strength, in %)
+--   BLINK    fades out fast and comes back, then waits (4 times the strength, in %)
+--   FLOAT    rises and comes back down (1.5 pixels per % of strength)
+-- And it can appear softly (a fade-in) instead of at once.
+local FADE_IN_TIME = 0.25
+
+local function AnimationSettings(overlay)
+	local settings = Settings()
+	if overlay.pulse == false then return "NONE" end
+	return settings.animation or "NONE", settings.animTime or 1, (settings.animStrength or 8) / 100
+end
+
+local function Step(group, kind, duration, order, a, b)
+	local step = group:CreateAnimation(kind)
+	step:SetDuration(duration)
+	step:SetSmoothing("IN_OUT")
+	step:SetOrder(order)
+	if kind == "Scale" then
+		-- From one size to another (the game's older way: a size relative to the last)
+		if step.SetScale then
+			step:SetScale(b / a, b / a)
+		else
+			step:SetScaleFrom(a, a)
+			step:SetScaleTo(b, b)
+		end
+	elseif kind == "Alpha" then
+		step:SetFromAlpha(a)
+		step:SetToAlpha(b)
+	elseif kind == "Translation" then
+		step:SetOffset(0, b - a)
+	end
+	return step
+end
+
+-- The animation for these settings, made once for each (an animation can't be changed once made):
+-- on the frame for a size or a place, on the art for its light
+local function MakeAnimation(frame, art, kind, time, strength)
+	local half = time / 2
+	if kind == "PULSE" then
+		local group = frame:CreateAnimationGroup()
+		Step(group, "Scale", half, 1, 1, 1 + strength)
+		Step(group, "Scale", half, 2, 1 + strength, 1)
+		return group
+	elseif kind == "BREATHE" then
+		local low = math.max(0.1, 1 - strength * 3)
+		local group = art:CreateAnimationGroup()
+		Step(group, "Alpha", half, 1, 1, low)
+		Step(group, "Alpha", half, 2, low, 1)
+		return group
+	elseif kind == "BLINK" then
+		local low = math.max(0.1, 1 - strength * 4)
+		local group = art:CreateAnimationGroup()
+		Step(group, "Alpha", time * 0.15, 1, 1, low)
+		Step(group, "Alpha", time * 0.15, 2, low, 1)
+		Step(group, "Alpha", time * 0.7, 3, 1, 1)
+		return group
+	elseif kind == "FLOAT" then
+		local height = strength * 100 * 1.5
+		local group = frame:CreateAnimationGroup()
+		Step(group, "Translation", half, 1, 0, height)
+		Step(group, "Translation", half, 2, height, 0)
+		return group
+	end
+end
+
+-- Stops what the art did, and starts what it must do now (nothing when it stays still)
+local function Animate(frame, art, overlay, playing)
+	if frame.animation then frame.animation:Stop() end
+	frame.animation = nil
+	if not playing then return end
+	local kind, time, strength = AnimationSettings(overlay)
+	if kind == "NONE" then return end
+	frame.animations = frame.animations or {}
+	local key = kind .. ":" .. time .. ":" .. strength
+	if not frame.animations[key] then
+		local group = MakeAnimation(frame, art, kind, time, strength)
+		if not group then return end
+		group:SetLooping("REPEAT")
+		frame.animations[key] = group
+	end
+	frame.animation = frame.animations[key]
+	frame.animation:Play()
+end
+
+-- The soft appearance: from nothing to whole, quickly (when asked)
+local function FadeIn(frame)
+	if not Settings().fadeIn then return end
+	if not frame.fadeIn then
+		frame.fadeIn = frame:CreateAnimationGroup()
+		local fade = frame.fadeIn:CreateAnimation("Alpha")
+		fade:SetFromAlpha(0)
+		fade:SetToAlpha(1)
+		fade:SetDuration(FADE_IN_TIME)
+	end
+	frame.fadeIn:Play()
 end
 
 -- The addon's own art ------------------------------------------------------------------------------
@@ -335,17 +434,15 @@ end
 local function OwnFrame(id)
 	local frame = ownFrames[id]
 	if frame then return frame end
-	frame = CreateFrame("Frame", nil, GetHolder(), "KyoryokunaEnhancementsProcOverlayTemplate")
-	if not frame.art then
-		frame.art = frame:CreateTexture(nil, "ARTWORK")
-		frame.art:SetAllPoints(frame)
-	end
+	frame = CreateFrame("Frame", nil, GetHolder())
+	frame.art = frame:CreateTexture(nil, "ARTWORK")
+	frame.art:SetAllPoints(frame)
 	frame:Hide()
 	ownFrames[id] = frame
 	return frame
 end
 
--- Shows an overlay's art (each side); wanted collects what's shown. One already shown keeps its pulse
+-- Shows an overlay's art (each side); wanted collects what's shown. One already shown keeps moving
 local function ShowOwn(effect, index, overlay, wanted)
 	for _, side in ipairs(overlay.sides) do
 		local id = effect.key .. ":" .. index .. ":" .. side
@@ -355,9 +452,8 @@ local function ShowOwn(effect, index, overlay, wanted)
 		Place(frame, side, overlay.scale or 1)
 		if not frame:IsShown() then
 			frame:Show()
-			if frame.pulse then
-				if MustPulse(overlay) then frame.pulse:Play() else frame.pulse:Stop() end
-			end
+			FadeIn(frame)
+			Animate(frame, frame.art, overlay, true)
 		end
 	end
 end
@@ -366,7 +462,7 @@ end
 local function HideOwn(wanted)
 	for id, frame in pairs(ownFrames) do
 		if not (wanted and wanted[id]) and frame:IsShown() then
-			if frame.pulse then frame.pulse:Stop() end
+			Animate(frame, frame.art, nil, false)
 			frame:Hide()
 		end
 	end
@@ -495,14 +591,29 @@ local function IsSecret(spell)
 end
 
 -- The game's AuraContainer, made once (nil when the game has none)
+-- What happened when the container was made, for /ke procscan
+local containerNote = "not tried yet"
+
 local function GetContainer()
 	if container ~= nil then return container or nil end
 	container = false
-	if not (C_Secrets and C_Secrets.GetSpellAuraSecrecy) then return nil end
-	if C_AddOns and C_AddOns.LoadAddOn then pcall(C_AddOns.LoadAddOn, "Blizzard_AuraContainer") end
+	if not (C_Secrets and C_Secrets.GetSpellAuraSecrecy) then
+		containerNote = "the game has no C_Secrets"
+		return nil
+	end
+	if C_AddOns and C_AddOns.LoadAddOn then
+		local okLoad, loaded, reason = pcall(C_AddOns.LoadAddOn, "Blizzard_AuraContainer")
+		if not okLoad or (not loaded and reason ~= "ALREADY_LOADED") then
+			containerNote = "Blizzard_AuraContainer not loaded: " .. tostring(okLoad and reason or loaded)
+		end
+	end
 	local ok, frame = pcall(CreateFrame, "AuraContainer", "KyoryokunaEnhancementsProcAuraContainer", GetHolder(),
 		"CustomAuraContainerTemplate")
-	if not ok or not frame then return nil end
+	if not ok or not frame then
+		containerNote = "not made: " .. tostring(frame)
+		return nil
+	end
+	containerNote = "made"
 	frame:SetAllPoints(GetHolder())
 	frame:SetUnit("player")
 	frame:SetEnabled(true)
@@ -511,9 +622,41 @@ local function GetContainer()
 end
 
 -- One side of an overlay, shown by the game while the aura has those stacks
+-- The parts of a frame the game made from the template: a frame that pulses, and on it the bar the game
+-- shows only while the aura has the stacks asked for (hidden until then), with the art on the bar
+local function MakeSlotParts(button)
+	local item = CreateFrame("Frame", nil, button)
+	item:SetAllPoints(button)
+	local bar = CreateFrame("StatusBar", nil, item)
+	bar:SetAllPoints(item)
+	bar:Hide()
+	bar.art = bar:CreateTexture(nil, "OVERLAY")
+	bar.art:SetAllPoints(bar)
+	-- The game also follows the aura's time on a cooldown: one that draws nothing
+	local okCooldown, cooldown = pcall(CreateFrame, "Cooldown", nil, bar, "CooldownFrameTemplate")
+	if okCooldown and cooldown then
+		cooldown:SetAllPoints(bar)
+		if cooldown.SetDrawSwipe then cooldown:SetDrawSwipe(false) end
+		if cooldown.SetDrawEdge then cooldown:SetDrawEdge(false) end
+		if cooldown.SetDrawBling then cooldown:SetDrawBling(false) end
+		if cooldown.SetHideCountdownNumbers then cooldown:SetHideCountdownNumbers(true) end
+		if cooldown.SetReverse then cooldown:SetReverse(true) end
+		bar.cooldown = cooldown
+	end
+	item.applicationBar = bar
+	button.pulsableItem = item
+end
+
 local function SetUpSlot(button, slot)
 	local overlay = slot.overlay
 	button:EnableMouse(false)
+	-- The parts come with the template (Modules\ProcAlerts.xml); made here only if the game gave none
+	if not button.pulsableItem then MakeSlotParts(button) end
+	local parts = button.pulsableItem
+	if parts and parts.applicationBar and not parts.applicationBar.kpFade then
+		parts.applicationBar.kpFade = true
+		parts.applicationBar:HookScript("OnShow", function() FadeIn(parts) end)
+	end
 	local bar = button.pulsableItem and button.pulsableItem.applicationBar
 	if not bar then return end
 	Paint(bar.art, overlay, slot.side)
@@ -524,10 +667,20 @@ local function SetUpSlot(button, slot)
 			bar:SetFillStyle(Enum.StatusBarFillStyle.StandardNoRangeFill)
 		end
 	end
-	if button.SetApplicationBar then button:SetApplicationBar(bar, {minApplications = fewest, maxApplications = most}) end
-	if button.SetDurationCooldown and bar.cooldown then button:SetDurationCooldown(bar.cooldown) end
+	-- Given to the game once, when it makes the frame (what happens is kept for /ke procscan)
+	if not slot.setUp then
+		if button.SetApplicationBar then
+			local ok, problem = pcall(button.SetApplicationBar, button, bar, {minApplications = fewest, maxApplications = most})
+			slot.setUp = ok and true or ("error: " .. tostring(problem))
+		else
+			slot.setUp = "the game's frame has no SetApplicationBar"
+		end
+		if button.SetDurationCooldown and bar.cooldown then pcall(button.SetDurationCooldown, button, bar.cooldown) end
+		button:SetFrameLevel(GetHolder():GetFrameLevel() + 3)
+	end
 	Place(button, slot.side, overlay.scale or 1)
-	if MustPulse(overlay) then button.pulsableItem.pulse:Play() else button.pulsableItem.pulse:Stop() end
+	-- It moves all the time (unseen while the game hides the bar), as the settings say
+	Animate(button.pulsableItem, bar.art, overlay, true)
 	if button.GetIcon and button:GetIcon() then button:GetIcon():Hide() end
 end
 
@@ -545,7 +698,10 @@ local function MakeSlots(effect)
 				initializeFrame = function(made) slot.button = made; SetUpSlot(made, slot) end,
 				candidateFilters = {includeSpellIDs = spells},
 			})
-			if not ok then return false end
+			if not ok then
+				effect.slotNote = tostring(button)
+				return false
+			end
 			slot.button = slot.button or button
 			slots[#slots + 1] = slot
 		end
@@ -582,8 +738,8 @@ local function ReadStacks(effect)
 	return nil
 end
 
--- Abilities that become usable ("counter": Victory Rush after a kill, Riposte after a parry...), as
--- SpellActivationOverlay tells them: known, not on cooldown (the global one aside), and usable, or only
+-- Abilities that become usable ("counter": Victory Rush after a kill, Riposte after a parry...): they show while
+-- known, not on cooldown (the global one aside), and usable, or only
 -- short of rage or energy. What the game hides keeps the last answer.
 local lastReady = {}
 local retryAt = {}
@@ -774,7 +930,10 @@ function ProcAlerts.Update()
 		HideOwn()
 		SetGlows({})
 		for _, slot in ipairs(slots) do
-			if container and container.SetAuraSlotEnabled then pcall(container.SetAuraSlotEnabled, container, slot.key, false) end
+			if slot.enabled ~= false and container and container.SetAuraSlotEnabled then
+				pcall(container.SetAuraSlotEnabled, container, slot.key, false)
+				slot.enabled = false
+			end
 		end
 		return
 	end
@@ -783,8 +942,18 @@ function ProcAlerts.Update()
 	-- The game's: each one on or off, and fitted to the size (off during a test, which shows its own)
 	for _, slot in ipairs(slots) do
 		local on = settings.enabled and settings[slot.effect.key] == true and not showingTest
-		if container and container.SetAuraSlotEnabled then pcall(container.SetAuraSlotEnabled, container, slot.key, on) end
-		if slot.button then SetUpSlot(slot.button, slot) end
+		-- Only when something changed: turning a place on again, or setting it up again, may make the game
+		-- lose it
+		if slot.enabled ~= on and container and container.SetAuraSlotEnabled then
+			pcall(container.SetAuraSlotEnabled, container, slot.key, on)
+			slot.enabled = on
+		end
+		local look = settings.size .. ":" .. settings.distance .. ":" .. tostring(settings.animation) .. ":" .. tostring(settings.animTime)
+			.. ":" .. tostring(settings.animStrength)
+		if slot.button and slot.look ~= look then
+			SetUpSlot(slot.button, slot)
+			slot.look = look
+		end
 	end
 	-- The addon's own: shown again at the new size
 	HideOwn()
@@ -870,6 +1039,185 @@ function ProcAlerts.StopFixedTest()
 	if fixedKey then ProcAlerts.SetFixedTest(nil) end
 	-- And the moving
 	if moving then ProcAlerts.SetMoving(false) end
+end
+
+-- What the addon knows about the alerts now, for /ke procscan: lines of text
+function ProcAlerts.Scan()
+	local lines = {}
+	local settings = Settings()
+	local _, class = UnitClass("player")
+	lines[#lines + 1] = string.format("on: %s, class: %s, in combat: %s, test: %s", tostring(settings.enabled), tostring(class),
+		tostring(InCombat()), tostring(fixedKey or testing or false))
+	lines[#lines + 1] = "AuraContainer: " .. containerNote .. ", slots: " .. #slots
+	-- What the game itself said about its spell alerts lately (newest first)
+	local said = ProcAlerts.NativeAlerts and ProcAlerts.NativeAlerts() or {}
+	lines[#lines + 1] = "game alerts lately: " .. (#said > 0 and "" or "none")
+	for _, line in ipairs(said) do lines[#lines + 1] = "    " .. line end
+	for _, effect in ipairs(ProcAlerts.GetEffects()) do
+		-- Each proc on its own: one that breaks says so, the others still show
+		local okEffect, problem = pcall(function()
+		if settings[effect.key] ~= true then return end
+			local secrecy = "?"
+			if C_Secrets and C_Secrets.GetSpellAuraSecrecy then
+				local ok, value = pcall(C_Secrets.GetSpellAuraSecrecy, effect.spell)
+				secrecy = ok and tostring(value) or ("error: " .. tostring(value))
+			end
+			local read
+			if effect.kind == "counter" then
+				read = "ready: " .. tostring(CounterReady(effect))
+			elseif C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID then
+				local ok, aura = pcall(C_UnitAuras.GetPlayerAuraBySpellID, effect.spell)
+				if not ok then
+					read = "aura: refused (" .. tostring(aura):sub(1, 60) .. ")"
+				elseif type(aura) == "table" then
+					read = "aura: on, stacks " .. tostring(Known(aura.applications))
+				else
+					read = "aura: off"
+				end
+			end
+			lines[#lines + 1] = string.format("%s (%d): secrecy %s, by the game: %s%s, %s", ProcAlerts.SpellName(effect), effect.spell,
+				secrecy, tostring(effect.byGame), effect.slotNote and (" (" .. effect.slotNote .. ")") or "", tostring(read))
+			-- Each of its places in the game's container: whether the game made its frame, and what shows
+			for _, slot in ipairs(slots) do
+				if slot.effect == effect then
+					-- In combat the game may hide even whether its frames show, or their size: each value
+					-- read on its own, a hidden one written as "hidden by the game"
+					local function Say(read)
+						local ok, value = pcall(read)
+						if not ok then return "error" end
+						value = Known(value)
+						if value == nil then return "hidden by the game" end
+						if type(value) == "number" then return tostring(math.floor(value + 0.5)) end
+						return tostring(value)
+					end
+					local button = slot.button
+					local text
+					if not button then
+						text = "no frame yet"
+					else
+						local bar = button.pulsableItem and button.pulsableItem.applicationBar
+						text = string.format("frame shown %s, bar shown %s, bar visible %s, %sx%s, SetApplicationBar %s, set up %s",
+							Say(function() return button:IsShown() end),
+							bar and Say(function() return bar:IsShown() end) or "no bar",
+							bar and Say(function() return bar:IsVisible() end) or "no bar",
+							Say(function() return button:GetWidth() end), Say(function() return button:GetHeight() end),
+							button.SetApplicationBar and "yes" or "NO", tostring(slot.setUp or false))
+					end
+					lines[#lines + 1] = "    " .. slot.side .. ": " .. text
+				end
+			end
+		end)
+		if not okEffect then lines[#lines + 1] = tostring(effect.name) .. ": " .. tostring(problem) end
+	end
+	return lines
+end
+
+-- The game's own spell alerts: it says when it would show one (and its spell), even when its display is
+-- off. The last ones are kept for /ke procscan, to learn the spell IDs the game uses in WoW Forever.
+local nativeAlerts = {}
+local nativeFrame = CreateFrame("Frame")
+for _, event in ipairs({"SPELL_ACTIVATION_OVERLAY_SHOW", "SPELL_ACTIVATION_OVERLAY_HIDE",
+	"SPELL_ACTIVATION_OVERLAY_GLOW_SHOW", "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE"}) do
+	pcall(nativeFrame.RegisterEvent, nativeFrame, event)
+end
+-- Watching (/ke procscan watch): each one written in the chat as it comes
+local watching = false
+nativeFrame:SetScript("OnEvent", function(_, event, spell, art)
+	local short = event:gsub("SPELL_ACTIVATION_OVERLAY_", "")
+	local name = type(Known(spell)) == "number" and SpellNameOf(spell) or nil
+	local line = string.format("%s %s %s%s", short, tostring(Known(spell) or "hidden"), name or "",
+		Known(art) and (" art " .. tostring(art)) or "")
+	table.insert(nativeAlerts, 1, line)
+	while #nativeAlerts > 8 do table.remove(nativeAlerts) end
+	if watching then ns.Print("game alert: " .. line) end
+end)
+
+function ProcAlerts.NativeAlerts()
+	return nativeAlerts
+end
+
+function ProcAlerts.ToggleWatch()
+	watching = not watching
+	return watching
+end
+
+-- Every spell ID with a name (/ke procscan find Fingers of Frost): the game is asked the name of each
+-- number, a slice at a time so the game never freezes; written in the chat at the end. A version of
+-- the game may give a proc an ID of its own.
+local FIND_LAST, FIND_SLICE = 1500000, 20000
+local finding
+
+function ProcAlerts.FindSpells(name)
+	if finding then return false end
+	if not (C_Spell and C_Spell.GetSpellName and C_Timer and C_Timer.After) then return false end
+	local wanted = name:lower()
+	local found, from = {}, 1
+	finding = true
+	local function Slice()
+		local last = math.min(FIND_LAST, from + FIND_SLICE - 1)
+		for id = from, last do
+			local spellName = C_Spell.GetSpellName(id)
+			if type(spellName) == "string" and spellName:lower() == wanted then found[#found + 1] = id end
+		end
+		from = last + 1
+		if from <= FIND_LAST then
+			C_Timer.After(0, function() ns.SafeCall(Slice) end)
+			return
+		end
+		finding = nil
+		local list = {}
+		for _, id in ipairs(found) do
+			local sub = C_Spell.GetSpellSubtext and Known(C_Spell.GetSpellSubtext(id))
+			list[#list + 1] = tostring(id) .. ((type(sub) == "string" and sub ~= "") and (" (" .. sub .. ")") or "")
+		end
+		ns.Print(string.format("\"%s\": %s", name, #list > 0 and table.concat(list, ", ") or "no spell with that name"))
+	end
+	Slice()
+	return true
+end
+
+-- A check of the game's container with a buff the character always has (/ke procscan armor): while a
+-- mage's armor or Arcane Intellect is on, the game is asked to show the Frozen Fingers art on the left.
+-- If it shows, the container works and the problem is a proc's own; if not, the container shows nothing.
+local CHECK_SPELLS = {
+	168, 7300, 7301, 7302, 7320, 10219, 10220, 6117, 22782, 22783, -- Frost, Ice and Mage Armor
+	1459, 1460, 1461, 10156, 10157, 23028, -- Arcane Intellect and Brilliance
+}
+local checkSlot
+
+function ProcAlerts.CheckContainer(kind)
+	local frame = GetContainer()
+	if not frame then return "the game's AuraContainer wasn't made: " .. containerNote end
+	if checkSlot then
+		pcall(frame.SetAuraSlotEnabled, frame, checkSlot.key, false)
+		checkSlot = nil
+		return "check off"
+	end
+	-- The armor and Arcane Intellect, or only the Fingers of Frost of WoW Forever (on the right then)
+	local spells, side, key = {}, "LEFT", "KE_check"
+	if kind == "fof" then
+		spells[400670], side, key = true, "RIGHT_FLIPPED", "KE_check_fof"
+	else
+		for _, spell in ipairs(CHECK_SPELLS) do spells[spell] = true end
+	end
+	local slot = {key = key, side = side, effect = {key = "check", spell = 168, overlays = {}},
+		overlay = {art = ART.FROZEN_FINGERS, sides = {side}}}
+	local ok, button = pcall(frame.AddAuraSlot, frame, slot.key, "HELPFUL", {
+		templateNames = {"KyoryokunaEnhancementsProcAuraTemplate"},
+		initializeFrame = function(made) slot.button = made; SetUpSlot(made, slot) end,
+		candidateFilters = {includeSpellIDs = spells},
+	})
+	if not ok then
+		-- Asked before: the same place again
+		pcall(frame.SetAuraSlotEnabled, frame, slot.key, true)
+		checkSlot = slot
+		return "check on again (" .. tostring(button) .. ")"
+	end
+	slot.button = slot.button or button
+	pcall(frame.SetAuraSlotEnabled, frame, slot.key, true)
+	checkSlot = slot
+	GetHolder():Show()
+	return "check on: frame made " .. tostring(slot.button ~= nil) .. ", set up " .. tostring(slot.setUp or false)
 end
 
 -- For the tests
