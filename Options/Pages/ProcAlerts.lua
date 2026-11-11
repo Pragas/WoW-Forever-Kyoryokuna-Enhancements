@@ -40,6 +40,18 @@ ns.AddOptionsPage("Proc Alerts", function(b)
 		b:Text("The SpellActivationOverlay addon is on: with both, the alerts show twice. Turn one of them off.", WARNING)
 	end
 
+	-- Second, so the alerts can be put in place before setting the rest up
+	b:Header("Place on the screen")
+	local move = b:Button("Move", function() P.SetMoving(not P.IsMoving()) end,
+		"Shows the alerts with a green frame: drag it where you want, then click again (closing the options also ends it).")
+	b:AddControl({frame = move, Refresh = function()
+		move:SetText(P.IsMoving() and L["Done"] or L["Move"])
+	end})
+	b:Button("Reset position", function()
+		ns.Set("procAlerts.x", ns.DEFAULTS.procAlerts.x)
+		ns.Set("procAlerts.y", ns.DEFAULTS.procAlerts.y)
+	end, "Puts the alerts back in the middle of the screen.")
+
 	local className = UnitClass("player")
 	b:Header(string.format(L["Procs of your class (%s)"], className or ""), true)
 	local effects = P.GetEffects()
@@ -89,17 +101,6 @@ ns.AddOptionsPage("Proc Alerts", function(b)
 		b:Space(4)
 		b:Text("\"Button glows\": while the ability is ready, its button on the game's action bars gets a moving gold outline (also a macro that casts it).", GREY)
 	end
-
-	b:Header("Place on the screen")
-	local move = b:Button("Move", function() P.SetMoving(not P.IsMoving()) end,
-		"Shows the alerts with a green frame: drag it where you want, then click again (closing the options also ends it).")
-	b:AddControl({frame = move, Refresh = function()
-		move:SetText(P.IsMoving() and L["Done"] or L["Move"])
-	end})
-	b:Button("Reset position", function()
-		ns.Set("procAlerts.x", ns.DEFAULTS.procAlerts.x)
-		ns.Set("procAlerts.y", ns.DEFAULTS.procAlerts.y)
-	end, "Puts the alerts back in the middle of the screen.")
 
 	b:Header("Look")
 	b:Slider("procAlerts.size", "Size", 5, "%", "The size of the art, from half to twice the game's.", on)

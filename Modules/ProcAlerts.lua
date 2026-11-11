@@ -58,9 +58,9 @@ local TOP_TURNED = {"TOP_CW"}
 -- the spell (an aura's ID; for a "counter", an ability that becomes usable, like Victory Rush after a
 -- kill), also (other IDs of the same aura; only the ones known to be the proc: other spells of the same
 -- name can be auras always on, whose art would never go away), a name for when the game doesn't give
--- one, combatOnly (only shown in combat), and its art:
--- {stacks (nil: any; a number: exactly that many), art, sides, scale, shade (0-255, grey to white) or
--- color ({r, g, b}, 0-255), alpha (0-255), pulse}
+-- one, combatOnly (only shown in combat), test (the stacks its test shows; else its most), and its art:
+-- {stacks (nil: any; a number: that many; the game shows it from that many up), art, sides,
+-- scale, shade (0-255, grey to white) or color ({r, g, b}, 0-255), alpha (0-255), pulse}
 local EFFECTS = {
 	MAGE = {
 		{key = "missileBarrage", spell = 400589, name = "Missile Barrage", overlays = {
@@ -69,17 +69,21 @@ local EFFECTS = {
 		{key = "clearcasting", spell = 12536, name = "Clearcasting", overlays = {
 			{art = ART.GENERIC_ARC_05, sides = BOTH_SIDES, scale = 1.5, pulse = false},
 		}},
-		-- One charge on the left, two on the right: each place asks the game for an exact number of stacks
-		-- (a place for "any" number never shows an aura that has stacks)
-		{key = "fingersOfFrost", spell = 400670, name = "Fingers of Frost", overlays = {
+		-- One charge on the left, two on the right: each place asks the game for its number of stacks, and
+		-- the game shows it from there up, so two charges light both sides (a place for "any" number never
+		-- shows an aura that has stacks). Its test shows both, as SpellActivationOverlay's does.
+		{key = "fingersOfFrost", spell = 400670, name = "Fingers of Frost", test = {1, 2}, overlays = {
 			{stacks = 1, art = ART.FROZEN_FINGERS, sides = {"LEFT"}},
 			{stacks = 2, art = ART.FROZEN_FINGERS, sides = {"RIGHT_FLIPPED"}},
 		}},
-		-- Heating Up grows with its stacks; at 3 (Hot Streak) it's whole and pulses
-		{key = "heatingUp", spell = 400625, name = "Heating Up", overlays = {
-			{stacks = 1, art = ART.HOT_STREAK, sides = BOTH_SIDES, scale = 0.6, shade = 200, pulse = false},
-			{stacks = 2, art = ART.HOT_STREAK, sides = BOTH_SIDES, scale = 0.8, shade = 222, pulse = false},
-			{stacks = 3, art = ART.HOT_STREAK, sides = BOTH_SIDES, scale = 1.0},
+		-- Heating Up gets stronger with its stacks: one faint, two stronger, three (Hot Streak) whole and
+		-- moving. The game shows each piece from its stacks up (at 3, all three at once), so they're the same
+		-- art at the same size and place: on top of each other they look like one, never three of different
+		-- sizes. Its test shows the three, as the game does at 3 stacks.
+		{key = "heatingUp", spell = 400625, name = "Heating Up", test = {1, 2, 3}, overlays = {
+			{stacks = 1, art = ART.HOT_STREAK, sides = BOTH_SIDES, shade = 200, alpha = 100, pulse = false},
+			{stacks = 2, art = ART.HOT_STREAK, sides = BOTH_SIDES, shade = 222, alpha = 100, pulse = false},
+			{stacks = 3, art = ART.HOT_STREAK, sides = BOTH_SIDES},
 		}},
 	},
 	DRUID = {
@@ -578,7 +582,8 @@ local function SpellOnBars(effect)
 	end
 end
 
--- Whether an overlay is for this many stacks
+-- Whether an overlay is for this many stacks (the addon's own art). The game's frames (AuraContainer)
+-- show each place from its stacks up instead (Blizzard_CustomAuraButton: applications >= minApplications).
 local function Matches(overlay, stacks)
 	return overlay.stacks == nil or overlay.stacks == stacks
 end
@@ -822,13 +827,15 @@ local function MostStacks(effect)
 	return most
 end
 
--- One proc shown as a test (its most stacks), with its name in the middle
+-- One proc shown as a test, with its name in the middle: the art of its most stacks, or of the stacks its
+-- test asks for (as SpellActivationOverlay's tests: Fingers of Frost shows one and two charges, both sides)
 local function ShowTestEffect(effect)
 	local wanted = {}
-	local most = MostStacks(effect)
 	if ProcAlerts.ShowsArt(effect) then
-		for index, overlay in ipairs(effect.overlays) do
-			if Matches(overlay, most) then ShowOwn(effect, index, overlay, wanted) end
+		for _, stacks in ipairs(effect.test or {MostStacks(effect)}) do
+			for index, overlay in ipairs(effect.overlays) do
+				if Matches(overlay, stacks) then ShowOwn(effect, index, overlay, wanted) end
+			end
 		end
 	end
 	HideOwn(wanted)

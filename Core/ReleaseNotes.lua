@@ -19,6 +19,14 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.10.1",
+		fixed = {
+			"Proc alerts: the test of Fingers of Frost shows both sides, as two charges do in the game.",
+			"Proc alerts: Heating Up no longer shows three wings of different sizes: it's one that gets stronger with each stack.",
+			"Proc alerts: \"Place on the screen\" is now right after turning the alerts on.",
+		},
+	},
+	{
 		version = "0.10.0",
 		new = {
 			"Trainer (new page): tick the spells you want at your class trainer and learn only those. And the chat tells you when you reach the level of new spells.",

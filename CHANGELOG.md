@@ -8,6 +8,12 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.10.1
+
+- Proc alerts: a proc can say which stacks its test shows (each proc's "Test", "Test all", and the art shown while moving), as SpellActivationOverlay's tests do; otherwise its most stacks, as before. Fingers of Frost's test shows one and two charges: both sides, as two charges do in the game (the game's AuraContainer shows each place from its stacks up: Blizzard_CustomAuraButton, applications >= minApplications), instead of the right one only.
+- Proc alerts: Heating Up's three pieces are now the same art at the same size and place (before: 0.6, 0.8 and 1.0). The game shows each piece from its stacks up, so at 3 stacks all three showed at once, three wings of different sizes on each side. Now they lie on top of each other and look like one that gets stronger: one stack faint (alpha 100, grey 200), two stronger (another alpha 100, grey 222), three (Hot Streak) whole and moving. Its test shows the three, as the game does at 3 stacks.
+- Proc Alerts page: "Place on the screen" is the second section, right after turning the alerts on and before the procs of the class.
+
 ## 0.10.0
 
 - New "Trainer" page:

@@ -506,6 +506,14 @@ ns.LOCALES.ptPT = {
 	["Error Messages (new page): hide the game's red messages you don't want, like \"Spell is not ready yet\" (their sound still plays), and silence their voice."] =
 		"Mensagens de erro (página nova): esconde as mensagens vermelhas do jogo que não queres, como \"Spell is not ready yet\" (o som continua a tocar), e cala a voz delas.",
 
+	-- Release notes 0.10.1
+	["Proc alerts: the test of Fingers of Frost shows both sides, as two charges do in the game."] =
+		"Alertas de procs: o teste do Fingers of Frost mostra os dois lados, como duas cargas fazem no jogo.",
+	["Proc alerts: Heating Up no longer shows three wings of different sizes: it's one that gets stronger with each stack."] =
+		"Alertas de procs: o Heating Up já não mostra três asas de tamanhos diferentes: é uma só, que ganha força a cada stack.",
+	["Proc alerts: \"Place on the screen\" is now right after turning the alerts on."] =
+		"Alertas de procs: \"Sítio no ecrã\" vem agora logo a seguir a ligar os alertas.",
+
 	-- Trainer (Modules\Trainer.lua, Options\Pages\Trainer.lua)
 	["Trainer"] = "Treinador",
 	["Choose the spells to learn"] = "Escolher os feitiços a aprender",
