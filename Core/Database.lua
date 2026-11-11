@@ -65,6 +65,23 @@ ns.DEFAULTS = {
 		bar = false,
 	},
 
+	-- The game's red error messages (Modules\ErrorMessages.lua): which kinds are hidden, only in combat or
+	-- always, all of them, and the voice of the ones kept
+	errorMessages = {
+		enabled = false,
+		onlyInCombat = false,
+		hideAll = false,
+		cooldown = false,
+		power = false,
+		range = false,
+		sight = false,
+		facing = false,
+		target = false,
+		busy = false,
+		moving = false,
+		muteVoice = false,
+	},
+
 	-- Missing buffs (Modules\MissingBuffs.lua), in two groups with a look and a place each (from the center
 	-- of the screen; the side they grow from stays there). What's watched is kept for each character, in
 	-- characters (see Validate).
@@ -330,6 +347,7 @@ function ns.OnSettingChanged(path)
 	if path:find("^actionBars%.") and ns.ActionBars then ns.ActionBars.Apply() end
 	if path:find("^experienceBar%.") and ns.ExperienceBar then ns.ExperienceBar.Apply() end
 	if path:find("^queueTimer%.") and ns.QueueTimer then ns.QueueTimer.Refresh() end
+	if path:find("^errorMessages%.") and ns.ErrorMessages then ns.ErrorMessages.Apply() end
 	-- missingBuffs, missingBuffsEssential, missingBuffsUtility
 	if path:find("^missingBuffs") and ns.MissingBuffs then ns.MissingBuffs.Update() end
 	if path:find("^procAlerts%.") and ns.ProcAlerts then ns.ProcAlerts.Update() end
@@ -349,6 +367,7 @@ function ns.OnAllSettingsChanged()
 	if ns.ActionBars then ns.ActionBars.Apply() end
 	if ns.ExperienceBar then ns.ExperienceBar.Apply() end
 	if ns.QueueTimer then ns.QueueTimer.Refresh() end
+	if ns.ErrorMessages then ns.ErrorMessages.Apply() end
 	if ns.MissingBuffs then ns.MissingBuffs.Update() end
 	if ns.Supplies then ns.Supplies.Update() end
 	if ns.ProcAlerts then ns.ProcAlerts.Update() end

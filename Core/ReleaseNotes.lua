@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.9.0",
+		new = {
+			"Error Messages (new page): hide the game's red messages you don't want, like \"Spell is not ready yet\" (their sound still plays), and silence their voice.",
+		},
+	},
+	{
 		version = "0.8.4",
 		fixed = {
 			"Two diagnostic commands used only once (/ke procscan armor and fof) are gone.",

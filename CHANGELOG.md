@@ -8,6 +8,11 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.9.0
+
+- New "Error Messages" page (second, after Queue): the game's red messages in the middle of the screen can be hidden by kind, each its own tick (all off at first): not ready yet (spell, ability, item cooldown), not enough mana, rage or energy (or combo points), out of range, not in line of sight, facing the wrong way, no or wrong target, another action in progress, can't do that while moving; or every one ("Hide every error message"). "Only in combat" keeps them all out of combat. Only the text of a hidden message is hidden: the addon plays its sound or voice itself, as the game's frame would (GetGameMessageInfo). "Silence the voice of the messages" turns off the game's own error speech (Sound_EnableErrorSpeech) for every message, and turns it back on when unticked (kept across sessions).
+- How: with the filter on, the addon takes the game's UI_ERROR_MESSAGE instead of the game's error frame and hands on only the messages not hidden, which the game's frame then shows and speaks as usual; of a hidden one it plays the sound itself (C_Sound.PlayVocalErrorSound for a voice, else PlaySound). A message is told by its type (LE_GAME_ERR_...) or by its text (the game's own strings, so in any language). Nothing protected is touched. Off, the game's frame has the event again.
+
 ## 0.8.4
 
 - Removed /ke procscan armor and /ke procscan fof, the checks used once to find why Fingers of Frost didn't show in combat. /ke procscan, watch, find and all stay.

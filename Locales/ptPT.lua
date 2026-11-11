@@ -469,4 +469,40 @@ ns.LOCALES.ptPT = {
 		"Alertas de procs: o Fingers of Frost já aparece em combate (uma carga à esquerda, duas à direita).",
 	["Kept in the addon's saved data: type /reload so the game writes it down."] = "Guardado nos dados do addon: escreve /reload para o jogo o gravar.",
 	["Two diagnostic commands used only once (/ke procscan armor and fof) are gone."] = "Saíram dois comandos de diagnóstico usados uma só vez (/ke procscan armor e fof).",
+	-- Error messages
+	["Error Messages"] = "Mensagens de erro",
+	["Error messages"] = "Mensagens de erro",
+	["The red messages the game shows in the middle of the screen, like \"Spell is not ready yet\" when a button is pressed again and again. Pick the ones to hide: only the text is hidden, the game's sound still plays. Useful messages, like a full bag, always show."] =
+		"As mensagens vermelhas que o jogo mostra no meio do ecrã, como \"Spell is not ready yet\" quando carregas várias vezes num botão. Escolhe as que queres esconder: só o texto fica escondido, o som do jogo continua a tocar. As mensagens úteis, como as bags cheias, aparecem sempre.",
+	["Filter the error messages"] = "Filtrar as mensagens de erro",
+	["Messages to hide"] = "Mensagens a esconder",
+	["Not ready yet"] = "Ainda não está pronto",
+	["\"Spell is not ready yet\", \"Ability is not ready yet\", an item still cooling down."] =
+		"\"Spell is not ready yet\", \"Ability is not ready yet\", um item ainda em cooldown.",
+	["Not enough mana, rage or energy"] = "Sem mana, rage ou energy suficiente",
+	["\"Not enough mana\", \"Not enough rage\", \"Not enough energy\", combo points."] =
+		"\"Not enough mana\", \"Not enough rage\", \"Not enough energy\", combo points.",
+	["Out of range"] = "Fora de alcance",
+	["\"Out of range\", \"Target too close\"."] = "\"Out of range\", \"Target too close\".",
+	["Not in line of sight"] = "Fora da linha de visão",
+	["\"Target not in line of sight\"."] = "\"Target not in line of sight\".",
+	["Facing the wrong way"] = "Virado para o lado errado",
+	["\"You are facing the wrong way!\", \"Target needs to be in front of you\"."] =
+		"\"You are facing the wrong way!\", \"Target needs to be in front of you\".",
+	["No target or wrong target"] = "Sem alvo ou alvo errado",
+	["\"You have no target\", \"Invalid target\", \"Your target is dead\"."] = "\"You have no target\", \"Invalid target\", \"Your target is dead\".",
+	["Another action in progress"] = "Outra ação em curso",
+	["\"Another action is in progress\", \"You can't do that right now\"."] = "\"Another action is in progress\", \"You can't do that right now\".",
+	["Can't do that while moving"] = "Não dá enquanto te mexes",
+	["\"Can't do that while moving\"."] = "\"Can't do that while moving\".",
+	["Hide every error message"] = "Esconder todas as mensagens de erro",
+	["Every red message of the game, the useful ones too."] = "Todas as mensagens vermelhas do jogo, também as úteis.",
+	["When and how"] = "Quando e como",
+	["Only in combat"] = "Só em combate",
+	["Out of combat every message shows, as in the game."] = "Fora de combate aparecem todas as mensagens, como no jogo.",
+	["Silence the voice of the messages"] = "Calar a voz das mensagens",
+	["Your character no longer says \"Not enough mana\" and the like, for every message, hidden or not. (The game's own setting: turned back on when this is off.)"] =
+		"A tua personagem deixa de dizer \"Not enough mana\" e afins, em todas as mensagens, escondidas ou não. (É uma opção do próprio jogo: volta a ficar ligada quando desligas esta.)",
+	["Error Messages (new page): hide the game's red messages you don't want, like \"Spell is not ready yet\" (their sound still plays), and silence their voice."] =
+		"Mensagens de erro (página nova): esconde as mensagens vermelhas do jogo que não queres, como \"Spell is not ready yet\" (o som continua a tocar), e cala a voz delas.",
 }
