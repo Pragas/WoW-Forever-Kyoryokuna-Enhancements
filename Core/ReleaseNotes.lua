@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.12.0",
+		new = {
+			"Smaller game menu (General page): the menu that opens with Escape, at the size you choose.",
+		},
+	},
+	{
 		version = "0.11.1",
 		fixed = {
 			"Trainer: the list shared by the characters of your class was left empty. It's now kept at your next visit to the trainer.",

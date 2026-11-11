@@ -29,6 +29,7 @@ This link always gives the newest version. Don't use the green **Code → Downlo
   - Show a flash when you press a key.
   - Hide the micro menu's frame.
 - **Experience Bar**, **Queue Timer** (the time left to accept a queue) and **Dark Mode** (darker unit frames, action bars, cast bars, minimap and tooltips).
+- **Smaller Game Menu:** the menu that opens with Escape, at the size you choose.
 - **Import / Export:** share your settings with a code, and keep backups to put back later.
 
 ## Install

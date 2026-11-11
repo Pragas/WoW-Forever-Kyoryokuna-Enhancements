@@ -2,7 +2,7 @@
 ## Title: |cffffe00aKyoryokuna|r |cff2ecc71Enhancements|r
 ## Notes: Small improvements for the game. Type /ke to open the options.
 ## Author: Pragas
-## Version: 0.11.1
+## Version: 0.12.0
 ## X-Copyright: Copyright (c) 2026 Pragas. All Rights Reserved.
 ## X-License: All Rights Reserved
 ## IconTexture: Interface\AddOns\KyoryokunaEnhancements\Media\IconSmall
@@ -25,6 +25,7 @@ Modules\DarkMode.lua
 Modules\ActionBars.lua
 Modules\ExperienceBar.lua
 Modules\QueueTimer.lua
+Modules\GameMenu.lua
 Modules\ErrorMessages.lua
 Modules\Trainer.lua
 Modules\NewRanks.lua

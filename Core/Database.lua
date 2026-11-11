@@ -19,6 +19,9 @@ ns.DEFAULTS = {
 		-- Kyoryokuna addons' buttons by default)
 		minimapIcon = true,
 		minimapAngle = 250,
+		-- The game menu (Escape) smaller, at this size (% of the game's own; Modules\GameMenu.lua)
+		smallGameMenu = false,
+		gameMenuSize = 75,
 	},
 
 	-- Dark mode (Modules\DarkMode.lua): how dark (%), and which parts of the interface
@@ -215,7 +218,7 @@ local ALERT_KINDS = {ART = true, BUTTON = true, BOTH = true}
 
 -- {minimum, maximum} of each number, by section
 ns.LIMITS = {
-	general = {minimapAngle = {0, 360}},
+	general = {minimapAngle = {0, 360}, gameMenuSize = {50, 100}},
 	darkMode = {darkness = {5, 100}},
 	actionBars = {cooldownScale = {50, 200}, cooldownColorThreshold = {1, 30}},
 	procAlerts = {size = {50, 200}, distance = {-100, 400}, x = {-1500, 1500}, y = {-1000, 1000}, opacity = {10, 100},
@@ -458,6 +461,7 @@ function ns.OnSettingChanged(path)
 	end
 	if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end
 	-- Each feature follows at once
+	if (path == "general.smallGameMenu" or path == "general.gameMenuSize") and ns.GameMenu then ns.GameMenu.Apply() end
 	if path:find("^darkMode%.") and ns.DarkMode then ns.DarkMode.Apply() end
 	if path:find("^actionBars%.") and ns.ActionBars then ns.ActionBars.Apply() end
 	if path:find("^experienceBar%.") and ns.ExperienceBar then ns.ExperienceBar.Apply() end
@@ -484,6 +488,7 @@ function ns.OnAllSettingsChanged()
 		if ns.RebuildOptions then ns.RebuildOptions() end
 	end
 	if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end
+	if ns.GameMenu then ns.GameMenu.Apply() end
 	if ns.DarkMode then ns.DarkMode.Apply() end
 	if ns.ActionBars then ns.ActionBars.Apply() end
 	if ns.ExperienceBar then ns.ExperienceBar.Apply() end

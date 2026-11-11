@@ -20,6 +20,11 @@ ns.LOCALES.ptPT = {
 	["A click on it opens the options. Drag it to move it around the minimap."] =
 		"Um clique abre as opções. Arrasta-o para o mudar de sítio à volta do minimapa.",
 	["Drag to move this button."] = "Arrasta para mudar este botão de sítio.",
+	["Smaller game menu"] = "Menu do jogo mais pequeno",
+	["The menu that opens with Escape is much bigger than it used to be: shown at the size below, a little higher on the screen. Turned off, it gets the game's own size back."] =
+		"O menu que abre com o Escape está muito maior do que era: aparece com o tamanho de baixo, um pouco mais acima no ecrã. Desligado, volta ao tamanho do jogo.",
+	["Next to the game's own menu (100%). Press Escape to see it."] =
+		"Comparado com o menu do jogo (100%). Carrega no Escape para o veres.",
 	["Dark mode"] = "Modo escuro",
 	["Darkens the art of the game's interface: frames, borders and bar decorations. Turned off, everything gets its own colors back."] =
 		"Escurece a arte da interface do jogo: molduras, bordas e decorações das barras. Desligado, tudo volta às suas cores.",
@@ -505,6 +510,10 @@ ns.LOCALES.ptPT = {
 		"A tua personagem deixa de dizer \"Not enough mana\" e afins, em todas as mensagens, escondidas ou não. (É uma opção do próprio jogo: volta a ficar ligada quando desligas esta.)",
 	["Error Messages (new page): hide the game's red messages you don't want, like \"Spell is not ready yet\" (their sound still plays), and silence their voice."] =
 		"Mensagens de erro (página nova): esconde as mensagens vermelhas do jogo que não queres, como \"Spell is not ready yet\" (o som continua a tocar), e cala a voz delas.",
+
+	-- Release notes 0.12.0
+	["Smaller game menu (General page): the menu that opens with Escape, at the size you choose."] =
+		"Menu do jogo mais pequeno (página Geral): o menu que abre com o Escape, com o tamanho que escolheres.",
 
 	-- Release notes 0.11.1
 	["Trainer: the list shared by the characters of your class was left empty. It's now kept at your next visit to the trainer."] =
