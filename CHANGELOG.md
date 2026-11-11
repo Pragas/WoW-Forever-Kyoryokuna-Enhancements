@@ -8,6 +8,32 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.7.0
+
+- Proc alerts, phase 3: glowing buttons. While an ability can be used, its button on the game's action bars glows (the main bar, the bottom, side and extra bars; the ability itself or a macro that casts it), with the game's spell alert art (a gold glow and its running "ants"). The glow is the addon's own frame on the button: the button is never changed, so it works in combat.
+  - Abilities that only light their button (as in SpellActivationOverlay; each off at first): Ice Barrier (mage, in combat), Overpower, Execute and Revenge (warrior), Counterattack (hunter), Holy Shock (in combat), Exorcism (in combat, on a demon or an undead that can be attacked) and Hammer of Wrath (paladin), Stormstrike (shaman, in combat). Marked "button glows" on the page.
+  - Abilities with art and a button (Victory Rush, Riposte, Mongoose Bite): an "Alert" choice beside each, Art (default, as before), Button or Both. Nothing else lights a button unless ticked, so the bars never glow all over.
+- Proc alerts: "Move" and "Reset position" (Place on the screen), as for missing buffs: a green frame, above the options, to drag the alerts anywhere (kept as a distance from the middle of the screen, x and y), showing a proc with art meanwhile; it ends with the options. They replace the "Height" slider.
+  - Any rank counts: a higher rank (another ID) on a bar is the one looked at.
+  - The tests ("Test" and "Show") make the buttons of an ability glow too.
+  - The buttons of other action bar addons (Bartender, Dominos...) don't glow yet.
+
+## 0.6.0
+
+- Proc alerts, phase 2: every class of WoW Forever, from SpellActivationOverlay's Forever rules (each one off at first; a character sees only its class's):
+  - Druid: Eclipse (one aura whose stacks tell lunar, on the left, or solar, on the right; small, then full), Omen of Clarity, Nature's Grace (on top).
+  - Hunter: Rapid Killing; Mongoose Bite when usable, in combat (on top, turned).
+  - Paladin: Infusion of Light (both of its IDs).
+  - Priest: Martyrdom (blue, no pulse), Searing Light (on top).
+  - Rogue: Remorseless Attacks, Cutthroat; Riposte when usable (on top, turned).
+  - Shaman: Maelstrom Weapon (on top, lighter with each stack, whole at 5).
+  - Warlock: Nightfall, Decimation (on top), Eye of Kilrogg (green, on top).
+  - Warrior: Victory Rush when usable (red, on top).
+  - Simplified from SpellActivationOverlay: Omen of Clarity always has the same art (it has its own in cat and bear form there). Reactive abilities without art there (Overpower, Execute, Revenge, Counterattack, Holy Shock, Exorcism, Hammer of Wrath, Stormstrike, Ice Barrier) only light their button: they come with the glowing buttons (phase 3).
+- "When usable" abilities ("counter"): shown while the ability is known, not on cooldown (the global one aside) and usable, or only short of rage or energy, as SpellActivationOverlay tells them; looked at again on what's usable, cooldowns, combat and the target, and when a cooldown ends. What the game hides in combat keeps the last answer.
+- New places for the art: on top of the character (wide and low), and on top turned a quarter clockwise; and art can have a color and a transparency of its own.
+- "Test" beside each proc (it reads "Close test" while on): a fixed test that keeps that proc's alert on the screen (at its most stacks, with its name) while the look is set; again to hide it, or another proc's to switch. It shows even with the alerts off, and ends with the options window. The turning "Test all" replaces it.
+
 ## 0.5.1
 
 - Options: the pages in a new order, the simplest first: General, Queue, Experience Bar, Supplies, Proc Alerts, Action Bars, Dark Mode, Missing Buffs, then Import / Export and About.

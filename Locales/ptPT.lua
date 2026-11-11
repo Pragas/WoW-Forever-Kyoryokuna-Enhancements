@@ -393,7 +393,7 @@ ns.LOCALES.ptPT = {
 	["The SpellActivationOverlay addon is on: with both, the alerts show twice. Turn one of them off."] =
 		"O addon SpellActivationOverlay está ligado: com os dois, os alertas aparecem duas vezes. Desliga um deles.",
 	["Procs of your class (%s)"] = "Procs da tua classe (%s)",
-	["Your class's procs come in a next version: for now, the mage's."] = "Os procs da tua classe chegam numa próxima versão: para já, os do mage.",
+	["No proc alerts for your class yet."] = "Ainda não há alertas de procs para a tua classe.",
 	["Tick the ones to show."] = "Marca os que queres mostrar.",
 	["Look"] = "Aspeto",
 	["The size of the art, from half to twice the game's."] = "O tamanho da arte, de metade ao dobro da do jogo.",
@@ -401,7 +401,6 @@ ns.LOCALES.ptPT = {
 	["How far apart the left and right art are: more keeps them away from your character."] =
 		"A distância entre a arte da esquerda e a da direita: mais afasta-a da tua personagem.",
 	["Height"] = "Altura",
-	["Up or down from the middle of the screen."] = "Para cima ou para baixo do meio do ecrã.",
 	["How see-through the art is: lower is more faded."] = "Quão transparente é a arte: mais baixo, mais desvanecida.",
 	["Pulse"] = "Pulsar",
 	["The art grows and shrinks slowly while the proc is there (some procs never pulse, as in the game)."] =
@@ -416,4 +415,34 @@ ns.LOCALES.ptPT = {
 	["Proc Alerts (new page): the game's spell alert art on the sides of your character when a proc happens, in combat too. For now the mage's: Missile Barrage, Clearcasting, Fingers of Frost and Heating Up."] =
 		"Alertas de procs (página nova): a arte dos alertas de feitiços do jogo dos lados da tua personagem quando um proc acontece, também em combate. Para já os do mage: Missile Barrage, Clearcasting, Fingers of Frost e Heating Up.",
 	["Options: the pages in a new order, the simplest first."] = "Opções: as páginas numa nova ordem, as mais simples primeiro.",
+	-- Proc alerts, phase 2
+	["Tick the ones to show. \"Test\" beside a proc keeps its alert on the screen while you set its look below (drag this window aside to see it): \"Close test\", or closing the options, ends it."] =
+		"Marca os que queres mostrar. \"Testar\" ao lado de um proc deixa o alerta dele fixo no ecrã enquanto afinas o aspeto em baixo (arrasta esta janela para o lado para o veres): \"Fechar teste\", ou fechar as opções, termina-o.",
+	["Close test"] = "Fechar teste",
+	["Test all"] = "Testar todos",
+	["Keeps this proc's alert on the screen, at its most stacks, to set its look. Click \"Close test\" or close the options to end it."] =
+		"Deixa o alerta deste proc fixo no ecrã, com o máximo de stacks, para afinares o aspeto. Carrega em \"Fechar teste\" ou fecha as opções para o terminar.",
+	["when usable"] = "quando disponível",
+	["Shown while this ability can be used (e.g. after a kill, a parry or a dodge)."] =
+		"Aparece enquanto esta habilidade pode ser usada (por exemplo, depois de uma morte, de um parry ou de um dodge).",
+	["Proc alerts for every class: druid, hunter, paladin, priest, rogue, shaman, warlock and warrior, and abilities that become usable (Victory Rush, Riposte, Mongoose Bite). \"Test\" beside a proc keeps it on the screen while you set the look."] =
+		"Alertas de procs para todas as classes: druid, hunter, paladin, priest, rogue, shaman, warlock e warrior, e habilidades que ficam disponíveis (Victory Rush, Riposte, Mongoose Bite). \"Testar\" ao lado de um proc deixa-o fixo no ecrã enquanto afinas o aspeto.",
+	-- Proc alerts, phase 3
+	["button glows"] = "o botão brilha",
+	["Its button on your action bars glows while this ability can be used."] =
+		"O botão desta habilidade nas tuas barras de ações brilha enquanto ela pode ser usada.",
+	["\"Button glows\": while the ability is ready, its button on the game's action bars gets a moving gold outline (also a macro that casts it)."] =
+		"\"O botão brilha\": enquanto a habilidade está pronta, o botão dela nas barras de ações do jogo ganha um contorno dourado animado (também uma macro que a lance).",
+	["Alert"] = "Aviso",
+	["How this ability warns you when it's ready: its art on the screen, its button glowing on your action bars, or both."] =
+		"Como esta habilidade te avisa quando está pronta: a arte no ecrã, o botão a brilhar nas tuas barras de ações, ou os dois.",
+	["Art"] = "Imagem",
+	["Button"] = "Botão",
+	["Both"] = "Ambos",
+	["Proc alerts: drag to move"] = "Alertas de procs: arrasta para mover",
+	["Shows the alerts with a green frame: drag it where you want, then click again (closing the options also ends it)."] =
+		"Mostra os alertas com uma moldura verde: arrasta-a para onde quiseres e clica outra vez (fechar as opções também termina).",
+	["Puts the alerts back in the middle of the screen."] = "Põe os alertas outra vez no meio do ecrã.",
+	["Glowing buttons: an ability's button on your action bars glows while it can be used (Ice Barrier, Overpower, Execute, Revenge, Counterattack, Holy Shock, Exorcism, Hammer of Wrath, Stormstrike). Each ability with art can warn by its art, its button or both. The alerts can be moved anywhere on the screen."] =
+		"Botões a brilhar: o botão de uma habilidade nas tuas barras de ações brilha enquanto ela pode ser usada (Ice Barrier, Overpower, Execute, Revenge, Counterattack, Holy Shock, Exorcism, Hammer of Wrath, Stormstrike). Cada habilidade com arte pode avisar pela imagem, pelo botão ou pelos dois. Os alertas podem ser movidos para qualquer sítio do ecrã.",
 }

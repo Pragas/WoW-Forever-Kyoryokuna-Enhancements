@@ -316,7 +316,7 @@ end
 -- tells whether it's ticked, set(checked) keeps it. The label is shown as given (e.g. a spell's name,
 -- already in the game's language). extras: small dropdowns on the right of the row, shown while it's
 -- ticked: {{width, label, get, set, options = function() return {{value, text}} end}} (texts as given),
--- or a plain button {width, label, tooltip, text, onClick}.
+-- or a plain button {width, label, tooltip, text (or a function giving it), onClick}.
 function Builder:IconCheck(label, icon, get, set, tooltip, dependsOn, extras)
 	local check = CreateCheckButton(self.content)
 	check:SetPoint("TOPLEFT", self.content, "TOPLEFT", LEFT, self.y)
@@ -362,6 +362,7 @@ function Builder:IconCheck(label, icon, get, set, tooltip, dependsOn, extras)
 		check:SetChecked(checked)
 		for _, button in ipairs(self.extras) do
 			local shown = button.extra.text
+			if type(shown) == "function" then shown = shown() end
 			if not shown then
 				local current = button.extra.get()
 				shown = tostring(current)

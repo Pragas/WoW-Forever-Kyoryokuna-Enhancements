@@ -36,26 +36,70 @@ ns.AddOptionsPage("Proc Alerts", function(b)
 	b:Header(string.format(L["Procs of your class (%s)"], className or ""), true)
 	local effects = P.GetEffects()
 	if #effects == 0 then
-		b:Text("Your class's procs come in a next version: for now, the mage's.", GREY)
+		b:Text("No proc alerts for your class yet.", GREY)
 	else
-		b:Text("Tick the ones to show.", GREY)
+		b:Text("Tick the ones to show. \"Test\" beside a proc keeps its alert on the screen while you set its look below (drag this window aside to see it): \"Close test\", or closing the options, ends it.", GREY)
 		for _, effect in ipairs(effects) do
 			local icon = C_Spell and C_Spell.GetSpellTexture and ns.Known(C_Spell.GetSpellTexture(effect.spell))
-			b:IconCheck(P.SpellName(effect), icon,
+			-- The fixed test of this proc
+			local show = {
+				width = 100, label = L["Test"],
+				tooltip = L["Keeps this proc's alert on the screen, at its most stacks, to set its look. Click \"Close test\" or close the options to end it."],
+				text = function() return P.GetFixedTest() == effect.key and L["Close test"] or L["Test"] end,
+				onClick = function()
+					P.SetFixedTest(effect.key)
+					if ns.RefreshOptions then ns.RefreshOptions() end
+				end,
+			}
+			local label, tooltip = P.SpellName(effect), nil
+			if effect.kind == "counter" and #effect.overlays == 0 then
+				label = label .. "  |cff9d9d9d(" .. L["button glows"] .. ")|r"
+				tooltip = L["Its button on your action bars glows while this ability can be used."]
+			elseif effect.kind == "counter" then
+				label = label .. "  |cff9d9d9d(" .. L["when usable"] .. ")|r"
+				tooltip = L["Shown while this ability can be used (e.g. after a kill, a parry or a dodge)."]
+			end
+			local extras = {show}
+			-- An ability with art and a button: the art, its button glowing, or both
+			if P.AlertKind(effect) then
+				local path = "procAlerts." .. effect.key .. "Alert"
+				table.insert(extras, 1, {
+					width = 90, label = L["Alert"],
+					tooltip = L["How this ability warns you when it's ready: its art on the screen, its button glowing on your action bars, or both."],
+					get = function() return ns.Get(path) end,
+					set = function(value) ns.Set(path, value) end,
+					options = function()
+						return {{value = "ART", text = L["Art"]}, {value = "BUTTON", text = L["Button"]}, {value = "BOTH", text = L["Both"]}}
+					end,
+				})
+			end
+			b:IconCheck(label, icon,
 				function() return ns.db.procAlerts[effect.key] == true end,
 				function(checked) ns.Set("procAlerts." .. effect.key, checked) end,
-				nil, on)
+				tooltip, on, extras)
 		end
+		b:Space(4)
+		b:Text("\"Button glows\": while the ability is ready, its button on the game's action bars gets a moving gold outline (also a macro that casts it).", GREY)
 	end
+
+	b:Header("Place on the screen")
+	local move = b:Button("Move", function() P.SetMoving(not P.IsMoving()) end,
+		"Shows the alerts with a green frame: drag it where you want, then click again (closing the options also ends it).")
+	b:AddControl({frame = move, Refresh = function()
+		move:SetText(P.IsMoving() and L["Done"] or L["Move"])
+	end})
+	b:Button("Reset position", function()
+		ns.Set("procAlerts.x", ns.DEFAULTS.procAlerts.x)
+		ns.Set("procAlerts.y", ns.DEFAULTS.procAlerts.y)
+	end, "Puts the alerts back in the middle of the screen.")
 
 	b:Header("Look")
 	b:Slider("procAlerts.size", "Size", 5, "%", "The size of the art, from half to twice the game's.", on)
 	b:Slider("procAlerts.distance", "Distance between the sides", 10, " px", "How far apart the left and right art are: more keeps them away from your character.", on)
-	b:Slider("procAlerts.y", "Height", 10, " px", "Up or down from the middle of the screen.", on)
 	b:Slider("procAlerts.opacity", "Opacity", 5, "%", "How see-through the art is: lower is more faded.", on)
 	b:Check("procAlerts.pulse", "Pulse", "The art grows and shrinks slowly while the proc is there (some procs never pulse, as in the game).", on)
 	b:Space(6)
-	b:Button("Test", function()
+	b:Button("Test all", function()
 		-- The art is around the middle of the screen, under this window: only its title bar stays
 		if ns.SetOptionsMinimized then ns.SetOptionsMinimized(true) end
 		P.Test()

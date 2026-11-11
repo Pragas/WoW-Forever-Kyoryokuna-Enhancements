@@ -19,6 +19,18 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.7.0",
+		new = {
+			"Glowing buttons: an ability's button on your action bars glows while it can be used (Ice Barrier, Overpower, Execute, Revenge, Counterattack, Holy Shock, Exorcism, Hammer of Wrath, Stormstrike). Each ability with art can warn by its art, its button or both. The alerts can be moved anywhere on the screen.",
+		},
+	},
+	{
+		version = "0.6.0",
+		new = {
+			"Proc alerts for every class: druid, hunter, paladin, priest, rogue, shaman, warlock and warrior, and abilities that become usable (Victory Rush, Riposte, Mongoose Bite). \"Test\" beside a proc keeps it on the screen while you set the look.",
+		},
+	},
+	{
 		version = "0.5.1",
 		new = {
 			"Options: the pages in a new order, the simplest first.",

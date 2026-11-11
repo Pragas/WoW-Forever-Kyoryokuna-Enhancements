@@ -159,6 +159,8 @@ local function CreateWindow()
 		ns.Widgets.ClosePopup()
 		-- Moving the missing buffs ends with the options
 		if ns.MissingBuffs and ns.MissingBuffs.IsMoving() then ns.MissingBuffs.SetMoving(false) end
+		-- And the fixed test of the proc alerts
+		if ns.ProcAlerts and ns.ProcAlerts.StopFixedTest then ns.ProcAlerts.StopFixedTest() end
 	end)
 	-- Escape closes it
 	tinsert(UISpecialFrames, "KyoryokunaEnhancementsOptionsWindow")

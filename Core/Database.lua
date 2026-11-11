@@ -81,12 +81,13 @@ ns.DEFAULTS = {
 		-- The icon of the macro that eats and drinks: the food's or the drink's
 		bothIcon = "FOOD",
 	},
-	-- Proc alerts (Modules\ProcAlerts.lua): the art's size (%), the distance between the sides, its height
-	-- from the middle of the screen, its opacity (%), the pulse, and each proc on or off
+	-- Proc alerts (Modules\ProcAlerts.lua): the art's size (%), the distance between the sides, its place
+	-- from the middle of the screen (x, y), its opacity (%), the pulse, and each proc on or off
 	procAlerts = {
 		enabled = false,
 		size = 100,
 		distance = 0,
+		x = 0,
 		y = 0,
 		opacity = 80,
 		pulse = false,
@@ -94,6 +95,37 @@ ns.DEFAULTS = {
 		clearcasting = false,
 		fingersOfFrost = false,
 		heatingUp = false,
+		-- The other classes' (each character only sees its own class')
+		eclipse = false,
+		omenOfClarity = false,
+		naturesGrace = false,
+		rapidKilling = false,
+		mongooseBite = false,
+		infusionOfLight = false,
+		martyrdom = false,
+		searingLight = false,
+		remorselessAttacks = false,
+		cutthroat = false,
+		riposte = false,
+		maelstromWeapon = false,
+		nightfall = false,
+		decimation = false,
+		eyeOfKilrogg = false,
+		victoryRush = false,
+		-- Abilities that only light their button
+		iceBarrier = false,
+		overpower = false,
+		execute = false,
+		revenge = false,
+		counterattack = false,
+		holyShock = false,
+		exorcism = false,
+		hammerOfWrath = false,
+		stormstrike = false,
+		-- Abilities with art that can also light their button: the art, the button, or both
+		victoryRushAlert = "ART",
+		riposteAlert = "ART",
+		mongooseBiteAlert = "ART",
 	},
 	-- The number on an item's icon (how many the bags hold): hidden at 0 unless asked, in a corner or in
 	-- the middle, with a size of its own
@@ -124,13 +156,15 @@ ns.DEFAULTS = {
 local GROUP_LIMITS = {iconSize = {20, 80}, alpha = {10, 100}, spacing = {0, 20}, countSize = {8, 40}, x = {-1500, 1500}, y = {-1000, 1000}}
 local GROWTH = {CENTER = true, RIGHT = true, LEFT = true, UP = true, DOWN = true}
 local COUNT_POSITIONS = {BOTTOMRIGHT = true, BOTTOMLEFT = true, CENTER = true, TOPRIGHT = true, TOPLEFT = true}
+-- How an ability with art warns: its art, its button glowing, or both
+local ALERT_KINDS = {ART = true, BUTTON = true, BOTH = true}
 
 -- {minimum, maximum} of each number, by section
 ns.LIMITS = {
 	general = {minimapAngle = {0, 360}},
 	darkMode = {darkness = {5, 100}},
 	actionBars = {cooldownScale = {50, 200}, cooldownColorThreshold = {1, 30}},
-	procAlerts = {size = {50, 200}, distance = {-100, 400}, y = {-400, 400}, opacity = {10, 100}},
+	procAlerts = {size = {50, 200}, distance = {-100, 400}, x = {-1500, 1500}, y = {-1000, 1000}, opacity = {10, 100}},
 	missingBuffsEssential = GROUP_LIMITS,
 	missingBuffsUtility = GROUP_LIMITS,
 }
@@ -143,6 +177,7 @@ ns.CHOICES = {
 	missingBuffsEssential = {growth = GROWTH, countPosition = COUNT_POSITIONS},
 	missingBuffsUtility = {growth = GROWTH, countPosition = COUNT_POSITIONS},
 	supplies = {bothIcon = {FOOD = true, DRINK = true}},
+	procAlerts = {victoryRushAlert = ALERT_KINDS, riposteAlert = ALERT_KINDS, mongooseBiteAlert = ALERT_KINDS},
 }
 
 local function CopyValue(value)
