@@ -505,4 +505,100 @@ ns.LOCALES.ptPT = {
 		"A tua personagem deixa de dizer \"Not enough mana\" e afins, em todas as mensagens, escondidas ou não. (É uma opção do próprio jogo: volta a ficar ligada quando desligas esta.)",
 	["Error Messages (new page): hide the game's red messages you don't want, like \"Spell is not ready yet\" (their sound still plays), and silence their voice."] =
 		"Mensagens de erro (página nova): esconde as mensagens vermelhas do jogo que não queres, como \"Spell is not ready yet\" (o som continua a tocar), e cala a voz delas.",
+
+	-- Trainer (Modules\Trainer.lua, Options\Pages\Trainer.lua)
+	["Trainer"] = "Treinador",
+	["Choose the spells to learn"] = "Escolher os feitiços a aprender",
+	["At your class trainer, each spell you can learn gets a box. Tick the ones you want and click \"Learn ticked\", at the top of the window: only those are learned, one after another. Nothing is learned without your tick, and the game's Train button works as always."] =
+		"No treinador da tua classe, cada feitiço que podes aprender ganha uma caixa. Marca os que queres e carrega em \"Aprender marcados\", no topo da janela: só esses são aprendidos, um a seguir ao outro. Nada é aprendido sem a tua marca, e o botão Treinar do jogo funciona como sempre.",
+	["New spells"] = "Feitiços novos",
+	["Tell me when I reach the level of new spells"] = "Avisar quando chego ao nível de feitiços novos",
+	["When you level up, the chat lists the spells waiting at your trainer for that level. They're read at each visit to your trainer: visit it once after turning this on."] =
+		"Quando sobes de nível, o chat diz os feitiços que esse nível traz no teu treinador. São lidos em cada visita ao treinador: visita-o uma vez depois de ligares isto.",
+	["Waiting at your trainer"] = "À tua espera no treinador",
+	["Nothing known yet: visit your class trainer once."] = "Ainda não se sabe nada: visita uma vez o treinador da tua classe.",
+	["You can learn now: %s."] = "Podes aprender já: %s.",
+	["Nothing to learn at your level."] = "Nada para aprender no teu nível.",
+	["Level %d: %s."] = "Nível %d: %s.",
+	["(From your last visit to your trainer.)"] = "(Da tua última visita ao treinador.)",
+	["Learn ticked"] = "Aprender marcados",
+	["Learn ticked (%d)"] = "Aprender marcados (%d)",
+	["Learning..."] = "A aprender...",
+	["Tick the spells you want to learn, then click here: they're learned one after another."] =
+		"Marca os feitiços que queres aprender e depois carrega aqui: são aprendidos um a seguir ao outro.",
+	["Total: %s"] = "Total: %s",
+	["Not enough money for all of them: those you can't pay are left ticked."] =
+		"Não tens dinheiro para todos: os que não consegues pagar ficam marcados.",
+	["Learn this spell"] = "Aprender este feitiço",
+	["Ticked spells are learned with the \"Learn ticked\" button, at the top of the window."] =
+		"Os feitiços marcados são aprendidos com o botão \"Aprender marcados\", no topo da janela.",
+	["New at your trainer (level %d): %s."] = "Novo no teu treinador (nível %d): %s.",
+	["Show a Trainer tab in the spellbook"] = "Mostrar uma aba Treinador no spellbook",
+	["One more tab in your spellbook, after the game's: a click on it shows the spells still to learn at your class trainer, by level, with their cost. They're read at each visit to your trainer: visit it once after turning this on."] =
+		"Mais uma aba no teu spellbook, a seguir às do jogo: ao carregares nela, vês os feitiços que ainda tens para aprender no treinador da tua classe, por nível, com o custo. São lidos em cada visita ao treinador: visita-o uma vez depois de ligares isto.",
+	["Trainer: the spells still to learn"] = "Treinador: os feitiços que faltam aprender",
+	["Spells to learn"] = "Feitiços para aprender",
+	["From your last visit to your trainer: %s."] = "Da tua última visita ao treinador: %s.",
+	["From your last visit to your trainer."] = "Da tua última visita ao treinador.",
+	["Nothing known yet: visit your class trainer once and its spells show here."] =
+		"Ainda não se sabe nada: visita uma vez o treinador da tua classe e os feitiços dele aparecem aqui.",
+	["Nothing left to learn at your trainer."] = "Já não há nada para aprender no teu treinador.",
+	["Level %d: you can learn these now"] = "Nível %d: podes aprender estes já",
+	["Level %d"] = "Nível %d",
+	["Level %d, at your class trainer: %s"] = "Nível %d, no treinador da tua classe: %s",
+	["A Trainer tab in the spellbook (Trainer page): the spells still to learn at your trainer, by level, with their cost."] =
+		"Uma aba Treinador no spellbook (página Treinador): os feitiços que ainda tens para aprender no treinador, por nível, com o custo.",
+	["New ranks on the action bars"] = "Ranks novos nas barras de ação",
+	["Put new ranks on the action bars"] = "Pôr os ranks novos nas barras de ação",
+	["When you learn a new rank of a spell, it takes the place of the rank before it on your action bars. Lower ranks you keep on purpose stay, and macros aren't touched. Not in combat: then when the fight ends."] =
+		"Quando aprendes um rank novo de um feitiço, ele fica no lugar do rank anterior nas tuas barras de ação. Os ranks mais baixos que lá tens de propósito ficam, e as macros não são mexidas. Não em combate: nesse caso, quando o combate acaba.",
+	["%s (Rank %d) put on your action bars in place of Rank %d."] = "%s (rank %d) foi posto nas tuas barras de ação no lugar do rank %d.",
+	["New ranks on the action bars (Trainer page): a new rank you learn takes the place of the one before on your bars."] =
+		"Ranks novos nas barras de ação (página Treinador): um rank novo que aprendes fica no lugar do anterior nas tuas barras.",
+
+	-- Quest sparkles (Modules\QuestSparkles.lua, Options\Pages\QuestSparkles.lua)
+	["Quest Sparkles"] = "Brilho das quests",
+	["Quest item sparkles"] = "Brilho nos itens de quest",
+	["Quest items you can loot sparkle, so they're easy to spot: on the ground, on objects and on creatures. It's a setting of the game that its graphics presets turn off: the addon keeps it on, at login and after any change of the graphics."] =
+		"Os itens de quest que podes apanhar brilham, para os veres facilmente: no chão, em objetos e em criaturas. É uma opção do próprio jogo que as predefinições de gráficos desligam: o addon mantém-na ligada, ao entrar e depois de qualquer mudança nos gráficos.",
+	["Make quest items sparkle"] = "Fazer brilhar os itens de quest",
+	["Turning this off takes effect after restarting the game (a /reload isn't enough)."] =
+		"Desligar isto só tem efeito depois de reiniciares o jogo (um /reload não chega).",
+	["Quest item sparkles: restart the game to remove the ones already shown (a /reload isn't enough)."] =
+		"Brilho nos itens de quest: reinicia o jogo para tirar os que já aparecem (um /reload não chega).",
+
+	-- FPS and latency (Modules\Performance.lua, Options\Pages\Performance.lua)
+	["FPS and Latency"] = "FPS e latência",
+	["FPS and latency"] = "FPS e latência",
+	["A small text on the screen with your frames per second and the latency (ping) of your connection, updated every second. The mouse goes through it."] =
+		"Um pequeno texto no ecrã com os teus FPS (imagens por segundo) e a latência (ping) da tua ligação, atualizado a cada segundo. O rato passa através dele.",
+	["Show the FPS and latency"] = "Mostrar os FPS e a latência",
+	["Shows the text with a green frame: drag it where you want, then click again (closing the options also ends it)."] =
+		"Mostra o texto com uma moldura verde: arrasta-o para onde quiseres e depois carrega outra vez (fechar as opções também termina).",
+	["Puts the text back in its first place, near the top of the screen."] = "Põe o texto no sítio inicial, perto do topo do ecrã.",
+	["What to show"] = "O que mostrar",
+	["Show"] = "Mostrar",
+	["FPS only"] = "Só os FPS",
+	["Latency only"] = "Só a latência",
+	["Latency"] = "Latência",
+	["World"] = "Mundo",
+	["Home"] = "Casa",
+	["Home and world"] = "Casa e mundo",
+	["World: your connection to the game world, where fights happen (the one that matters most). Home: your connection to the realm, for the chat, friends and guild."] =
+		"Mundo: a tua ligação ao mundo do jogo, onde acontecem os combates (a que mais importa). Casa: a tua ligação ao reino, para o chat, os amigos e a guild.",
+	["Color by value"] = "Cores conforme o valor",
+	["Green when good, yellow when so-so, red when bad: FPS under 60 and under 30, latency over 100 and over 200 ms."] =
+		"Verde quando está bom, amarelo quando está mais ou menos, vermelho quando está mau: FPS abaixo de 60 e abaixo de 30, latência acima de 100 e acima de 200 ms.",
+	["Text size"] = "Tamanho do texto",
+	["Text color"] = "Cor do texto",
+	["Dark background with a border"] = "Fundo escuro com moldura",
+	["FPS and latency: drag to move"] = "FPS e latência: arrasta para mover",
+
+	-- Release notes 0.10.0
+	["Trainer (new page): tick the spells you want at your class trainer and learn only those. And the chat tells you when you reach the level of new spells."] =
+		"Treinador (página nova): marca os feitiços que queres no treinador da tua classe e aprende só esses. E o chat avisa quando chegas ao nível de feitiços novos.",
+	["FPS and Latency (new page): your FPS and ping on the screen, where you want them, colored by how good they are."] =
+		"FPS e latência (página nova): os teus FPS e o ping no ecrã, onde quiseres, com cores conforme estão bons ou maus.",
+	["Quest Sparkles (new page): quest items you can loot keep sparkling, even after a change of the graphics."] =
+		"Brilho das quests (página nova): os itens de quest que podes apanhar continuam a brilhar, mesmo depois de mudares os gráficos.",
 }

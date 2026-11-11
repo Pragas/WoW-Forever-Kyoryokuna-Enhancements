@@ -82,6 +82,37 @@ ns.DEFAULTS = {
 		muteVoice = false,
 	},
 
+	-- The class trainer (Modules\Trainer.lua): a box on each spell to choose the ones learned, and the new
+	-- spells told at each level. The trainer's list is kept for each character, in characters. A new rank
+	-- learned takes the place of the one before on the action bars (Modules\NewRanks.lua).
+	trainer = {
+		choose = false,
+		notify = false,
+		newRanks = false,
+		-- A tab in the spellbook with the spells still to learn (Modules\SpellbookTab.lua)
+		spellbookTab = false,
+	},
+
+	-- Quest items sparkling in the world (Modules\QuestSparkles.lua)
+	questSparkles = {
+		enabled = false,
+	},
+
+	-- FPS and latency on the screen (Modules\Performance.lua): what's shown (BOTH, FPS, PING), which
+	-- latency (WORLD, HOME, BOTH), colored by value, the text's size and color, a dark background, and its
+	-- place from the middle of the screen
+	performance = {
+		enabled = false,
+		show = "BOTH",
+		ping = "WORLD",
+		colors = false,
+		size = 12,
+		color = {1, 0.82, 0},
+		background = false,
+		x = 0,
+		y = 330,
+	},
+
 	-- Missing buffs (Modules\MissingBuffs.lua), in two groups with a look and a place each (from the center
 	-- of the screen; the side they grow from stays there). What's watched is kept for each character, in
 	-- characters (see Validate).
@@ -190,6 +221,7 @@ ns.LIMITS = {
 		animTime = {0.5, 3}, animStrength = {2, 20}},
 	missingBuffsEssential = GROUP_LIMITS,
 	missingBuffsUtility = GROUP_LIMITS,
+	performance = {size = {8, 32}, x = {-1500, 1500}, y = {-1000, 1000}},
 }
 
 -- The values a choice can take; anything else goes back to the default
@@ -202,6 +234,7 @@ ns.CHOICES = {
 	supplies = {bothIcon = {FOOD = true, DRINK = true}},
 	procAlerts = {victoryRushAlert = ALERT_KINDS, riposteAlert = ALERT_KINDS, mongooseBiteAlert = ALERT_KINDS,
 		animation = {NONE = true, PULSE = true, BREATHE = true, BLINK = true, FLOAT = true}},
+	performance = {show = {BOTH = true, FPS = true, PING = true}, ping = {WORLD = true, HOME = true, BOTH = true}},
 }
 
 local function CopyValue(value)
@@ -290,6 +323,32 @@ local function Validate(db)
 			for key, on in pairs(entry.supplies) do
 				if (key ~= "FOOD" and key ~= "DRINK" and key ~= "BOTH") or on ~= true then entry.supplies[key] = nil end
 			end
+			-- Its trainer's list from the last visit: each spell not learned yet ("Name\tRank") with the
+			-- level it needs, its cost, icon and spell; and that trainer's name and place (Modules\Trainer.lua)
+			if type(entry.trainer) ~= "table" then
+				entry.trainer = nil
+			else
+				for key, data in pairs(entry.trainer) do
+					-- At first only the level was kept
+					if type(data) == "number" then
+						data = {level = data}
+						entry.trainer[key] = data
+					end
+					if type(key) ~= "string" or type(data) ~= "table" or type(data.level) ~= "number" then
+						entry.trainer[key] = nil
+					else
+						if type(data.cost) ~= "number" then data.cost = 0 end
+						if type(data.icon) ~= "number" and type(data.icon) ~= "string" then data.icon = nil end
+						if type(data.id) ~= "number" then data.id = nil end
+					end
+				end
+			end
+			if type(entry.trainerVisit) ~= "table" then
+				entry.trainerVisit = nil
+			else
+				if type(entry.trainerVisit.name) ~= "string" then entry.trainerVisit.name = nil end
+				if type(entry.trainerVisit.zone) ~= "string" then entry.trainerVisit.zone = nil end
+			end
 		end
 	end
 	db.version = DB_VERSION
@@ -348,6 +407,12 @@ function ns.OnSettingChanged(path)
 	if path:find("^experienceBar%.") and ns.ExperienceBar then ns.ExperienceBar.Apply() end
 	if path:find("^queueTimer%.") and ns.QueueTimer then ns.QueueTimer.Refresh() end
 	if path:find("^errorMessages%.") and ns.ErrorMessages then ns.ErrorMessages.Apply() end
+	if path:find("^trainer%.") and ns.Trainer then ns.Trainer.Apply() end
+	-- The trainer's page shows the spells waiting only while they're kept
+	if (path == "trainer.notify" or path == "trainer.spellbookTab") and ns.RebuildOptionsPage then ns.RebuildOptionsPage("Trainer") end
+	if path == "trainer.spellbookTab" and ns.SpellbookTab then ns.SpellbookTab.Apply() end
+	if path:find("^questSparkles%.") and ns.QuestSparkles then ns.QuestSparkles.Apply() end
+	if path:find("^performance%.") and ns.Performance then ns.Performance.Update() end
 	-- missingBuffs, missingBuffsEssential, missingBuffsUtility
 	if path:find("^missingBuffs") and ns.MissingBuffs then ns.MissingBuffs.Update() end
 	if path:find("^procAlerts%.") and ns.ProcAlerts then ns.ProcAlerts.Update() end
@@ -368,6 +433,10 @@ function ns.OnAllSettingsChanged()
 	if ns.ExperienceBar then ns.ExperienceBar.Apply() end
 	if ns.QueueTimer then ns.QueueTimer.Refresh() end
 	if ns.ErrorMessages then ns.ErrorMessages.Apply() end
+	if ns.Trainer then ns.Trainer.Apply() end
+	if ns.SpellbookTab then ns.SpellbookTab.Apply() end
+	if ns.QuestSparkles then ns.QuestSparkles.Apply() end
+	if ns.Performance then ns.Performance.Update() end
 	if ns.MissingBuffs then ns.MissingBuffs.Update() end
 	if ns.Supplies then ns.Supplies.Update() end
 	if ns.ProcAlerts then ns.ProcAlerts.Update() end

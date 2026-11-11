@@ -19,6 +19,16 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.10.0",
+		new = {
+			"Trainer (new page): tick the spells you want at your class trainer and learn only those. And the chat tells you when you reach the level of new spells.",
+			"New ranks on the action bars (Trainer page): a new rank you learn takes the place of the one before on your bars.",
+			"A Trainer tab in the spellbook (Trainer page): the spells still to learn at your trainer, by level, with their cost.",
+			"FPS and Latency (new page): your FPS and ping on the screen, where you want them, colored by how good they are.",
+			"Quest Sparkles (new page): quest items you can loot keep sparkling, even after a change of the graphics.",
+		},
+	},
+	{
 		version = "0.9.0",
 		new = {
 			"Error Messages (new page): hide the game's red messages you don't want, like \"Spell is not ready yet\" (their sound still plays), and silence their voice.",
