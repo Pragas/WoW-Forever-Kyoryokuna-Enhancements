@@ -1234,50 +1234,6 @@ function ProcAlerts.FindAll()
 	return true
 end
 
--- A check of the game's container with a buff the character always has (/ke procscan armor): while a
--- mage's armor or Arcane Intellect is on, the game is asked to show the Frozen Fingers art on the left.
--- If it shows, the container works and the problem is a proc's own; if not, the container shows nothing.
-local CHECK_SPELLS = {
-	168, 7300, 7301, 7302, 7320, 10219, 10220, 6117, 22782, 22783, -- Frost, Ice and Mage Armor
-	1459, 1460, 1461, 10156, 10157, 23028, -- Arcane Intellect and Brilliance
-}
-local checkSlot
-
-function ProcAlerts.CheckContainer(kind)
-	local frame = GetContainer()
-	if not frame then return "the game's AuraContainer wasn't made: " .. containerNote end
-	if checkSlot then
-		pcall(frame.SetAuraSlotEnabled, frame, checkSlot.key, false)
-		checkSlot = nil
-		return "check off"
-	end
-	-- The armor and Arcane Intellect, or only the Fingers of Frost of WoW Forever (on the right then)
-	local spells, side, key = {}, "LEFT", "KE_check"
-	if kind == "fof" then
-		spells[400670], side, key = true, "RIGHT_FLIPPED", "KE_check_fof"
-	else
-		for _, spell in ipairs(CHECK_SPELLS) do spells[spell] = true end
-	end
-	local slot = {key = key, side = side, effect = {key = "check", spell = 168, overlays = {}},
-		overlay = {art = ART.FROZEN_FINGERS, sides = {side}}}
-	local ok, button = pcall(frame.AddAuraSlot, frame, slot.key, "HELPFUL", {
-		templateNames = {"KyoryokunaEnhancementsProcAuraTemplate"},
-		initializeFrame = function(made) slot.button = made; SetUpSlot(made, slot) end,
-		candidateFilters = {includeSpellIDs = spells},
-	})
-	if not ok then
-		-- Asked before: the same place again
-		pcall(frame.SetAuraSlotEnabled, frame, slot.key, true)
-		checkSlot = slot
-		return "check on again (" .. tostring(button) .. ")"
-	end
-	slot.button = slot.button or button
-	-- New: already on (turning it on again can make the game stop giving it new auras)
-	checkSlot = slot
-	GetHolder():Show()
-	return "check on: frame made " .. tostring(slot.button ~= nil) .. ", set up " .. tostring(slot.setUp or false)
-end
-
 -- For the tests
 function ProcAlerts.ResetForTests()
 	prepared, container, slots = false, nil, {}

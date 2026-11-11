@@ -399,15 +399,6 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 			or "watching the game's spell alerts: off")
 		-- What comes while watching is also kept (each alert added as it comes)
 		ns.AddToDiagnostic("procscan watch", on and "watching: on" or "watching: off")
-	elseif command == "procscan armor" or command == "procscan fof" then
-		-- The game's container tried with a buff the mage always has, or with Fingers of Frost only (again:
-		-- off)
-		ns.Print(L["Proc alerts now:"])
-		local ok, said = pcall(ns.ProcAlerts.CheckContainer, command == "procscan fof" and "fof" or "armor")
-		local line = tostring(ok and said or ("the check broke: " .. tostring(said)))
-		DEFAULT_CHAT_FRAME:AddMessage("  " .. line)
-		ns.SaveDiagnostic(command, {line})
-		ns.Print(L["Kept in the addon's saved data: type /reload so the game writes it down."])
 	elseif command == "procscan" then
 		-- What the proc alerts know now: the game's container, and each proc ticked (as the game gives
 		-- it: not translated)

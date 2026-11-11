@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.8.4",
+		fixed = {
+			"Two diagnostic commands used only once (/ke procscan armor and fof) are gone.",
+		},
+	},
+	{
 		version = "0.8.3",
 		fixed = {
 			"Proc alerts: Fingers of Frost now shows in combat (one charge on the left, two on the right).",

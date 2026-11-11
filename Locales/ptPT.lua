@@ -468,4 +468,5 @@ ns.LOCALES.ptPT = {
 	["Proc alerts: Fingers of Frost now shows in combat (one charge on the left, two on the right)."] =
 		"Alertas de procs: o Fingers of Frost já aparece em combate (uma carga à esquerda, duas à direita).",
 	["Kept in the addon's saved data: type /reload so the game writes it down."] = "Guardado nos dados do addon: escreve /reload para o jogo o gravar.",
+	["Two diagnostic commands used only once (/ke procscan armor and fof) are gone."] = "Saíram dois comandos de diagnóstico usados uma só vez (/ke procscan armor e fof).",
 }

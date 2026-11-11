@@ -8,6 +8,10 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.8.4
+
+- Removed /ke procscan armor and /ke procscan fof, the checks used once to find why Fingers of Frost didn't show in combat. /ke procscan, watch, find and all stay.
+
 ## 0.8.3
 
 - Proc alerts: the spell IDs of each proc are again only the ones known to be the proc. The other spells of the same name (found with /ke procscan all) were tried and taken out: some are auras always on, and one of them left the Clearcasting art on the screen all the time.
