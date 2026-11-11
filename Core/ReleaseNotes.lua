@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.5.1",
+		new = {
+			"Options: the pages in a new order, the simplest first.",
+		},
+	},
+	{
 		version = "0.5.0",
 		new = {
 			"Supplies (new page): macros that eat and drink the best food and drink in your bags, kept up to date by the addon: food only, drink only, or both at once. A mage's conjures more when there's none.",

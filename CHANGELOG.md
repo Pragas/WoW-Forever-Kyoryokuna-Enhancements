@@ -8,6 +8,10 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.5.1
+
+- Options: the pages in a new order, the simplest first: General, Queue, Experience Bar, Supplies, Proc Alerts, Action Bars, Dark Mode, Missing Buffs, then Import / Export and About.
+
 ## 0.5.0
 
 - New "Supplies" page (third in the list): macros of food and drink, made and kept up to date by the addon. Each character ticks the ones it wants (none at first; kept for that character, not in Import / Export):

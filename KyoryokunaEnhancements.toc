@@ -2,7 +2,7 @@
 ## Title: |cffffe00aKyoryokuna|r |cff2ecc71Enhancements|r
 ## Notes: Small improvements for the game. Type /ke to open the options.
 ## Author: Pragas
-## Version: 0.5.0
+## Version: 0.5.1
 ## X-Copyright: Copyright (c) 2026 Pragas. All Rights Reserved.
 ## X-License: All Rights Reserved
 ## IconTexture: Interface\AddOns\KyoryokunaEnhancements\Media\IconSmall
@@ -35,12 +35,12 @@ Options\Window.lua
 Options\MinimapButton.lua
 Options\Welcome.lua
 Options\Pages\General.lua
-Options\Pages\MissingBuffs.lua
+Options\Pages\QueueTimer.lua
+Options\Pages\ExperienceBar.lua
 Options\Pages\Supplies.lua
 Options\Pages\ProcAlerts.lua
 Options\Pages\ActionBars.lua
-Options\Pages\ExperienceBar.lua
-Options\Pages\QueueTimer.lua
 Options\Pages\DarkMode.lua
+Options\Pages\MissingBuffs.lua
 Options\Pages\ImportExport.lua
 Options\Pages\About.lua

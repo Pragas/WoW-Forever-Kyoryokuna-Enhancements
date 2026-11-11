@@ -415,4 +415,5 @@ ns.LOCALES.ptPT = {
 		"Os alertas de procs baseiam-se no SpellActivationOverlay, de ennvina, usado sob a licença MIT (ver o ficheiro LICENSE).",
 	["Proc Alerts (new page): the game's spell alert art on the sides of your character when a proc happens, in combat too. For now the mage's: Missile Barrage, Clearcasting, Fingers of Frost and Heating Up."] =
 		"Alertas de procs (página nova): a arte dos alertas de feitiços do jogo dos lados da tua personagem quando um proc acontece, também em combate. Para já os do mage: Missile Barrage, Clearcasting, Fingers of Frost e Heating Up.",
+	["Options: the pages in a new order, the simplest first."] = "Opções: as páginas numa nova ordem, as mais simples primeiro.",
 }
