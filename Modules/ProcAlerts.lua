@@ -56,7 +56,9 @@ local TOP_TURNED = {"TOP_CW"}
 
 -- The procs of each class in WoW Forever: the setting that turns it on,
 -- the spell (an aura's ID; for a "counter", an ability that becomes usable, like Victory Rush after a
--- kill), a name for when the game doesn't give one, combatOnly (only shown in combat), and its art:
+-- kill), also (other IDs of the same aura; only the ones known to be the proc: other spells of the same
+-- name can be auras always on, whose art would never go away), a name for when the game doesn't give
+-- one, combatOnly (only shown in combat), and its art:
 -- {stacks (nil: any; a number: exactly that many), art, sides, scale, shade (0-255, grey to white) or
 -- color ({r, g, b}, 0-255), alpha (0-255), pulse}
 local EFFECTS = {
@@ -67,11 +69,10 @@ local EFFECTS = {
 		{key = "clearcasting", spell = 12536, name = "Clearcasting", overlays = {
 			{art = ART.GENERIC_ARC_05, sides = BOTH_SIDES, scale = 1.5, pulse = false},
 		}},
-		-- One charge on the left, the second one on the right too. WoW Forever has four spells of that name
-		-- (asked of the game, /ke procscan find): 400647 is the talent itself (always on, left out); the buff
-		-- is one of the others
-		{key = "fingersOfFrost", spell = 400670, also = {400669, 401741}, name = "Fingers of Frost", overlays = {
-			{art = ART.FROZEN_FINGERS, sides = {"LEFT"}},
+		-- One charge on the left, two on the right: each place asks the game for an exact number of stacks
+		-- (a place for "any" number never shows an aura that has stacks)
+		{key = "fingersOfFrost", spell = 400670, name = "Fingers of Frost", overlays = {
+			{stacks = 1, art = ART.FROZEN_FINGERS, sides = {"LEFT"}},
 			{stacks = 2, art = ART.FROZEN_FINGERS, sides = {"RIGHT_FLIPPED"}},
 		}},
 		-- Heating Up grows with its stacks; at 3 (Hot Streak) it's whole and pulses
@@ -84,7 +85,7 @@ local EFFECTS = {
 	DRUID = {
 		-- One aura whose stacks tell the eclipse: 1-2 lunar (left), 3-4 solar (right); the second of each
 		-- is the full one
-		{key = "eclipse", spell = 408255, name = "Eclipse", overlays = {
+		{key = "eclipse", spell = 408255, also = {441260}, name = "Eclipse", overlays = {
 			{stacks = 1, art = ART.ECLIPSE_MOON, sides = {"LEFT"}, scale = 0.8, alpha = 192, pulse = false},
 			{stacks = 2, art = ART.ECLIPSE_MOON, sides = {"LEFT"}, scale = 1.1, pulse = false},
 			{stacks = 3, art = ART.ECLIPSE_MOON, sides = {"RIGHT_FLIPPED"}, scale = 0.8, alpha = 192, pulse = false},
@@ -652,11 +653,8 @@ local function SetUpSlot(button, slot)
 	button:EnableMouse(false)
 	-- The parts come with the template (Modules\ProcAlerts.xml); made here only if the game gave none
 	if not button.pulsableItem then MakeSlotParts(button) end
-	local parts = button.pulsableItem
-	if parts and parts.applicationBar and not parts.applicationBar.kpFade then
-		parts.applicationBar.kpFade = true
-		parts.applicationBar:HookScript("OnShow", function() FadeIn(parts) end)
-	end
+	-- Never a script on the game's frames or their parts (no OnShow, no hooks): the game refuses to
+	-- show or hide a frame with secret values once an addon listens to it, and the art never shows
 	local bar = button.pulsableItem and button.pulsableItem.applicationBar
 	if not bar then return end
 	Paint(bar.art, overlay, slot.side)
@@ -703,6 +701,9 @@ local function MakeSlots(effect)
 				return false
 			end
 			slot.button = slot.button or button
+			-- A new place is on: never turned on again (that can make the game stop giving it new auras);
+			-- only turned off and back on when its proc is unticked and ticked again
+			slot.enabled = true
 			slots[#slots + 1] = slot
 		end
 	end
@@ -1077,37 +1078,18 @@ function ProcAlerts.Scan()
 			end
 			lines[#lines + 1] = string.format("%s (%d): secrecy %s, by the game: %s%s, %s", ProcAlerts.SpellName(effect), effect.spell,
 				secrecy, tostring(effect.byGame), effect.slotNote and (" (" .. effect.slotNote .. ")") or "", tostring(read))
-			-- Each of its places in the game's container: whether the game made its frame, and what shows
+			-- Its places in the game's container, by count only: what the game does with them is hidden from addons
+			local places = 0
 			for _, slot in ipairs(slots) do
-				if slot.effect == effect then
-					-- In combat the game may hide even whether its frames show, or their size: each value
-					-- read on its own, a hidden one written as "hidden by the game"
-					local function Say(read)
-						local ok, value = pcall(read)
-						if not ok then return "error" end
-						value = Known(value)
-						if value == nil then return "hidden by the game" end
-						if type(value) == "number" then return tostring(math.floor(value + 0.5)) end
-						return tostring(value)
-					end
-					local button = slot.button
-					local text
-					if not button then
-						text = "no frame yet"
-					else
-						local bar = button.pulsableItem and button.pulsableItem.applicationBar
-						text = string.format("frame shown %s, bar shown %s, bar visible %s, %sx%s, SetApplicationBar %s, set up %s",
-							Say(function() return button:IsShown() end),
-							bar and Say(function() return bar:IsShown() end) or "no bar",
-							bar and Say(function() return bar:IsVisible() end) or "no bar",
-							Say(function() return button:GetWidth() end), Say(function() return button:GetHeight() end),
-							button.SetApplicationBar and "yes" or "NO", tostring(slot.setUp or false))
-					end
-					lines[#lines + 1] = "    " .. slot.side .. ": " .. text
-				end
+				if slot.effect == effect then places = places + 1 end
 			end
+			lines[#lines + 1] = "    places in the game's container: " .. places
 		end)
-		if not okEffect then lines[#lines + 1] = tostring(effect.name) .. ": " .. tostring(problem) end
+		if not okEffect then
+			-- The error itself may be a value the game hides
+			local text = Known(problem)
+			lines[#lines + 1] = tostring(effect.name) .. ": " .. (text ~= nil and tostring(text) or "an error the game hides")
+		end
 	end
 	return lines
 end
@@ -1129,7 +1111,10 @@ nativeFrame:SetScript("OnEvent", function(_, event, spell, art)
 		Known(art) and (" art " .. tostring(art)) or "")
 	table.insert(nativeAlerts, 1, line)
 	while #nativeAlerts > 8 do table.remove(nativeAlerts) end
-	if watching then ns.Print("game alert: " .. line) end
+	if watching then
+		ns.Print("game alert: " .. line)
+		ns.AddToDiagnostic("procscan watch", "game alert: " .. line)
+	end
 end)
 
 function ProcAlerts.NativeAlerts()
@@ -1138,6 +1123,7 @@ end
 
 function ProcAlerts.ToggleWatch()
 	watching = not watching
+	ProcAlerts.watchingOn = watching
 	return watching
 end
 
@@ -1171,6 +1157,7 @@ function ProcAlerts.FindSpells(name)
 			list[#list + 1] = tostring(id) .. ((type(sub) == "string" and sub ~= "") and (" (" .. sub .. ")") or "")
 		end
 		ns.Print(string.format("\"%s\": %s", name, #list > 0 and table.concat(list, ", ") or "no spell with that name"))
+		ns.SaveDiagnostic("procscan find " .. name, list)
 	end
 	Slice()
 	return true
@@ -1285,7 +1272,7 @@ function ProcAlerts.CheckContainer(kind)
 		return "check on again (" .. tostring(button) .. ")"
 	end
 	slot.button = slot.button or button
-	pcall(frame.SetAuraSlotEnabled, frame, slot.key, true)
+	-- New: already on (turning it on again can make the game stop giving it new auras)
 	checkSlot = slot
 	GetHolder():Show()
 	return "check on: frame made " .. tostring(slot.button ~= nil) .. ", set up " .. tostring(slot.setUp or false)

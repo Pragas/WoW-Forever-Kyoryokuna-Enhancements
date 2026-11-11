@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.8.3",
+		fixed = {
+			"Proc alerts: Fingers of Frost now shows in combat (one charge on the left, two on the right).",
+		},
+	},
+	{
 		version = "0.8.2",
 		new = {
 			"/ke procscan all: finds the spells of every proc of every class, to set them right for WoW Forever.",

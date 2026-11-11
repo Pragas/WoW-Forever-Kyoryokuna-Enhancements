@@ -62,3 +62,35 @@ function ns.PrintErrors()
 		DEFAULT_CHAT_FRAME:AddMessage("|cffff6060" .. entry .. "|r")
 	end
 end
+
+-- Diagnostics: what the /ke ...scan commands write in the chat is also kept in the saved data
+-- (diagnostics, the newest last), so it can be read from the file the game writes at the next /reload
+-- instead of from screenshots. The last 20 are kept.
+local MAX_DIAGNOSTICS = 20
+
+function ns.SaveDiagnostic(command, lines)
+	if not ns.db then return end
+	if type(ns.db.diagnostics) ~= "table" then ns.db.diagnostics = {} end
+	local copy = {}
+	for _, line in ipairs(lines or {}) do copy[#copy + 1] = tostring(line) end
+	table.insert(ns.db.diagnostics, {
+		when = date and date("%Y-%m-%d %H:%M:%S") or "?",
+		version = ns.VERSION,
+		command = command,
+		lines = copy,
+	})
+	while #ns.db.diagnostics > MAX_DIAGNOSTICS do table.remove(ns.db.diagnostics, 1) end
+end
+
+-- Adds a line to the newest diagnostic of that command (e.g. each game alert while watching)
+function ns.AddToDiagnostic(command, line)
+	if not ns.db then return end
+	local list = ns.db.diagnostics
+	local last = type(list) == "table" and list[#list]
+	if not (last and last.command == command) then
+		ns.SaveDiagnostic(command, {})
+		last = ns.db.diagnostics[#ns.db.diagnostics]
+	end
+	last.lines[#last.lines + 1] = (date and date("%H:%M:%S ") or "") .. tostring(line)
+	while #last.lines > 200 do table.remove(last.lines, 1) end
+end

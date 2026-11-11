@@ -8,6 +8,11 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.8.3
+
+- Proc alerts: the spell IDs of each proc are again only the ones known to be the proc. The other spells of the same name (found with /ke procscan all) were tried and taken out: some are auras always on, and one of them left the Clearcasting art on the screen all the time.
+- Fixed: the proc alerts the game shows itself (auras hidden from addons, like Fingers of Frost in combat) never showed since 0.8.0. The game refuses to show or hide one of its frames with secret values once an addon listens to it ("Cannot be called with secrets due to existing script handlers"), and "Appear softly" listened to the bar of the art. Nothing listens to the game's frames any more; "Appear softly" now only fades in the art the addon draws itself. Fingers of Frost also asks for exact stacks, one charge on the left, two on the right, as the addon that works in WoW Forever does, with its own ID 400670 only.
+
 ## 0.8.2
 
 - /ke procscan all: every proc of every class at once. One pass over the spell IDs asks the game the name of each and keeps those named like a proc (its English name or its name in the game's language), each marked passive or not (a talent always on, which can't be a proc's aura). Works on any character (the game knows every class's spells), takes 10 to 20 seconds without freezing the game, sums up in the chat and keeps the list in the saved data (procScan), so the right WoW Forever IDs can be given to every proc without playing each class.

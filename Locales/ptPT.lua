@@ -465,4 +465,7 @@ ns.LOCALES.ptPT = {
 		"Os buffs em falta já não registam um erro sempre que o jogo esconde as tuas auras em combate.",
 	["/ke procscan all: finds the spells of every proc of every class, to set them right for WoW Forever."] =
 		"/ke procscan all: encontra os feitiços de todos os procs de todas as classes, para os acertar no WoW Forever.",
+	["Proc alerts: Fingers of Frost now shows in combat (one charge on the left, two on the right)."] =
+		"Alertas de procs: o Fingers of Frost já aparece em combate (uma carga à esquerda, duas à direita).",
+	["Kept in the addon's saved data: type /reload so the game writes it down."] = "Guardado nos dados do addon: escreve /reload para o jogo o gravar.",
 }

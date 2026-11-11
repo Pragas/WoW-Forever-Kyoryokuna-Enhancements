@@ -397,12 +397,17 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 		local on = ns.ProcAlerts.ToggleWatch()
 		ns.Print(on and "watching the game's spell alerts: on (/ke procscan watch again to stop)"
 			or "watching the game's spell alerts: off")
+		-- What comes while watching is also kept (each alert added as it comes)
+		ns.AddToDiagnostic("procscan watch", on and "watching: on" or "watching: off")
 	elseif command == "procscan armor" or command == "procscan fof" then
 		-- The game's container tried with a buff the mage always has, or with Fingers of Frost only (again:
 		-- off)
 		ns.Print(L["Proc alerts now:"])
 		local ok, said = pcall(ns.ProcAlerts.CheckContainer, command == "procscan fof" and "fof" or "armor")
-		DEFAULT_CHAT_FRAME:AddMessage("  " .. tostring(ok and said or ("the check broke: " .. tostring(said))))
+		local line = tostring(ok and said or ("the check broke: " .. tostring(said)))
+		DEFAULT_CHAT_FRAME:AddMessage("  " .. line)
+		ns.SaveDiagnostic(command, {line})
+		ns.Print(L["Kept in the addon's saved data: type /reload so the game writes it down."])
 	elseif command == "procscan" then
 		-- What the proc alerts know now: the game's container, and each proc ticked (as the game gives
 		-- it: not translated)
@@ -413,6 +418,9 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 		for _, line in ipairs(lines) do
 			DEFAULT_CHAT_FRAME:AddMessage("  " .. line)
 		end
+		-- Also in the saved data, read from the file at the next /reload (no screenshots needed)
+		ns.SaveDiagnostic(command, lines)
+		ns.Print(L["Kept in the addon's saved data: type /reload so the game writes it down."])
 	elseif command == "help" then
 		ns.Print(L["Commands:"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke - " .. L["open the options"])
