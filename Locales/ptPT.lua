@@ -506,6 +506,10 @@ ns.LOCALES.ptPT = {
 	["Error Messages (new page): hide the game's red messages you don't want, like \"Spell is not ready yet\" (their sound still plays), and silence their voice."] =
 		"Mensagens de erro (página nova): esconde as mensagens vermelhas do jogo que não queres, como \"Spell is not ready yet\" (o som continua a tocar), e cala a voz delas.",
 
+	-- Release notes 0.10.2
+	["Trainer: spells you can't learn (talents you don't have, other specializations' spells, like Pyroblast for a frost mage) no longer show in the list nor in the chat."] =
+		"Treinador: os feitiços que não podes aprender (talentos que não tens, feitiços de outras especializações, como o Pyroblast para um mage frost) já não aparecem na lista nem no chat.",
+
 	-- Release notes 0.10.1
 	["Proc alerts: the test of Fingers of Frost shows both sides, as two charges do in the game."] =
 		"Alertas de procs: o teste do Fingers of Frost mostra os dois lados, como duas cargas fazem no jogo.",

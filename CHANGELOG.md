@@ -8,6 +8,10 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.10.2
+
+- Trainer: the spells kept from the trainer's list that the character can't learn are left out of the spellbook's tab, the page and the level-up message. A spell is left out when it needs an ability the character doesn't have and the trainer doesn't teach from its first rank (the trainer's own requirement, GetTrainerServiceAbilityReq, kept at each visit), or when it's a higher rank of a spell the character doesn't have whose first rank the trainer doesn't teach (a talent, or another specialization's spell: Pyroblast, Blast Wave, Arcane Blast or Arcane Wrath for a frost mage). The character's spells are read from its spellbook (its own specialization's), so once it has such a spell, its ranks show again. Works at once with the list kept before (no visit needed).
+
 ## 0.10.1
 
 - Proc alerts: a proc can say which stacks its test shows (each proc's "Test", "Test all", and the art shown while moving), as SpellActivationOverlay's tests do; otherwise its most stacks, as before. Fingers of Frost's test shows one and two charges: both sides, as two charges do in the game (the game's AuraContainer shows each place from its stacks up: Blizzard_CustomAuraButton, applications >= minApplications), instead of the right one only.

@@ -340,6 +340,8 @@ local function Validate(db)
 						if type(data.cost) ~= "number" then data.cost = 0 end
 						if type(data.icon) ~= "number" and type(data.icon) ~= "string" then data.icon = nil end
 						if type(data.id) ~= "number" then data.id = nil end
+						-- An ability it needs that the trainer doesn't teach (a talent's spell)
+						if type(data.requires) ~= "string" then data.requires = nil end
 					end
 				end
 			end

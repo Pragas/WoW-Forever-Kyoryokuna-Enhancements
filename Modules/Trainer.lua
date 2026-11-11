@@ -135,14 +135,45 @@ local function Keeping()
 end
 
 -- What's kept of a line: the level it needs, its cost, its icon, and its spell (for its tooltip)
-local function Describe(index, level, icon)
+-- A spell's name without its rank in brackets ("Pyroblast (Rank 1)" -> "Pyroblast")
+local function BaseName(name)
+	return (name:gsub("%s*%(.-%)%s*$", ""))
+end
+
+-- The ability a line needs that the character doesn't have and this trainer doesn't teach (offered: the
+-- names on its list), or nil: a talent, or a spell of another specialization (Pyroblast Rank 2 needs
+-- Pyroblast, which only its talent gives)
+local function MissingAbility(index, offered)
+	if not (GetTrainerServiceNumAbilityReq and GetTrainerServiceAbilityReq) then return nil end
+	for i = 1, tonumber(GetTrainerServiceNumAbilityReq(index)) or 0 do
+		local ability, has = GetTrainerServiceAbilityReq(index, i)
+		if type(ability) == "string" and not has then
+			local name = BaseName(ability)
+			if not offered[name] then return name end
+		end
+	end
+end
+
+-- The spells a trainer teaches from their first rank (by name): its higher ranks alone don't count, a
+-- talent's spell has those too
+local function Offered()
+	local offered = {}
+	for index = 1, GetNumTrainerServices() do
+		local name, rank = ReadService(index)
+		if name and (tonumber(rank:match("(%d+)")) or 1) <= 1 then offered[name] = true end
+	end
+	return offered
+end
+
+local function Describe(index, level, icon, offered)
 	local spellID
 	if C_TooltipInfo and C_TooltipInfo.GetTrainerService then
 		local ok, data = pcall(C_TooltipInfo.GetTrainerService, index)
 		if ok and type(data) == "table" and type(data.id) == "number" then spellID = data.id end
 	end
 	local cost = GetTrainerServiceCost(index)
-	return {level = level, cost = tonumber(cost) or 0, icon = tonumber(icon) or icon, id = spellID}
+	return {level = level, cost = tonumber(cost) or 0, icon = tonumber(icon) or icon, id = spellID,
+		requires = MissingAbility(index, offered)}
 end
 
 -- After a change of the list: the page and the spellbook's tab show it again
@@ -168,11 +199,12 @@ local function Record()
 		end
 	end
 	wipe(spells)
+	local offered = Offered()
 	for index = 1, GetNumTrainerServices() do
 		local name, rank, status, level, icon = ReadService(index)
 		local _, isProfession = GetTrainerServiceCost(index)
 		if name and not isProfession and (status == "available" or status == "unavailable") then
-			spells[KeyOf(name, rank)] = Describe(index, level, icon)
+			spells[KeyOf(name, rank)] = Describe(index, level, icon, offered)
 		end
 	end
 	for _, filter in ipairs(turnedOn) do SetTrainerServiceTypeFilter(filter, false) end
@@ -188,6 +220,7 @@ local function RecordChanges()
 	if not (Keeping() and IsClassTrainer()) then return end
 	local spells = SavedSpells(false)
 	if not spells then return end
+	local offered = Offered()
 	for index = 1, GetNumTrainerServices() do
 		local name, rank, status, level, icon = ReadService(index)
 		if name then
@@ -195,7 +228,7 @@ local function RecordChanges()
 			if status == "used" then
 				spells[key] = nil
 			elseif status == "available" or status == "unavailable" then
-				spells[key] = Describe(index, level, icon)
+				spells[key] = Describe(index, level, icon, offered)
 			end
 		end
 	end
@@ -397,9 +430,65 @@ end
 
 -- The saved spells by level, lowest first: {{level, spells = {{key, label, level, cost, icon, id}}}}, the
 -- spells of a level sorted by name; nil when nothing is kept yet
+-- The names of the spells the character has in its spellbook (its own specialization's, not the ones
+-- shown for others nor the ones still to come)
+local function KnownNames()
+	local names = {}
+	local book = C_SpellBook
+	if not (book and book.GetNumSpellBookSkillLines and book.GetSpellBookSkillLineInfo and book.GetSpellBookItemInfo) then
+		return names
+	end
+	local bank = (Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player) or 0
+	local spellType = (Enum and Enum.SpellBookItemType and Enum.SpellBookItemType.Spell) or 1
+	for line = 1, book.GetNumSpellBookSkillLines() or 0 do
+		local info = book.GetSpellBookSkillLineInfo(line)
+		if info and not info.offSpecID and info.itemIndexOffset and info.numSpellBookItems then
+			for slot = info.itemIndexOffset + 1, info.itemIndexOffset + info.numSpellBookItems do
+				local item = book.GetSpellBookItemInfo(slot, bank)
+				local name = item and ns.Known(item.name)
+				if not name and item and item.spellID and C_Spell and C_Spell.GetSpellName then
+					name = ns.Known(C_Spell.GetSpellName(item.spellID))
+				end
+				if item and item.itemType == spellType and not item.isOffSpec and type(name) == "string" then
+					names[name] = true
+				end
+			end
+		end
+	end
+	return names
+end
+
+local function RankNumber(rank)
+	return tonumber((rank or ""):match("(%d+)"))
+end
+
+-- The kept spells the character can really learn, by key. Left out: a spell needing an ability it doesn't
+-- have and the trainer doesn't teach (as the trainer says), and a higher rank of a spell it doesn't have
+-- whose first rank the trainer doesn't teach (a talent, or another specialization's spell: Pyroblast
+-- Rank 2 for a frost mage). Once the character has that spell, its ranks show again.
+local function Reachable(spells)
+	local known = KnownNames()
+	-- The spells the trainer teaches from their first rank
+	local startable = {}
+	for key in pairs(spells) do
+		local name, rank = key:match("^(.-)\t(.*)$")
+		if name and (RankNumber(rank) or 1) <= 1 then startable[name] = true end
+	end
+	local reachable = {}
+	for key, data in pairs(spells) do
+		local name, rank = key:match("^(.-)\t(.*)$")
+		local ok = true
+		if type(data.requires) == "string" and not known[data.requires] then ok = false end
+		if ok and name and (RankNumber(rank) or 1) > 1 and not known[name] and not startable[name] then ok = false end
+		if ok then reachable[key] = data end
+	end
+	return reachable
+end
+
 function Trainer.List()
 	local spells = SavedSpells(false)
 	if type(spells) ~= "table" then return nil end
+	spells = Reachable(spells)
 	local byLevel, levels = {}, {}
 	for key, data in pairs(spells) do
 		local level = data.level or 0
@@ -448,14 +537,15 @@ end
 ns.RegisterEvent("PLAYER_LEVEL_UP", function(_, level)
 	if not (ns.db and Settings().notify) then return end
 	level = tonumber(level)
-	local spells = SavedSpells(false)
-	if not level or type(spells) ~= "table" then return end
+	local levels = Trainer.List()
+	if not level or not levels then return end
 	local list = {}
-	for key, data in pairs(spells) do
-		if data.level == level then list[#list + 1] = Trainer.Label(key) end
+	for _, group in ipairs(levels) do
+		if group.level == level then
+			for _, spell in ipairs(group.spells) do list[#list + 1] = spell.label end
+		end
 	end
 	if #list == 0 then return end
-	table.sort(list)
 	ns.Print(string.format(L["New at your trainer (level %d): %s."], level, table.concat(list, ", ")))
 end)
 ns.RegisterEvent("PLAYER_LEVEL_UP", function()

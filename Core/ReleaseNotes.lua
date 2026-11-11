@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.10.2",
+		fixed = {
+			"Trainer: spells you can't learn (talents you don't have, other specializations' spells, like Pyroblast for a frost mage) no longer show in the list nor in the chat.",
+		},
+	},
+	{
 		version = "0.10.1",
 		fixed = {
 			"Proc alerts: the test of Fingers of Frost shows both sides, as two charges do in the game.",
