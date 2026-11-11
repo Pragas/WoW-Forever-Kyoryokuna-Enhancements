@@ -4,6 +4,12 @@ Small improvements for **WoW Forever**, each on its own page of the options. **E
 
 **Languages:** the addon itself is available in English and Portuguese (Portugal). Choose yours in `/ke` → **General** → **Language**.
 
+## ⬇️ Download
+
+**[Download the latest version (KyoryokunaEnhancements.zip)](https://github.com/Pragas/WoW-Forever-Kyoryokuna-Enhancements/releases/latest/download/KyoryokunaEnhancements.zip)**
+
+This link always gives the newest version. Don't use the green **Code → Download ZIP** button: that zip has another folder name and the game won't load the addon.
+
 ## What it does
 
 - **Proc Alerts:** the game's spell alert art beside your character when a proc happens, for every class and in combat too. Abilities that become usable can also make their action button glow. You can move the alerts, choose their look and animation, and test each one.
@@ -24,12 +30,6 @@ Small improvements for **WoW Forever**, each on its own page of the options. **E
   - Hide the micro menu's frame.
 - **Experience Bar**, **Queue Timer** (the time left to accept a queue) and **Dark Mode** (darker unit frames, action bars, cast bars, minimap and tooltips).
 - **Import / Export:** share your settings with a code, and keep backups to put back later.
-
-## ⬇️ Download
-
-**[Download the latest version (KyoryokunaEnhancements.zip)](https://github.com/Pragas/WoW-Forever-Kyoryokuna-Enhancements/releases/latest/download/KyoryokunaEnhancements.zip)**
-
-This link always gives the newest version. Don't use the green **Code → Download ZIP** button: that zip has another folder name and the game won't load the addon.
 
 ## Install
 
