@@ -281,17 +281,21 @@ local function ValidateTrainerSpells(spells)
 			if type(data.icon) ~= "number" and type(data.icon) ~= "string" then data.icon = nil end
 			if type(data.id) ~= "number" then data.id = nil end
 			if type(data.requires) ~= "string" then data.requires = nil end
+			-- The trainer that teaches it, and its group on that trainer's window
+			if type(data.from) ~= "string" then data.from = nil end
+			if type(data.category) ~= "string" then data.category = nil end
 		end
 	end
 end
 
--- Where a trainer was visited: its name and place, and (for a class's list) the character who went there
-local function ValidateTrainerVisit(visit)
-	if type(visit) ~= "table" then return nil end
-	for _, key in ipairs({"name", "zone", "by"}) do
-		if type(visit[key]) ~= "string" then visit[key] = nil end
+-- Before each spell said its trainer, a list had one visit ({name, zone, by}): its spells are that
+-- trainer's. Gives that trainer's name, place and who went, and takes the old visit away.
+local function OldVisit(spells, visit)
+	if type(visit) ~= "table" or type(visit.name) ~= "string" then return nil end
+	for _, data in pairs(spells) do
+		if type(data) == "table" and data.from == nil then data.from = visit.name end
 	end
-	return visit
+	return visit.name, type(visit.zone) == "string" and visit.zone or nil, type(visit.by) == "string" and visit.by or nil
 end
 
 local function Validate(db)
@@ -308,7 +312,27 @@ local function Validate(db)
 			db.trainerClasses[class] = nil
 		else
 			ValidateTrainerSpells(list.spells)
-			list.visit = ValidateTrainerVisit(list.visit)
+			-- The trainers visited: name -> {zone, by (the character who went)}
+			if type(list.visits) ~= "table" then list.visits = {} end
+			local oldName, oldZone, oldBy = OldVisit(list.spells, list.visit)
+			if oldName then
+				list.visits[oldName] = {zone = oldZone, by = oldBy}
+				if list.complete == true then list.complete = {[oldName] = true} end
+			end
+			list.visit = nil
+			for name, info in pairs(list.visits) do
+				if type(name) ~= "string" or type(info) ~= "table" then
+					list.visits[name] = nil
+				else
+					if type(info.zone) ~= "string" then info.zone = nil end
+					if type(info.by) ~= "string" then info.by = nil end
+				end
+			end
+			-- The trainers whose learned spells it has (read once with their "Used" filter)
+			if type(list.complete) ~= "table" then list.complete = nil end
+			for name, on in pairs(list.complete or {}) do
+				if type(name) ~= "string" or on ~= true then list.complete[name] = nil end
+			end
 		end
 	end
 	-- Before the choice of animations, the proc alerts had a "Pulse" check: on, it's the pulse now
@@ -370,7 +394,17 @@ local function Validate(db)
 			else
 				ValidateTrainerSpells(entry.trainer)
 			end
-			entry.trainerVisit = ValidateTrainerVisit(entry.trainerVisit)
+			-- The trainers it has been to: name -> place ("" when unknown)
+			if type(entry.trainerVisits) ~= "table" then entry.trainerVisits = nil end
+			local oldName, oldZone = OldVisit(entry.trainer or {}, entry.trainerVisit)
+			if oldName then
+				entry.trainerVisits = entry.trainerVisits or {}
+				entry.trainerVisits[oldName] = oldZone or ""
+			end
+			entry.trainerVisit = nil
+			for name, zone in pairs(entry.trainerVisits or {}) do
+				if type(name) ~= "string" or type(zone) ~= "string" then entry.trainerVisits[name] = nil end
+			end
 		end
 	end
 	db.version = DB_VERSION

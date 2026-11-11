@@ -19,6 +19,14 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.11.1",
+		fixed = {
+			"Trainer: the list shared by the characters of your class was left empty. It's now kept at your next visit to the trainer.",
+			"Trainer: a spell could show twice (once without its rank), and Pyroblast could show again for a frost mage.",
+			"Trainer: a visit to another trainer (a weapon master, a riding trainer, a mage's portal trainer) replaced the whole list with its spells. Now every trainer's spells are kept and shown together.",
+		},
+	},
+	{
 		version = "0.11.0",
 		new = {
 			"Trainer tab in the spellbook: a box to search a spell (its ranks show by level), and the cost of what you can learn now and of the whole list.",

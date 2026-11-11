@@ -39,20 +39,22 @@ end
 
 local SERVICE_TYPES = {available = true, unavailable = true, used = true}
 
--- One line of the trainer: its name, rank, state (available, unavailable, used), the level it needs and its
--- icon. The game gave these in another order in older versions; both are read.
+-- One line of the trainer: its name, rank, state (available, unavailable, used), the level it needs, its
+-- icon, and the group the trainer's window puts it in (WoW Forever). The game gave these in another order
+-- in older versions; both are read.
 local function ReadService(index)
-	local name, second, third, fourth, fifth = GetTrainerServiceInfo(index)
-	local rank, status, level, icon
+	local name, second, third, fourth, fifth, sixth = GetTrainerServiceInfo(index)
+	local rank, status, level, icon, category
 	if SERVICE_TYPES[second] then
-		status, icon, level, rank = second, third, fourth, fifth
+		status, icon, level, rank, category = second, third, fourth, fifth, sixth
 	else
 		rank, status = second, third
 		icon = GetTrainerServiceIcon and GetTrainerServiceIcon(index)
 	end
 	if (tonumber(level) or 0) == 0 and GetTrainerServiceLevelReq then level = GetTrainerServiceLevelReq(index) end
 	if type(name) ~= "string" then return nil end
-	return name, type(rank) == "string" and rank or "", status, tonumber(level) or 0, icon
+	return name, type(rank) == "string" and rank or "", status, tonumber(level) or 0, icon,
+		type(category) == "string" and category ~= "" and category or nil
 end
 
 local function KeyOf(name, rank)
@@ -146,7 +148,10 @@ local function ClassList(create)
 		if type(ns.db.trainerClasses[class]) ~= "table" then ns.db.trainerClasses[class] = {spells = {}} end
 	end
 	local list = type(ns.db.trainerClasses) == "table" and ns.db.trainerClasses[class]
-	return type(list) == "table" and type(list.spells) == "table" and list or nil
+	if not (type(list) == "table" and type(list.spells) == "table") then return nil end
+	-- Not read yet: as if there were none
+	if not create and next(list.spells) == nil then return nil end
+	return list
 end
 
 -- The trainer's list is kept for the new spells told in the chat and for the spellbook's tab
@@ -155,10 +160,59 @@ local function Keeping()
 	return settings.notify or settings.spellbookTab
 end
 
--- What's kept of a line: the level it needs, its cost, its icon, and its spell (for its tooltip)
 -- A spell's name without its rank in brackets ("Pyroblast (Rank 1)" -> "Pyroblast")
 local function BaseName(name)
 	return (name:gsub("%s*%(.-%)%s*$", ""))
+end
+
+-- The number of a rank ("Rank 4" -> 4), or nil
+local function RankNumber(rank)
+	return tonumber((type(rank) == "string" and rank or ""):match("(%d+)"))
+end
+
+-- The spells taught from their first rank (by name), among {name, rank} lines: a "Rank 1", or a spell
+-- without ranks. Higher ranks alone don't count (a talent's spell has those too), nor a line without its
+-- rank while other ranks of that spell are there (read before the game had its rank's text).
+local function FirstRanks(lines)
+	local first, ranked, unranked = {}, {}, {}
+	for _, line in ipairs(lines) do
+		local name, number = line[1], RankNumber(line[2])
+		if number then
+			ranked[name] = true
+			if number <= 1 then first[name] = true end
+		else
+			unranked[name] = true
+		end
+	end
+	for name in pairs(unranked) do
+		if not ranked[name] then first[name] = true end
+	end
+	return first
+end
+
+-- The {name, rank} lines of a kept list (keys "Name\tRank"), less the keys left out
+local function LinesOf(spells, leftOut, lines)
+	lines = lines or {}
+	for key in pairs(spells) do
+		local name, rank = key:match("^(.-)\t(.*)$")
+		if name and not (leftOut and leftOut[key]) then lines[#lines + 1] = {name, rank} end
+	end
+	return lines
+end
+
+-- The keys of a kept list without a rank whose spell has ranks there too: the same spell as its highest
+-- rank, read before the game had its rank's text ("Mage Armor" beside "Mage Armor Rank 3")
+local function Duplicates(spells)
+	local ranked, duplicates = {}, {}
+	for key in pairs(spells) do
+		local name, rank = key:match("^(.-)\t(.*)$")
+		if name and RankNumber(rank) then ranked[name] = true end
+	end
+	for key in pairs(spells) do
+		local name, rank = key:match("^(.-)\t(.*)$")
+		if name and not RankNumber(rank) and ranked[name] then duplicates[key] = true end
+	end
+	return duplicates
 end
 
 -- The ability a line needs that this trainer doesn't teach (offered: the names on its list), or nil: a
@@ -175,26 +229,46 @@ local function MissingAbility(index, offered, anyone)
 	end
 end
 
--- The spells a trainer teaches from their first rank (by name): its higher ranks alone don't count, a
--- talent's spell has those too
-local function Offered()
-	local offered = {}
+-- The spells the trainer teaches from their first rank (by name): on its list now, and in the class's list
+-- of this visit (the learned ones are on the trainer's list only while its "Used" filter is on)
+local function Offered(classSpells)
+	local lines = classSpells and LinesOf(classSpells, Duplicates(classSpells)) or {}
 	for index = 1, GetNumTrainerServices() do
 		local name, rank = ReadService(index)
-		if name and (tonumber(rank:match("(%d+)")) or 1) <= 1 then offered[name] = true end
+		if name then lines[#lines + 1] = {name, rank} end
 	end
-	return offered
+	return FirstRanks(lines)
 end
 
-local function Describe(index, level, icon, offered, anyone)
-	local spellID
-	if C_TooltipInfo and C_TooltipInfo.GetTrainerService then
-		local ok, data = pcall(C_TooltipInfo.GetTrainerService, index)
-		if ok and type(data) == "table" and type(data.id) == "number" then spellID = data.id end
-	end
+-- The spell of a line, or nil
+local function SpellOf(index)
+	if not (C_TooltipInfo and C_TooltipInfo.GetTrainerService) then return nil end
+	local ok, data = pcall(C_TooltipInfo.GetTrainerService, index)
+	if ok and type(data) == "table" and type(data.id) == "number" then return data.id end
+end
+
+-- The level a spell is learned at, as the game says (the trainer gives none for a spell learned), or nil
+local function LevelOf(spellID)
+	if not (spellID and C_Spell and C_Spell.GetSpellLevelLearned) then return nil end
+	local ok, level = pcall(C_Spell.GetSpellLevelLearned, spellID)
+	level = ok and tonumber(ns.Known(level)) or nil
+	return level and level > 0 and level or nil
+end
+
+-- What's kept of a line: the level it needs, its cost, its icon, its spell (for its tooltip), an ability
+-- it needs that the trainer doesn't teach, the trainer that teaches it, and its group on that trainer
+local function Describe(index, level, icon, offered, anyone, spellID, from, category)
 	local cost = GetTrainerServiceCost(index)
 	return {level = level, cost = tonumber(cost) or 0, icon = tonumber(icon) or icon, id = spellID,
-		requires = MissingAbility(index, offered, anyone)}
+		requires = MissingAbility(index, offered, anyone), from = from, category = category}
+end
+
+-- A trainer's spells taken out of a kept list (at the start of a new visit to it); the other trainers'
+-- stay. Spells kept before trainers were told apart go too.
+local function Forget(spells, from)
+	for key, data in pairs(spells) do
+		if data.from == nil or data.from == from then spells[key] = nil end
+	end
 end
 
 -- After a change of the list: the page and the spellbook's tab show it again
@@ -203,68 +277,168 @@ local function ListChanged()
 	if ns.SpellbookTab then ns.SpellbookTab.Refresh() end
 end
 
--- The trainer's whole list kept, at the start of a visit, with the trainer's name and place: the spells
--- not learned yet for the character, every spell for its class. The spells for later levels, and the ones
--- learned, only show with the trainer's "Unavailable" and "Used" filters: they're turned on for the reading,
--- and put back as they were.
-local function Record()
-	if not (Keeping() and IsClassTrainer()) then return end
+-- Reading the trainer's list -----------------------------------------------------------------------------
+--
+-- Every trainer that opens the class trainer's window counts: the class trainer, and in WoW Forever also the
+-- mage's portal trainer, the weapon masters and the riding trainers. Each kept spell says which trainer
+-- teaches it ("from"): a visit to a trainer starts its own spells again and leaves the others' alone, and the
+-- lists shown put all of them together.
+--
+-- The game sends the trainer's list a little after the visit starts, and again after each change (a spell
+-- learned, a filter changed: TRAINER_UPDATE), never at once. So the list is read each time it comes: the
+-- first reading of a visit starts that trainer's spells again, the next ones add to them. The spells for
+-- later levels only show with the trainer's "Unavailable" filter, the ones learned with its "Used" filter:
+-- those that are off are turned on at the start of the visit, and put back as they were as soon as the list
+-- has come with their spells (or half a second later, if it has none of them).
+--
+-- The learned spells are only wanted once for the class, from each trainer: its list keeps them, and the
+-- ones learned later were on the trainer's list before. Once it has them from a trainer ("complete"),
+-- "Used" is never turned on again there, and that trainer's spells in the class's list are added to, not
+-- started again, so the learned spells don't flash on the trainer's window at each visit.
+
+-- This visit: the trainer's name and place, who went, the filters turned on (to put back), the kinds of
+-- spells read (available, unavailable, used), whether the character's list is still the last visit's, and
+-- whether the class's list is kept and added to
+local visit
+
+local function After(seconds, func)
+	if C_Timer and C_Timer.After then
+		C_Timer.After(seconds, function() ns.SafeCall(func) end)
+	else
+		func()
+	end
+end
+
+local function RestoreFilters()
+	local turnedOn = visit and visit.turnedOn
+	if not turnedOn then return end
+	visit.turnedOn, visit.restoring = nil, nil
+	if SetTrainerServiceTypeFilter then
+		for _, filter in ipairs(turnedOn) do SetTrainerServiceTypeFilter(filter, false) end
+	end
+end
+
+-- What the trainer shows now, kept: for the character, the spells not learned yet (the learned ones leave
+-- its list); for its class, every spell. False while there's nothing to read yet.
+local function Read()
+	if not (visit and Keeping() and IsClassTrainer()) then return false end
+	local count = GetNumTrainerServices() or 0
 	local spells = SavedSpells(true)
-	if not spells then return end
-	local turnedOn = {}
+	if count == 0 or not spells then return false end
+	local classList = ClassList(true)
+	local from = visit.name
+	if visit.fresh then
+		visit.fresh = false
+		Forget(spells, from)
+		if classList and not visit.keepClass then
+			Forget(classList.spells, from)
+			if type(classList.complete) == "table" then classList.complete[from] = nil end
+		end
+	end
+	local offered = Offered(classList and classList.spells)
+	for index = 1, count do
+		local name, rank, status, level, icon, category = ReadService(index)
+		local _, isProfession = GetTrainerServiceCost(index)
+		if name and not isProfession and SERVICE_TYPES[status] then
+			visit.seen[status] = true
+			local spellID = SpellOf(index)
+			-- Its rank's text not loaded yet on the trainer's list: the spell's own
+			if not RankNumber(rank) and spellID and C_Spell and C_Spell.GetSpellSubtext then
+				local text = ns.Known(C_Spell.GetSpellSubtext(spellID))
+				if RankNumber(text) then rank = text end
+			end
+			local key = KeyOf(name, rank)
+			-- A spell learned: the trainer gives no level
+			if level == 0 then
+				local before = spells[key] or (classList and classList.spells[key])
+				level = LevelOf(spellID) or (before and before.level) or 0
+			end
+			if status == "used" then
+				spells[key] = nil
+			else
+				spells[key] = Describe(index, level, icon, offered, false, spellID, from, category)
+			end
+			if classList then classList.spells[key] = Describe(index, level, icon, offered, true, spellID, from, category) end
+		end
+	end
+	-- A spell read without its rank, then with it: once
+	for key in pairs(Duplicates(spells)) do spells[key] = nil end
+	if classList then
+		for key in pairs(Duplicates(classList.spells)) do classList.spells[key] = nil end
+	end
+	-- The trainers visited, and where
+	local entry = Character()
+	if type(entry.trainerVisits) ~= "table" then entry.trainerVisits = {} end
+	entry.trainerVisits[from] = visit.zone or ""
+	if classList and next(classList.spells) then
+		if type(classList.visits) ~= "table" then classList.visits = {} end
+		classList.visits[from] = {zone = visit.zone, by = visit.by}
+		-- The learned spells read: the class's list has them from this trainer for good
+		if visit.seen.used then
+			if type(classList.complete) ~= "table" then classList.complete = {} end
+			classList.complete[from] = true
+		end
+	end
+	ListChanged()
+	return true
+end
+
+-- The list came (or changed): read. The filters turned on are put back as soon as their spells have come;
+-- if they don't (none of that kind), half a second after the first reading, after one more.
+local function OnList()
+	if not Read() then return end
+	if not visit.turnedOn then return end
+	local allCame = true
+	for _, filter in ipairs(visit.turnedOn) do
+		if not visit.seen[filter] then allCame = false end
+	end
+	if allCame then
+		RestoreFilters()
+	elseif not visit.restoring then
+		visit.restoring = true
+		After(0.5, function()
+			if not (visit and visit.restoring) then return end
+			Read()
+			RestoreFilters()
+		end)
+	end
+end
+
+-- The class's list already has the learned spells of this trainer
+local function ClassComplete(from)
+	local class = ClassOf()
+	local list = class and type(ns.db.trainerClasses) == "table" and ns.db.trainerClasses[class]
+	return type(list) == "table" and type(list.complete) == "table" and list.complete[from] == true
+		and type(list.spells) == "table" and next(list.spells) ~= nil
+end
+
+local function StartVisit()
+	visit = nil
+	if not (Keeping() and IsClassTrainer()) then return end
+	local trainerName = UnitName and ns.Known(UnitName("npc"))
+	trainerName = type(trainerName) == "string" and trainerName or "?"
+	local zone = GetZoneText and ns.Known(GetZoneText())
+	local by = UnitName and ns.Known(UnitName("player"))
+	local complete = ClassComplete(trainerName)
+	visit = {fresh = true, seen = {}, keepClass = complete, name = trainerName,
+		zone = type(zone) == "string" and zone or nil, by = type(by) == "string" and by or nil}
 	if GetTrainerServiceTypeFilter and SetTrainerServiceTypeFilter then
+		local turnedOn = {}
 		for _, filter in ipairs({"available", "unavailable", "used"}) do
-			if not GetTrainerServiceTypeFilter(filter) then
+			-- The learned spells only while the class's list doesn't have them
+			if not GetTrainerServiceTypeFilter(filter) and not (filter == "used" and complete) then
 				SetTrainerServiceTypeFilter(filter, true)
 				turnedOn[#turnedOn + 1] = filter
 			end
 		end
+		if #turnedOn > 0 then visit.turnedOn = turnedOn end
 	end
-	wipe(spells)
-	local classList = ClassList(true)
-	local all = classList and {}
-	local offered = Offered()
-	for index = 1, GetNumTrainerServices() do
-		local name, rank, status, level, icon = ReadService(index)
-		local _, isProfession = GetTrainerServiceCost(index)
-		if name and not isProfession and SERVICE_TYPES[status] then
-			local key = KeyOf(name, rank)
-			if status ~= "used" then spells[key] = Describe(index, level, icon, offered) end
-			if all then all[key] = Describe(index, level, icon, offered, true) end
-		end
-	end
-	for _, filter in ipairs(turnedOn) do SetTrainerServiceTypeFilter(filter, false) end
-	local trainerName = UnitName and ns.Known(UnitName("npc"))
-	local zone = GetZoneText and ns.Known(GetZoneText())
-	local visit = {name = type(trainerName) == "string" and trainerName or nil, zone = type(zone) == "string" and zone or nil}
-	Character().trainerVisit = visit
-	if all and next(all) then
-		local by = UnitName and ns.Known(UnitName("player"))
-		classList.spells = all
-		classList.visit = {name = visit.name, zone = visit.zone, by = type(by) == "string" and by or nil}
-	end
-	ListChanged()
+	OnList()
 end
 
--- During a visit, after a change (a spell learned): what's learned leaves the list. The filters aren't
--- touched here (each change of them makes the game update the list again).
-local function RecordChanges()
-	if not (Keeping() and IsClassTrainer()) then return end
-	local spells = SavedSpells(false)
-	if not spells then return end
-	local offered = Offered()
-	for index = 1, GetNumTrainerServices() do
-		local name, rank, status, level, icon = ReadService(index)
-		if name then
-			local key = KeyOf(name, rank)
-			if status == "used" then
-				spells[key] = nil
-			elseif status == "available" or status == "unavailable" then
-				spells[key] = Describe(index, level, icon, offered)
-			end
-		end
-	end
-	ListChanged()
+local function EndVisit()
+	RestoreFilters()
+	visit = nil
 end
 
 -- The "Learn ticked" button --------------------------------------------------------------------------
@@ -395,14 +569,6 @@ local function FindKey(key)
 	end
 end
 
-local function After(seconds, func)
-	if C_Timer and C_Timer.After then
-		C_Timer.After(seconds, function() ns.SafeCall(func) end)
-	else
-		func()
-	end
-end
-
 -- One step: wait for the spell asked to be taught, then ask for the next ticked one that can be paid
 local function Step()
 	if not learning then return end
@@ -460,10 +626,6 @@ end
 
 -- New spells at a new level ----------------------------------------------------------------------------
 
-local function RankNumber(rank)
-	return tonumber((type(rank) == "string" and rank or ""):match("(%d+)"))
-end
-
 -- The spells the character has in its spellbook (its own specialization's, not the ones shown for others
 -- nor the ones still to come): their names, and the highest rank of each
 local function Book()
@@ -519,31 +681,49 @@ end
 -- show again.
 local function Reachable(spells)
 	local known, ranks = Book()
+	-- A spell read without its rank beside its ranks (kept before this was seen): left out
+	local duplicates = Duplicates(spells)
 	-- The spells the trainer teaches from their first rank
-	local startable = {}
-	for key in pairs(spells) do
-		local name, rank = key:match("^(.-)\t(.*)$")
-		if name and (RankNumber(rank) or 1) <= 1 then startable[name] = true end
-	end
+	local startable = FirstRanks(LinesOf(spells, duplicates))
 	local reachable = {}
 	for key, data in pairs(spells) do
 		local name, rank = key:match("^(.-)\t(.*)$")
-		local ok = not Learned(key, data, known, ranks)
-		if ok and type(data.requires) == "string" and not known[data.requires] then ok = false end
+		local ok = not duplicates[key] and not Learned(key, data, known, ranks)
+		-- An ability it needs that it doesn't have, and the trainer doesn't teach from its first rank
+		if ok and type(data.requires) == "string" and not known[data.requires] and not startable[data.requires] then ok = false end
 		if ok and name and (RankNumber(rank) or 1) > 1 and not known[name] and not startable[name] then ok = false end
 		if ok then reachable[key] = data end
 	end
 	return reachable
 end
 
--- The list to show: the character's own (from its last visit), or else its class's (another character's
--- visit); and whose visit it was (nil: the character's own)
+-- The trainers the character has been to (name -> place, "" when unknown)
+local function Visited()
+	local entry = Character()
+	return entry and type(entry.trainerVisits) == "table" and entry.trainerVisits or {}
+end
+
+-- The list to show, every trainer's together: the character's own spells from the trainers it has been to,
+-- and its class's from the others (another character's visits); and the class's list when some come from
+-- it. Nil when nothing is kept yet.
 local function Source()
-	local spells = SavedSpells(false)
-	if type(spells) == "table" then return spells, nil end
-	local list = ClassList(false)
-	if list then return list.spells, list end
-	return nil
+	local own = SavedSpells(false)
+	local classList = ClassList(false)
+	if type(own) ~= "table" and not classList then return nil end
+	local visited = Visited()
+	local spells, shared = {}, nil
+	if classList then
+		for key, data in pairs(classList.spells) do
+			if not (data.from and visited[data.from]) then
+				spells[key] = data
+				shared = classList
+			end
+		end
+	end
+	if type(own) == "table" then
+		for key, data in pairs(own) do spells[key] = data end
+	end
+	return spells, shared
 end
 
 -- The spells it can learn by level, lowest first: {{level, spells = {{key, label, level, cost, icon, id}}}},
@@ -554,7 +734,8 @@ function Trainer.List()
 	spells = Reachable(spells)
 	local byLevel, levels = {}, {}
 	for key, data in pairs(spells) do
-		local level = data.level or 0
+		-- A spell learned by the one who went whose level the game didn't say: from the start
+		local level = math.max(1, data.level or 0)
 		if not byLevel[level] then
 			byLevel[level] = {level = level, spells = {}}
 			levels[#levels + 1] = byLevel[level]
@@ -569,20 +750,31 @@ function Trainer.List()
 	return levels
 end
 
--- The trainer of the last visit: its name and place (either may be nil), and the character who went there
--- when the list is another's of the class (nil when it's the character's own)
+-- Where the list comes from: the trainer with the most spells in it, its place (either may be nil), the
+-- character who went there when it's another's of the class (nil when it's the character's own), and the
+-- other trainers with spells in it (their names, sorted)
 function Trainer.LastVisit()
-	local _, shared = Source()
-	if shared then
-		local visit = type(shared.visit) == "table" and shared.visit or {}
-		local by = visit.by
-		local own = UnitName and ns.Known(UnitName("player"))
-		return visit.name, visit.zone, (by ~= own) and by or nil
+	local spells, shared = Source()
+	if not spells then return nil end
+	local counts = {}
+	for _, data in pairs(spells) do
+		if data.from then counts[data.from] = (counts[data.from] or 0) + 1 end
 	end
-	local entry = Character()
-	local visit = entry and entry.trainerVisit
-	if type(visit) ~= "table" then return nil end
-	return visit.name, visit.zone
+	local main
+	for name, count in pairs(counts) do
+		if not main or count > counts[main] or (count == counts[main] and name < main) then main = name end
+	end
+	if not main then return nil end
+	local others = {}
+	for name in pairs(counts) do
+		if name ~= main then others[#others + 1] = name end
+	end
+	table.sort(others)
+	local zone = Visited()[main]
+	if zone ~= nil then return main, zone ~= "" and zone or nil, nil, others end
+	local info = shared and type(shared.visits) == "table" and shared.visits[main] or {}
+	local own = UnitName and ns.Known(UnitName("player"))
+	return main, info.zone, (info.by ~= own) and info.by or nil, others
 end
 
 -- The saved spells: the ones the character can learn now (level reached), and the next levels', as
@@ -634,16 +826,28 @@ ns.RegisterEvent("TRAINER_SHOW", function()
 	Install()
 	wipe(chosen)
 	learning = nil
-	Record()
+	StartVisit()
 	RefreshAll()
 	-- The game may show its window just after this event: once more when it's there
 	After(0.1, RefreshAll)
 end)
 ns.RegisterEvent("TRAINER_UPDATE", function()
-	RecordChanges()
+	OnList()
 	Trainer.RefreshButton()
 end)
+-- The names and ranks of the trainer's list loaded meanwhile (one event each): read again once, a moment
+-- after the last
+local readSoon = false
+ns.RegisterEvent("TRAINER_SERVICE_INFO_NAME_UPDATE", function()
+	if readSoon or not visit then return end
+	readSoon = true
+	After(0.3, function()
+		readSoon = false
+		OnList()
+	end)
+end)
 ns.RegisterEvent("TRAINER_CLOSED", function()
+	EndVisit()
 	wipe(chosen)
 	learning = nil
 	if button then button:Hide() end

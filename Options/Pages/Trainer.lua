@@ -23,7 +23,7 @@ ns.AddOptionsPage("Trainer", function(b)
 	b:Check("trainer.notify", "Tell me when I reach the level of new spells",
 		"When you level up, the chat lists the spells waiting at your trainer for that level. They're read at each visit to your trainer, for every character of your class: visit it once, with any of them, after turning this on.")
 	b:Check("trainer.spellbookTab", "Show a Trainer tab in the spellbook",
-		"One more tab in your spellbook, after the game's: a click on it shows the spells still to learn at your class trainer, by level, with their cost, and a box to search them. They're read at each visit to your trainer, for every character of your class: visit it once, with any of them, after turning this on.")
+		"One more tab in your spellbook, after the game's: a click on it shows the spells still to learn at your class trainer and the other trainers you go to (weapon masters, riding...), by level, with their cost, and a box to search them. They're read at each visit to your trainer, for every character of your class: visit it once, with any of them, after turning this on.")
 
 	-- What the last visit left: the spells to learn now, and the next levels'
 	if not (ns.Get("trainer.notify") or ns.Get("trainer.spellbookTab")) then return end

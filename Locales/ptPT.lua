@@ -506,6 +506,14 @@ ns.LOCALES.ptPT = {
 	["Error Messages (new page): hide the game's red messages you don't want, like \"Spell is not ready yet\" (their sound still plays), and silence their voice."] =
 		"Mensagens de erro (página nova): esconde as mensagens vermelhas do jogo que não queres, como \"Spell is not ready yet\" (o som continua a tocar), e cala a voz delas.",
 
+	-- Release notes 0.11.1
+	["Trainer: the list shared by the characters of your class was left empty. It's now kept at your next visit to the trainer."] =
+		"Treinador: a lista partilhada pelas personagens da tua classe ficava vazia. Agora é guardada na tua próxima visita ao treinador.",
+	["Trainer: a spell could show twice (once without its rank), and Pyroblast could show again for a frost mage."] =
+		"Treinador: um feitiço podia aparecer duas vezes (uma delas sem rank), e o Pyroblast podia voltar a aparecer a um mage frost.",
+	["Trainer: a visit to another trainer (a weapon master, a riding trainer, a mage's portal trainer) replaced the whole list with its spells. Now every trainer's spells are kept and shown together."] =
+		"Treinador: uma visita a outro treinador (de armas, de montadas, o de portais do mage) substituía a lista toda pelos feitiços dele. Agora os feitiços de todos os treinadores são guardados e aparecem juntos.",
+
 	-- Release notes 0.11.0
 	["Trainer tab in the spellbook: a box to search a spell (its ranks show by level), and the cost of what you can learn now and of the whole list."] =
 		"Aba Treinador no spellbook: uma caixa para procurar um feitiço (os ranks dele aparecem por nível), e o custo do que podes aprender já e da lista toda.",
@@ -556,8 +564,8 @@ ns.LOCALES.ptPT = {
 		"Os feitiços marcados são aprendidos com o botão \"Aprender marcados\", no topo da janela.",
 	["New at your trainer (level %d): %s."] = "Novo no teu treinador (nível %d): %s.",
 	["Show a Trainer tab in the spellbook"] = "Mostrar uma aba Treinador no spellbook",
-	["One more tab in your spellbook, after the game's: a click on it shows the spells still to learn at your class trainer, by level, with their cost, and a box to search them. They're read at each visit to your trainer, for every character of your class: visit it once, with any of them, after turning this on."] =
-		"Mais uma aba no teu spellbook, a seguir às do jogo: ao carregares nela, vês os feitiços que ainda tens para aprender no treinador da tua classe, por nível, com o custo, e uma caixa para os procurar. São lidos em cada visita ao treinador, para todas as personagens da tua classe: visita-o uma vez, com qualquer uma delas, depois de ligares isto.",
+	["One more tab in your spellbook, after the game's: a click on it shows the spells still to learn at your class trainer and the other trainers you go to (weapon masters, riding...), by level, with their cost, and a box to search them. They're read at each visit to your trainer, for every character of your class: visit it once, with any of them, after turning this on."] =
+		"Mais uma aba no teu spellbook, a seguir às do jogo: ao carregares nela, vês os feitiços que ainda tens para aprender no treinador da tua classe e nos outros treinadores onde vais (de armas, de montadas...), por nível, com o custo, e uma caixa para os procurar. São lidos em cada visita ao treinador, para todas as personagens da tua classe: visita-o uma vez, com qualquer uma delas, depois de ligares isto.",
 	["Trainer: the spells still to learn"] = "Treinador: os feitiços que faltam aprender",
 	["Spells to learn"] = "Feitiços para aprender",
 	["From your last visit to your trainer: %s."] = "Da tua última visita ao treinador: %s.",
@@ -567,6 +575,7 @@ ns.LOCALES.ptPT = {
 	["Nothing known yet: visit your class trainer once, with any character of this class, and its spells show here."] =
 		"Ainda não se sabe nada: visita uma vez o treinador da tua classe, com qualquer personagem desta classe, e os feitiços dele aparecem aqui.",
 	["Nothing left to learn at your trainer."] = "Já não há nada para aprender no teu treinador.",
+	["And also: %s."] = "E também: %s.",
 	["Search a spell"] = "Procurar um feitiço",
 	["No spell has \"%s\" in its name."] = "Nenhum feitiço tem \"%s\" no nome.",
 	["You can learn now: %s"] = "Podes aprender já: %s",

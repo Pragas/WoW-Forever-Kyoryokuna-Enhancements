@@ -143,22 +143,28 @@ local function Fill()
 		y = y - HEADER_HEIGHT
 	end
 	local levels = ns.Trainer.List()
-	local trainerName, zone, by = ns.Trainer.LastVisit()
+	local trainerName, zone, by, others = ns.Trainer.LastVisit()
 	local where = {}
 	if trainerName then where[#where + 1] = trainerName end
 	if zone then where[#where + 1] = zone end
+	local subtitle
 	if by then
 		-- Another character of the class went there
 		if #where > 0 then
-			panel.subtitle:SetText(string.format(L["From %s's last visit to the class trainer: %s."], by, table.concat(where, ", ")))
+			subtitle = string.format(L["From %s's last visit to the class trainer: %s."], by, table.concat(where, ", "))
 		else
-			panel.subtitle:SetText(string.format(L["From %s's last visit to the class trainer."], by))
+			subtitle = string.format(L["From %s's last visit to the class trainer."], by)
 		end
 	elseif #where > 0 then
-		panel.subtitle:SetText(string.format(L["From your last visit to your trainer: %s."], table.concat(where, ", ")))
+		subtitle = string.format(L["From your last visit to your trainer: %s."], table.concat(where, ", "))
 	else
-		panel.subtitle:SetText(L["From your last visit to your trainer."])
+		subtitle = L["From your last visit to your trainer."]
 	end
+	-- The other trainers with spells in the list (a portal trainer, a weapon master...)
+	if others and #others > 0 then
+		subtitle = subtitle .. " " .. string.format(L["And also: %s."], table.concat(others, ", "))
+	end
+	panel.subtitle:SetText(subtitle)
 	local now, all = 0, 0
 	if not levels then
 		panel.empty:SetText(L["Nothing known yet: visit your class trainer once, with any character of this class, and its spells show here."])
@@ -356,7 +362,7 @@ local function CreatePanel()
 	local bar = CreateFrame("Frame", nil, area)
 	bar:SetPoint("TOPLEFT", panel.title, "BOTTOMLEFT", 0, -2)
 	bar:SetPoint("RIGHT", area, "RIGHT", -6, 0)
-	bar:SetHeight(30)
+	bar:SetHeight(38)
 	panel.search = CreateSearchBox(bar)
 	panel.search:SetPoint("RIGHT", bar, "RIGHT", 0, 0)
 	panel.subtitle = bar:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
@@ -364,7 +370,7 @@ local function CreatePanel()
 	panel.subtitle:SetPoint("RIGHT", panel.search, "LEFT", -14, 0)
 	panel.subtitle:SetJustifyH("LEFT")
 	panel.subtitle:SetWordWrap(true)
-	if panel.subtitle.SetMaxLines then panel.subtitle:SetMaxLines(2) end
+	if panel.subtitle.SetMaxLines then panel.subtitle:SetMaxLines(3) end
 	panel.empty = area:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 	panel.empty:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, -20)
 	panel.empty:SetPoint("RIGHT", area, "RIGHT", -4, 0)
