@@ -83,7 +83,8 @@ ns.DEFAULTS = {
 	},
 
 	-- The class trainer (Modules\Trainer.lua): a box on each spell to choose the ones learned, and the new
-	-- spells told at each level. The trainer's list is kept for each character, in characters. A new rank
+	-- spells told at each level. The trainer's list is kept for each character, in characters, and whole
+	-- for each class, in trainerClasses (for its characters that haven't been to the trainer). A new rank
 	-- learned takes the place of the one before on the action bars (Modules\NewRanks.lua).
 	trainer = {
 		choose = false,
@@ -264,11 +265,50 @@ local function ValidateSection(name, saved, defaults)
 	end
 end
 
+-- A trainer's list kept ("Name\tRank" -> the level it needs, its cost, icon and spell, and an ability it
+-- needs that the trainer doesn't teach), made right in place (Modules\Trainer.lua)
+local function ValidateTrainerSpells(spells)
+	for key, data in pairs(spells) do
+		-- At first only the level was kept
+		if type(data) == "number" then
+			data = {level = data}
+			spells[key] = data
+		end
+		if type(key) ~= "string" or type(data) ~= "table" or type(data.level) ~= "number" then
+			spells[key] = nil
+		else
+			if type(data.cost) ~= "number" then data.cost = 0 end
+			if type(data.icon) ~= "number" and type(data.icon) ~= "string" then data.icon = nil end
+			if type(data.id) ~= "number" then data.id = nil end
+			if type(data.requires) ~= "string" then data.requires = nil end
+		end
+	end
+end
+
+-- Where a trainer was visited: its name and place, and (for a class's list) the character who went there
+local function ValidateTrainerVisit(visit)
+	if type(visit) ~= "table" then return nil end
+	for _, key in ipairs({"name", "zone", "by"}) do
+		if type(visit[key]) ~= "string" then visit[key] = nil end
+	end
+	return visit
+end
+
 local function Validate(db)
 	for name in pairs(db) do
 		if type(db[name]) == "table" and not ns.DEFAULTS[name] and name ~= "errors" and name ~= "backups" and name ~= "characters"
-			and name ~= "procScan" and name ~= "diagnostics" then
+			and name ~= "procScan" and name ~= "diagnostics" and name ~= "trainerClasses" then
 			db[name] = nil
+		end
+	end
+	-- The trainer's whole list of each class ("MAGE"), from the last visit of any of its characters
+	if db.trainerClasses ~= nil and type(db.trainerClasses) ~= "table" then db.trainerClasses = nil end
+	for class, list in pairs(db.trainerClasses or {}) do
+		if type(class) ~= "string" or type(list) ~= "table" or type(list.spells) ~= "table" then
+			db.trainerClasses[class] = nil
+		else
+			ValidateTrainerSpells(list.spells)
+			list.visit = ValidateTrainerVisit(list.visit)
 		end
 	end
 	-- Before the choice of animations, the proc alerts had a "Pulse" check: on, it's the pulse now
@@ -328,29 +368,9 @@ local function Validate(db)
 			if type(entry.trainer) ~= "table" then
 				entry.trainer = nil
 			else
-				for key, data in pairs(entry.trainer) do
-					-- At first only the level was kept
-					if type(data) == "number" then
-						data = {level = data}
-						entry.trainer[key] = data
-					end
-					if type(key) ~= "string" or type(data) ~= "table" or type(data.level) ~= "number" then
-						entry.trainer[key] = nil
-					else
-						if type(data.cost) ~= "number" then data.cost = 0 end
-						if type(data.icon) ~= "number" and type(data.icon) ~= "string" then data.icon = nil end
-						if type(data.id) ~= "number" then data.id = nil end
-						-- An ability it needs that the trainer doesn't teach (a talent's spell)
-						if type(data.requires) ~= "string" then data.requires = nil end
-					end
-				end
+				ValidateTrainerSpells(entry.trainer)
 			end
-			if type(entry.trainerVisit) ~= "table" then
-				entry.trainerVisit = nil
-			else
-				if type(entry.trainerVisit.name) ~= "string" then entry.trainerVisit.name = nil end
-				if type(entry.trainerVisit.zone) ~= "string" then entry.trainerVisit.zone = nil end
-			end
+			entry.trainerVisit = ValidateTrainerVisit(entry.trainerVisit)
 		end
 	end
 	db.version = DB_VERSION

@@ -9,6 +9,8 @@
 --     learned without a tick, and the game's own Train button works as always.
 --   - New spells: at each visit, the trainer's list (the spells not learned yet and the level each needs)
 --     is kept for the character; when it levels up, the chat says which of them that level brings.
+--     The trainer's whole list is also kept for the class, on the account: another character of that class
+--     that hasn't been to its trainer yet uses it (less what it knows already).
 --
 -- The game's trainer window (Blizzard_TrainerUI, loaded the first time a trainer is opened) makes each
 -- row with ClassTrainerFrame_InitServiceButton: a hook on it adds the box. Profession and pet trainers are
@@ -128,6 +130,25 @@ local function SavedSpells(create)
 	return entry.trainer
 end
 
+-- The character's class ("MAGE"), or nil
+local function ClassOf()
+	local _, class = UnitClass("player")
+	return type(class) == "string" and class or nil
+end
+
+-- The class's whole list, kept on the account at the last visit of any of its characters:
+-- {spells = {key -> {level, cost, icon, id, requires}}, visit = {name, zone, by}}, or nil
+local function ClassList(create)
+	local class = ClassOf()
+	if not (ns.db and class) then return nil end
+	if create then
+		if type(ns.db.trainerClasses) ~= "table" then ns.db.trainerClasses = {} end
+		if type(ns.db.trainerClasses[class]) ~= "table" then ns.db.trainerClasses[class] = {spells = {}} end
+	end
+	local list = type(ns.db.trainerClasses) == "table" and ns.db.trainerClasses[class]
+	return type(list) == "table" and type(list.spells) == "table" and list or nil
+end
+
 -- The trainer's list is kept for the new spells told in the chat and for the spellbook's tab
 local function Keeping()
 	local settings = Settings()
@@ -140,14 +161,14 @@ local function BaseName(name)
 	return (name:gsub("%s*%(.-%)%s*$", ""))
 end
 
--- The ability a line needs that the character doesn't have and this trainer doesn't teach (offered: the
--- names on its list), or nil: a talent, or a spell of another specialization (Pyroblast Rank 2 needs
--- Pyroblast, which only its talent gives)
-local function MissingAbility(index, offered)
+-- The ability a line needs that this trainer doesn't teach (offered: the names on its list), or nil: a
+-- talent, or a spell of another specialization (Pyroblast Rank 2 needs Pyroblast, which only its talent
+-- gives). Only one the character doesn't have, or (anyone) whoever has it, for the class's list.
+local function MissingAbility(index, offered, anyone)
 	if not (GetTrainerServiceNumAbilityReq and GetTrainerServiceAbilityReq) then return nil end
 	for i = 1, tonumber(GetTrainerServiceNumAbilityReq(index)) or 0 do
 		local ability, has = GetTrainerServiceAbilityReq(index, i)
-		if type(ability) == "string" and not has then
+		if type(ability) == "string" and (anyone or not has) then
 			local name = BaseName(ability)
 			if not offered[name] then return name end
 		end
@@ -165,7 +186,7 @@ local function Offered()
 	return offered
 end
 
-local function Describe(index, level, icon, offered)
+local function Describe(index, level, icon, offered, anyone)
 	local spellID
 	if C_TooltipInfo and C_TooltipInfo.GetTrainerService then
 		local ok, data = pcall(C_TooltipInfo.GetTrainerService, index)
@@ -173,7 +194,7 @@ local function Describe(index, level, icon, offered)
 	end
 	local cost = GetTrainerServiceCost(index)
 	return {level = level, cost = tonumber(cost) or 0, icon = tonumber(icon) or icon, id = spellID,
-		requires = MissingAbility(index, offered)}
+		requires = MissingAbility(index, offered, anyone)}
 end
 
 -- After a change of the list: the page and the spellbook's tab show it again
@@ -182,16 +203,17 @@ local function ListChanged()
 	if ns.SpellbookTab then ns.SpellbookTab.Refresh() end
 end
 
--- The trainer's whole list kept, at the start of a visit, with the trainer's name and place. The spells for
--- later levels only show with the trainer's "Unavailable" filter: it's turned on for the reading, and put
--- back as it was.
+-- The trainer's whole list kept, at the start of a visit, with the trainer's name and place: the spells
+-- not learned yet for the character, every spell for its class. The spells for later levels, and the ones
+-- learned, only show with the trainer's "Unavailable" and "Used" filters: they're turned on for the reading,
+-- and put back as they were.
 local function Record()
 	if not (Keeping() and IsClassTrainer()) then return end
 	local spells = SavedSpells(true)
 	if not spells then return end
 	local turnedOn = {}
 	if GetTrainerServiceTypeFilter and SetTrainerServiceTypeFilter then
-		for _, filter in ipairs({"available", "unavailable"}) do
+		for _, filter in ipairs({"available", "unavailable", "used"}) do
 			if not GetTrainerServiceTypeFilter(filter) then
 				SetTrainerServiceTypeFilter(filter, true)
 				turnedOn[#turnedOn + 1] = filter
@@ -199,18 +221,28 @@ local function Record()
 		end
 	end
 	wipe(spells)
+	local classList = ClassList(true)
+	local all = classList and {}
 	local offered = Offered()
 	for index = 1, GetNumTrainerServices() do
 		local name, rank, status, level, icon = ReadService(index)
 		local _, isProfession = GetTrainerServiceCost(index)
-		if name and not isProfession and (status == "available" or status == "unavailable") then
-			spells[KeyOf(name, rank)] = Describe(index, level, icon, offered)
+		if name and not isProfession and SERVICE_TYPES[status] then
+			local key = KeyOf(name, rank)
+			if status ~= "used" then spells[key] = Describe(index, level, icon, offered) end
+			if all then all[key] = Describe(index, level, icon, offered, true) end
 		end
 	end
 	for _, filter in ipairs(turnedOn) do SetTrainerServiceTypeFilter(filter, false) end
 	local trainerName = UnitName and ns.Known(UnitName("npc"))
 	local zone = GetZoneText and ns.Known(GetZoneText())
-	Character().trainerVisit = {name = type(trainerName) == "string" and trainerName or nil, zone = type(zone) == "string" and zone or nil}
+	local visit = {name = type(trainerName) == "string" and trainerName or nil, zone = type(zone) == "string" and zone or nil}
+	Character().trainerVisit = visit
+	if all and next(all) then
+		local by = UnitName and ns.Known(UnitName("player"))
+		classList.spells = all
+		classList.visit = {name = visit.name, zone = visit.zone, by = type(by) == "string" and by or nil}
+	end
 	ListChanged()
 end
 
@@ -428,15 +460,17 @@ end
 
 -- New spells at a new level ----------------------------------------------------------------------------
 
--- The saved spells by level, lowest first: {{level, spells = {{key, label, level, cost, icon, id}}}}, the
--- spells of a level sorted by name; nil when nothing is kept yet
--- The names of the spells the character has in its spellbook (its own specialization's, not the ones
--- shown for others nor the ones still to come)
-local function KnownNames()
-	local names = {}
+local function RankNumber(rank)
+	return tonumber((type(rank) == "string" and rank or ""):match("(%d+)"))
+end
+
+-- The spells the character has in its spellbook (its own specialization's, not the ones shown for others
+-- nor the ones still to come): their names, and the highest rank of each
+local function Book()
+	local names, ranks = {}, {}
 	local book = C_SpellBook
 	if not (book and book.GetNumSpellBookSkillLines and book.GetSpellBookSkillLineInfo and book.GetSpellBookItemInfo) then
-		return names
+		return names, ranks
 	end
 	local bank = (Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player) or 0
 	local spellType = (Enum and Enum.SpellBookItemType and Enum.SpellBookItemType.Spell) or 1
@@ -451,23 +485,40 @@ local function KnownNames()
 				end
 				if item and item.itemType == spellType and not item.isOffSpec and type(name) == "string" then
 					names[name] = true
+					local sub = ns.Known(item.subName)
+					if (type(sub) ~= "string" or sub == "") and item.spellID and C_Spell and C_Spell.GetSpellSubtext then
+						sub = ns.Known(C_Spell.GetSpellSubtext(item.spellID))
+					end
+					local rank = RankNumber(sub)
+					if rank and rank > (ranks[name] or 0) then ranks[name] = rank end
 				end
 			end
 		end
 	end
-	return names
+	return names, ranks
 end
 
-local function RankNumber(rank)
-	return tonumber((rank or ""):match("(%d+)"))
+-- A kept spell the character has learned already: its spell known, or in the spellbook (a spell without
+-- ranks by its name; a rank, when the book has that rank or a higher one)
+local function Learned(key, data, names, ranks)
+	if type(data.id) == "number" and C_SpellBook and C_SpellBook.IsSpellKnown then
+		local ok, known = pcall(C_SpellBook.IsSpellKnown, data.id)
+		if ok and known == true then return true end
+	end
+	local name, rank = key:match("^(.-)\t(.*)$")
+	if not (name and names[name]) then return false end
+	local number = RankNumber(rank)
+	if not number then return true end
+	return ranks[name] ~= nil and number <= ranks[name]
 end
 
--- The kept spells the character can really learn, by key. Left out: a spell needing an ability it doesn't
--- have and the trainer doesn't teach (as the trainer says), and a higher rank of a spell it doesn't have
--- whose first rank the trainer doesn't teach (a talent, or another specialization's spell: Pyroblast
--- Rank 2 for a frost mage). Once the character has that spell, its ranks show again.
+-- The kept spells the character can really learn, by key. Left out: what it has learned already, a spell
+-- needing an ability it doesn't have and the trainer doesn't teach (as the trainer says), and a higher
+-- rank of a spell it doesn't have whose first rank the trainer doesn't teach (a talent, or another
+-- specialization's spell: Pyroblast Rank 2 for a frost mage). Once the character has that spell, its ranks
+-- show again.
 local function Reachable(spells)
-	local known = KnownNames()
+	local known, ranks = Book()
 	-- The spells the trainer teaches from their first rank
 	local startable = {}
 	for key in pairs(spells) do
@@ -477,16 +528,28 @@ local function Reachable(spells)
 	local reachable = {}
 	for key, data in pairs(spells) do
 		local name, rank = key:match("^(.-)\t(.*)$")
-		local ok = true
-		if type(data.requires) == "string" and not known[data.requires] then ok = false end
+		local ok = not Learned(key, data, known, ranks)
+		if ok and type(data.requires) == "string" and not known[data.requires] then ok = false end
 		if ok and name and (RankNumber(rank) or 1) > 1 and not known[name] and not startable[name] then ok = false end
 		if ok then reachable[key] = data end
 	end
 	return reachable
 end
 
-function Trainer.List()
+-- The list to show: the character's own (from its last visit), or else its class's (another character's
+-- visit); and whose visit it was (nil: the character's own)
+local function Source()
 	local spells = SavedSpells(false)
+	if type(spells) == "table" then return spells, nil end
+	local list = ClassList(false)
+	if list then return list.spells, list end
+	return nil
+end
+
+-- The spells it can learn by level, lowest first: {{level, spells = {{key, label, level, cost, icon, id}}}},
+-- the spells of a level sorted by name; nil when nothing is kept yet
+function Trainer.List()
+	local spells = Source()
 	if type(spells) ~= "table" then return nil end
 	spells = Reachable(spells)
 	local byLevel, levels = {}, {}
@@ -506,8 +569,16 @@ function Trainer.List()
 	return levels
 end
 
--- The trainer of the last visit: its name and place (either may be nil)
+-- The trainer of the last visit: its name and place (either may be nil), and the character who went there
+-- when the list is another's of the class (nil when it's the character's own)
 function Trainer.LastVisit()
+	local _, shared = Source()
+	if shared then
+		local visit = type(shared.visit) == "table" and shared.visit or {}
+		local by = visit.by
+		local own = UnitName and ns.Known(UnitName("player"))
+		return visit.name, visit.zone, (by ~= own) and by or nil
+	end
 	local entry = Character()
 	local visit = entry and entry.trainerVisit
 	if type(visit) ~= "table" then return nil end

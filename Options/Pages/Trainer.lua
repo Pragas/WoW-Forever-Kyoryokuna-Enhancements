@@ -21,16 +21,16 @@ ns.AddOptionsPage("Trainer", function(b)
 
 	b:Header("New spells")
 	b:Check("trainer.notify", "Tell me when I reach the level of new spells",
-		"When you level up, the chat lists the spells waiting at your trainer for that level. They're read at each visit to your trainer: visit it once after turning this on.")
+		"When you level up, the chat lists the spells waiting at your trainer for that level. They're read at each visit to your trainer, for every character of your class: visit it once, with any of them, after turning this on.")
 	b:Check("trainer.spellbookTab", "Show a Trainer tab in the spellbook",
-		"One more tab in your spellbook, after the game's: a click on it shows the spells still to learn at your class trainer, by level, with their cost. They're read at each visit to your trainer: visit it once after turning this on.")
+		"One more tab in your spellbook, after the game's: a click on it shows the spells still to learn at your class trainer, by level, with their cost, and a box to search them. They're read at each visit to your trainer, for every character of your class: visit it once, with any of them, after turning this on.")
 
 	-- What the last visit left: the spells to learn now, and the next levels'
 	if not (ns.Get("trainer.notify") or ns.Get("trainer.spellbookTab")) then return end
 	local now, upcoming = ns.Trainer.Waiting()
 	b:Header("Waiting at your trainer")
 	if not now then
-		b:Text("Nothing known yet: visit your class trainer once.", GREY)
+		b:Text("Nothing known yet: visit your class trainer once, with any character of this class.", GREY)
 		return
 	end
 	if #now > 0 then
@@ -42,5 +42,10 @@ ns.AddOptionsPage("Trainer", function(b)
 		local entry = upcoming[i]
 		b:Text(string.format(L["Level %d: %s."], entry.level, table.concat(entry.labels, ", ")), GREY, true)
 	end
-	b:Text("(From your last visit to your trainer.)", GREY)
+	local _, _, by = ns.Trainer.LastVisit()
+	if by then
+		b:Text(string.format(L["(From %s's last visit to the class trainer.)"], by), GREY)
+	else
+		b:Text("(From your last visit to your trainer.)", GREY)
+	end
 end)

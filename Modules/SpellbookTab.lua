@@ -6,7 +6,8 @@
 -- class's), with the look of theirs. A click on it shows, in place of the book's pages, the spells still to
 -- learn at the class trainer, by level: the ones in reach now, then the next levels', each with its icon,
 -- rank and cost, and its tooltip under the mouse. The list is the one kept at the last visit to the trainer
--- (Modules\Trainer.lua).
+-- (Modules\Trainer.lua). A search box beside it keeps only the spells whose name has what's typed, and
+-- under it are the costs of what's listed: what can be learned now, and all of it.
 --
 -- The game's spellbook (Blizzard_PlayerSpells, loaded the first time it's opened) is only looked at, never
 -- changed: while the tab is open its pages are only made invisible (their alpha) and covered, so the mouse
@@ -28,6 +29,8 @@ local GREY = {0.65, 0.65, 0.65}
 local book, tabSystem, container, tab, panel, searchCover
 local scroll, content
 local rows, headers = {}, {}
+-- What's typed in the search box, in lower case ("" shows everything)
+local query = ""
 -- The alpha of the book's parts made invisible, to put back
 local hidden = {}
 
@@ -140,17 +143,25 @@ local function Fill()
 		y = y - HEADER_HEIGHT
 	end
 	local levels = ns.Trainer.List()
-	local trainerName, zone = ns.Trainer.LastVisit()
+	local trainerName, zone, by = ns.Trainer.LastVisit()
 	local where = {}
 	if trainerName then where[#where + 1] = trainerName end
 	if zone then where[#where + 1] = zone end
-	if #where > 0 then
+	if by then
+		-- Another character of the class went there
+		if #where > 0 then
+			panel.subtitle:SetText(string.format(L["From %s's last visit to the class trainer: %s."], by, table.concat(where, ", ")))
+		else
+			panel.subtitle:SetText(string.format(L["From %s's last visit to the class trainer."], by))
+		end
+	elseif #where > 0 then
 		panel.subtitle:SetText(string.format(L["From your last visit to your trainer: %s."], table.concat(where, ", ")))
 	else
 		panel.subtitle:SetText(L["From your last visit to your trainer."])
 	end
+	local now, all = 0, 0
 	if not levels then
-		panel.empty:SetText(L["Nothing known yet: visit your class trainer once and its spells show here."])
+		panel.empty:SetText(L["Nothing known yet: visit your class trainer once, with any character of this class, and its spells show here."])
 		panel.empty:Show()
 	elseif #levels == 0 then
 		panel.empty:SetText(L["Nothing left to learn at your trainer."])
@@ -159,10 +170,17 @@ local function Fill()
 		panel.empty:Hide()
 		local playerLevel = UnitLevel("player") or 0
 		for _, group in ipairs(levels) do
-			local inReach = group.level <= playerLevel
-			Header(inReach and string.format(L["Level %d: you can learn these now"], group.level)
-				or string.format(L["Level %d"], group.level), inReach and GREEN or {1, 0.82, 0})
+			-- Only the spells with what's searched in their name (and rank)
+			local shown = {}
 			for _, spell in ipairs(group.spells) do
+				if query == "" or spell.label:lower():find(query, 1, true) then shown[#shown + 1] = spell end
+			end
+			local inReach = group.level <= playerLevel
+			if #shown > 0 then
+				Header(inReach and string.format(L["Level %d: you can learn these now"], group.level)
+					or string.format(L["Level %d"], group.level), inReach and GREEN or {1, 0.82, 0})
+			end
+			for _, spell in ipairs(shown) do
 				rowIndex = rowIndex + 1
 				local row = GetRow(rowIndex)
 				row.spell = spell
@@ -177,12 +195,33 @@ local function Fill()
 				row.cost:SetText(spell.cost > 0 and ns.Trainer.Money(spell.cost) or "")
 				row:Show()
 				y = y - ROW_HEIGHT
+				all = all + spell.cost
+				if inReach then now = now + spell.cost end
 			end
-			y = y - 6
+			if #shown > 0 then y = y - 6 end
+		end
+		if rowIndex == 0 then
+			panel.empty:SetText(string.format(L["No spell has \"%s\" in its name."], panel.search:GetText() or ""))
+			panel.empty:Show()
 		end
 	end
+	-- The costs of what's listed
+	panel.totalNow:SetText(string.format(L["You can learn now: %s"], ns.Trainer.Money(now)))
+	panel.totalAll:SetText(string.format(L["All of the list: %s"], ns.Trainer.Money(all)))
+	panel.totalNow:SetShown(levels ~= nil)
+	panel.totalAll:SetShown(levels ~= nil)
+	panel.totalLine:SetShown(levels ~= nil)
 	content:SetHeight(math.max(1, -y + 8))
 	scroll:SetVerticalScroll(0)
+end
+
+-- Something typed in the search box: the list again, with only the spells that have it
+local function OnSearch(box)
+	local text = box:GetText() or ""
+	local wanted = text:gsub("^%s+", ""):gsub("%s+$", ""):lower()
+	if wanted == query then return end
+	query = wanted
+	if panel and panel:IsShown() then Fill() end
 end
 
 -- Opening and closing ------------------------------------------------------------------------------------
@@ -230,6 +269,10 @@ local function OnPanelHidden()
 	if closing then return end
 	closing = true
 	panel:Hide()
+	-- Opened again, the whole list
+	query = ""
+	panel.search:ClearFocus()
+	panel.search:SetText("")
 	if searchCover then searchCover:Hide() end
 	for frame, alpha in pairs(hidden) do frame:SetAlpha(alpha) end
 	wipe(hidden)
@@ -243,6 +286,29 @@ function SpellbookTab.IsOpen()
 end
 
 -- Made once, the first time the spellbook is there ------------------------------------------------------
+
+-- The search box, with the look of the game's (a magnifier, "Search" while empty, an X to clear it), or a
+-- plain one if this version lacks it. Enter or Escape leaves it.
+local function CreateSearchBox(parent)
+	local box
+	for _, template in ipairs({"SearchBoxTemplate", "InputBoxTemplate"}) do
+		local ok, made = pcall(CreateFrame, "EditBox", nil, parent, template)
+		if ok and made then
+			box = made
+			break
+		end
+	end
+	box = box or CreateFrame("EditBox", nil, parent)
+	box:SetSize(160, 20)
+	box:SetAutoFocus(false)
+	if box.SetMaxLetters then box:SetMaxLetters(40) end
+	if type(box.Instructions) == "table" and box.Instructions.SetText then box.Instructions:SetText(L["Search a spell"]) end
+	local function Leave(self) self:ClearFocus() end
+	if not box:GetScript("OnEscapePressed") then box:SetScript("OnEscapePressed", Leave) end
+	if not box:GetScript("OnEnterPressed") then box:SetScript("OnEnterPressed", Leave) end
+	box:HookScript("OnTextChanged", function(self) ns.SafeCall(OnSearch, self) end)
+	return box
+end
 
 local function CreateTab()
 	container = CreateFrame("Frame", nil, book)
@@ -286,17 +352,38 @@ local function CreatePanel()
 	panel.title = area:CreateFontString(nil, "ARTWORK", "GameFontNormalHuge")
 	panel.title:SetPoint("TOPLEFT", area, "TOPLEFT", 4, 0)
 	panel.title:SetText(L["Spells to learn"])
-	panel.subtitle = area:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	panel.subtitle:SetPoint("TOPLEFT", panel.title, "BOTTOMLEFT", 0, -6)
-	panel.subtitle:SetPoint("RIGHT", area, "RIGHT", -4, 0)
+	-- Under the title: where the list comes from, and the search box beside it
+	local bar = CreateFrame("Frame", nil, area)
+	bar:SetPoint("TOPLEFT", panel.title, "BOTTOMLEFT", 0, -2)
+	bar:SetPoint("RIGHT", area, "RIGHT", -6, 0)
+	bar:SetHeight(30)
+	panel.search = CreateSearchBox(bar)
+	panel.search:SetPoint("RIGHT", bar, "RIGHT", 0, 0)
+	panel.subtitle = bar:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	panel.subtitle:SetPoint("LEFT", bar, "LEFT", 0, 0)
+	panel.subtitle:SetPoint("RIGHT", panel.search, "LEFT", -14, 0)
 	panel.subtitle:SetJustifyH("LEFT")
+	panel.subtitle:SetWordWrap(true)
+	if panel.subtitle.SetMaxLines then panel.subtitle:SetMaxLines(2) end
 	panel.empty = area:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-	panel.empty:SetPoint("TOPLEFT", panel.subtitle, "BOTTOMLEFT", 0, -24)
+	panel.empty:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, -20)
 	panel.empty:SetPoint("RIGHT", area, "RIGHT", -4, 0)
 	panel.empty:SetJustifyH("LEFT")
+	-- At the bottom: the costs of what's listed, under a thin line
+	panel.totalNow = area:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	panel.totalNow:SetPoint("BOTTOMLEFT", area, "BOTTOMLEFT", 4, 6)
+	panel.totalNow:SetJustifyH("LEFT")
+	panel.totalAll = area:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	panel.totalAll:SetPoint("BOTTOMRIGHT", area, "BOTTOMRIGHT", -6, 6)
+	panel.totalAll:SetJustifyH("RIGHT")
+	panel.totalLine = area:CreateTexture(nil, "ARTWORK")
+	panel.totalLine:SetColorTexture(1, 0.82, 0, 0.25)
+	panel.totalLine:SetHeight(1)
+	panel.totalLine:SetPoint("BOTTOMLEFT", area, "BOTTOMLEFT", 4, 26)
+	panel.totalLine:SetPoint("BOTTOMRIGHT", area, "BOTTOMRIGHT", -6, 26)
 	scroll = CreateFrame("ScrollFrame", nil, area)
-	scroll:SetPoint("TOPLEFT", panel.subtitle, "BOTTOMLEFT", -4, -12)
-	scroll:SetPoint("BOTTOMRIGHT", area, "BOTTOMRIGHT", 0, 0)
+	scroll:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", -4, -8)
+	scroll:SetPoint("BOTTOMRIGHT", area, "BOTTOMRIGHT", 0, 32)
 	content = CreateFrame("Frame", nil, scroll)
 	content:SetSize(400, 1)
 	scroll:SetScrollChild(content)

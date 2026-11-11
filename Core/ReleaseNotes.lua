@@ -19,6 +19,16 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.11.0",
+		new = {
+			"Trainer tab in the spellbook: a box to search a spell (its ranks show by level), and the cost of what you can learn now and of the whole list.",
+			"Trainer: the trainer's list is shared by the characters of your class. Another character of that class sees it without going to the trainer first.",
+		},
+		fixed = {
+			"Trainer: a spell you've learned no longer stays in the list until your next visit to the trainer.",
+		},
+	},
+	{
 		version = "0.10.2",
 		fixed = {
 			"Trainer: spells you can't learn (talents you don't have, other specializations' spells, like Pyroblast for a frost mage) no longer show in the list nor in the chat.",

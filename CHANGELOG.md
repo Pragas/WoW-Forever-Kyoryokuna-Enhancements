@@ -8,6 +8,15 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.11.0
+
+- Trainer tab in the spellbook:
+  - A search box (the game's SearchBoxTemplate) beside the line that says where the list comes from. As you type, only the spells whose name (with its rank) has the text stay, under their levels: "Mage Armor" shows Rank 1 at level 34, Rank 2 at 46, Rank 3 at 58. Not case sensitive; emptied when the tab closes; says so when nothing matches.
+  - At the bottom, under a thin line, the cost of what's listed: what can be learned now (level reached) and all of the list. Both follow the search.
+- Trainer: the trainer's whole list is also kept for the class, on the account (trainerClasses, by class file name): every spell of the trainer, the learned ones too (its "Used" filter is turned on for the reading as well, and put back). A character of that class with no list of its own (it hasn't been to its trainer since the option was on) uses it, less what it knows already, for the spellbook's tab, the page and the level-up message. The tab and the page then say whose visit it was. Its first visit gives it its own list, as before. Talent requirements are kept for the class whoever has them, and checked against each character's spellbook.
+- Trainer: a spell already learned leaves the list without a visit: its spell known (C_SpellBook.IsSpellKnown), or in the spellbook (a spell without ranks by its name; a rank when the book has it or a higher one, from the book's rank text). Before, a spell learned at the trainer with its "Used" filter off stayed listed until the next visit.
+- Not in the Import / Export code nor in the backups (it's game data, not settings).
+
 ## 0.10.2
 
 - Trainer: the spells kept from the trainer's list that the character can't learn are left out of the spellbook's tab, the page and the level-up message. A spell is left out when it needs an ability the character doesn't have and the trainer doesn't teach from its first rank (the trainer's own requirement, GetTrainerServiceAbilityReq, kept at each visit), or when it's a higher rank of a spell the character doesn't have whose first rank the trainer doesn't teach (a talent, or another specialization's spell: Pyroblast, Blast Wave, Arcane Blast or Arcane Wrath for a frost mage). The character's spells are read from its spellbook (its own specialization's), so once it has such a spell, its ranks show again. Works at once with the list kept before (no visit needed).
