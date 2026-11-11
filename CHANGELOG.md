@@ -8,6 +8,10 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.8.2
+
+- /ke procscan all: every proc of every class at once. One pass over the spell IDs asks the game the name of each and keeps those named like a proc (its English name or its name in the game's language), each marked passive or not (a talent always on, which can't be a proc's aura). Works on any character (the game knows every class's spells), takes 10 to 20 seconds without freezing the game, sums up in the chat and keeps the list in the saved data (procScan), so the right WoW Forever IDs can be given to every proc without playing each class.
+
 ## 0.8.1
 
 - /ke procscan: what the proc alerts know now (whether the game's AuraContainer was made, and for each proc ticked: how secret the game says its aura is, whether the game shows it, and what the addon can read of it), to find why a proc doesn't show.

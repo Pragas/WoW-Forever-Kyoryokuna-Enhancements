@@ -216,7 +216,8 @@ end
 
 local function Validate(db)
 	for name in pairs(db) do
-		if type(db[name]) == "table" and not ns.DEFAULTS[name] and name ~= "errors" and name ~= "backups" and name ~= "characters" then
+		if type(db[name]) == "table" and not ns.DEFAULTS[name] and name ~= "errors" and name ~= "backups" and name ~= "characters"
+			and name ~= "procScan" then
 			db[name] = nil
 		end
 	end

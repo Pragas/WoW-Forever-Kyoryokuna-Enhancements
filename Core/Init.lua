@@ -23,7 +23,7 @@ ns.ICON_SMALL = "Interface\\AddOns\\" .. addonName .. "\\Media\\IconSmall"
 -- files it already knew, but leaves out the new ones. So when the version the game read isn't this one, the
 -- addon stays off (no events, no calls: see the event bus and Errors.lua) and asks for the game to be
 -- restarted, instead of running with files missing and breaking.
-ns.VERSION = "0.8.1"
+ns.VERSION = "0.8.2"
 local GetMetadata = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
 local loadedVersion = GetMetadata and GetMetadata(addonName, "Version")
 ns.NEEDS_RESTART = type(loadedVersion) == "string" and loadedVersion ~= ns.VERSION

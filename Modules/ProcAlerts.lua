@@ -1176,6 +1176,77 @@ function ProcAlerts.FindSpells(name)
 	return true
 end
 
+-- Whether a spell is passive (a talent always on): its aura would always be there
+local function IsPassive(id)
+	for _, check in ipairs({C_Spell and C_Spell.IsSpellPassive, IsPassiveSpell}) do
+		local ok, passive = pcall(check, id)
+		if ok and Known(passive) ~= nil then return Known(passive) == true end
+	end
+	return nil
+end
+
+-- Every proc of every class at once (/ke procscan all): one pass over the spell IDs, asking the game the
+-- name of each, keeping those named like a proc (its English name, or its name in the game's language),
+-- each with whether it's passive. Kept in the saved data (procScan, written at the next /reload) and
+-- summed up in the chat. Works on any character: the game knows every class's spells.
+function ProcAlerts.FindAll()
+	if finding then return false end
+	if not (C_Spell and C_Spell.GetSpellName and C_Timer and C_Timer.After) then return false end
+	-- The names asked for, and which procs each one belongs to
+	local wanted, order = {}, {}
+	for class, effects in pairs(EFFECTS) do
+		for _, effect in ipairs(effects) do
+			local entry = {class = class, key = effect.key, name = effect.name, ids = {}}
+			order[#order + 1] = entry
+			for _, name in ipairs({effect.name, SpellNameOf(effect.spell)}) do
+				if type(name) == "string" then
+					local lower = name:lower()
+					wanted[lower] = wanted[lower] or {}
+					table.insert(wanted[lower], entry)
+				end
+			end
+		end
+	end
+	table.sort(order, function(a, b) return a.class .. a.key < b.class .. b.key end)
+	local from = 1
+	finding = true
+	local function Slice()
+		local last = math.min(FIND_LAST, from + FIND_SLICE - 1)
+		for id = from, last do
+			local spellName = C_Spell.GetSpellName(id)
+			local entries = type(spellName) == "string" and wanted[spellName:lower()]
+			if entries then
+				for _, entry in ipairs(entries) do
+					if not entry.ids[id] then entry.ids[id] = {passive = IsPassive(id)} end
+				end
+			end
+		end
+		from = last + 1
+		if from <= FIND_LAST then
+			C_Timer.After(0, function() ns.SafeCall(Slice) end)
+			return
+		end
+		finding = nil
+		-- Kept for the author (saved data), and summed up in the chat
+		local build = GetBuildInfo and table.concat({GetBuildInfo()}, " ", 1, 2) or "?"
+		local saved = {build = build, when = date and date("%Y-%m-%d %H:%M") or "?", procs = {}}
+		for _, entry in ipairs(order) do
+			local ids, text = {}, {}
+			for id, info in pairs(entry.ids) do ids[#ids + 1] = {id = id, passive = info.passive} end
+			table.sort(ids, function(a, b) return a.id < b.id end)
+			for _, info in ipairs(ids) do
+				text[#text + 1] = tostring(info.id) .. (info.passive and "p" or "")
+			end
+			saved.procs[#saved.procs + 1] = {class = entry.class, key = entry.key, name = entry.name, ids = ids}
+			ns.Print(string.format("%s %s: %s", entry.class, entry.name, #text > 0 and table.concat(text, ", ") or "none"))
+		end
+		ns.db.procScan = saved
+		ns.Print("done: kept in the addon's saved data (p = passive). Type /reload so the game writes it down.")
+	end
+	Slice()
+	return true
+end
+
 -- A check of the game's container with a buff the character always has (/ke procscan armor): while a
 -- mage's armor or Arcane Intellect is on, the game is asked to show the Frozen Fingers art on the left.
 -- If it shows, the container works and the problem is a proc's own; if not, the container shows nothing.

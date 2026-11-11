@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.8.2",
+		new = {
+			"/ke procscan all: finds the spells of every proc of every class, to set them right for WoW Forever.",
+		},
+	},
+	{
 		version = "0.8.1",
 		fixed = {
 			"Missing buffs no longer record an error every time the game hides your auras in combat.",

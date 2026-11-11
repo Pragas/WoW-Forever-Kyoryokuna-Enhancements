@@ -463,4 +463,6 @@ ns.LOCALES.ptPT = {
 	["what the proc alerts know now"] = "o que os alertas de procs sabem agora",
 	["Missing buffs no longer record an error every time the game hides your auras in combat."] =
 		"Os buffs em falta já não registam um erro sempre que o jogo esconde as tuas auras em combate.",
+	["/ke procscan all: finds the spells of every proc of every class, to set them right for WoW Forever."] =
+		"/ke procscan all: encontra os feitiços de todos os procs de todas as classes, para os acertar no WoW Forever.",
 }

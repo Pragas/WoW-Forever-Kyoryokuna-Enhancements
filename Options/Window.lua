@@ -381,6 +381,11 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 					tostring(cast.id), cast.rank))
 			end
 		end
+	elseif command == "procscan all" then
+		-- Every proc of every class: the spell IDs the game has with its name (out of combat is best)
+		if ns.ProcAlerts.FindAll() then
+			ns.Print("looking for the spells of every proc of every class (10 to 20 seconds)...")
+		end
 	elseif command:find("^procscan find ") then
 		-- Every spell ID with that name (as the player typed it)
 		local name = strtrim and strtrim((message or ""):sub(#"procscan find " + 1)) or (message or ""):sub(15)
