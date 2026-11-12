@@ -7,6 +7,10 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.16.1
+	["Missing buffs: the glow's color is white by default (it was gold). If you never changed it, it's white now."] =
+		"Buffs em falta: a cor do brilho é branca por defeito (era dourada). Se nunca a mudaste, fica branca.",
+
 	-- Release notes 0.16.0
 	["Missing buffs: each group can move (pulse, breathe, blink or float, with its speed and strength) and glow (the game's glow, its moving outline, both, or a border of a color), in the color you pick."] =
 		"Buffs em falta: cada grupo pode mexer-se (pulsar, respirar, piscar ou flutuar, com velocidade e intensidade) e brilhar (o brilho do jogo, o contorno em movimento, os dois, ou uma borda de cor), na cor que escolheres.",

@@ -193,7 +193,7 @@ ns.DEFAULTS = {
 		animTime = 1,
 		animStrength = 8,
 		glow = "NONE",
-		glowColor = {1, 0.82, 0},
+		glowColor = {1, 1, 1},
 		borderSize = 2,
 	},
 	missingBuffsUtility = {
@@ -213,7 +213,7 @@ ns.DEFAULTS = {
 		animTime = 1,
 		animStrength = 8,
 		glow = "NONE",
-		glowColor = {1, 0.82, 0},
+		glowColor = {1, 1, 1},
 		borderSize = 2,
 	},
 }
@@ -292,6 +292,14 @@ local function Validate(db)
 	if type(db.procAlerts) == "table" and db.procAlerts.pulse ~= nil then
 		if db.procAlerts.pulse == true and db.procAlerts.animation == nil then db.procAlerts.animation = "PULSE" end
 		db.procAlerts.pulse = nil
+	end
+	-- The missing buffs' glow was gold by default in 0.16.0, white since: a group still on that gold (the
+	-- old default, kept; one picked in the color picker is never exactly it) gets the new one
+	for _, name in ipairs({"missingBuffsEssential", "missingBuffsUtility"}) do
+		local color = type(db[name]) == "table" and db[name].glowColor
+		if type(color) == "table" and color[1] == 1 and color[2] == 0.82 and color[3] == 0 then
+			db[name].glowColor = CopyValue(ns.DEFAULTS[name].glowColor)
+		end
 	end
 	-- The quest item sparkles (gone in 0.15.0, its settings with it): the game's setting the addon had turned
 	-- on goes back off, as when the option was turned off

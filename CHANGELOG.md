@@ -8,6 +8,11 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.16.1
+
+- Missing buffs: "Glow color" is white by default in both groups (it was gold, {1, 0.82, 0}), for the game's glow, its moving outline and the border. A group still on 0.16.0's gold (the old default, kept in the saved variables) gets white when the addon loads; a color picked in the color picker is never exactly that gold, so it's kept. "Default" beside the color now gives white.
+- Tests: the glow white by default; the old gold made white on loading, a color picked kept, and the default's own table never saved.
+
 ## 0.16.0
 
 - Missing buffs: each group (Essential, Utility) has an animation and a glow of its own, in its look. "Animation" as the proc alerts': None (default), Pulse, Breathe, Blink or Float, with "Speed (one cycle)" (0.5 to 3 seconds) and "Strength" (2% to 20%). "Glow": None (default), the game's glow (the spell alert art of the action bars around the icon), its moving outline (the running "ants"), both, or a border of a color over the icon's edge, with "Border size" (1 to 6 pixels); "Glow color" for all of them (gold by default; the game's art is made grey so the color tints it). While moving the groups, the placeholder shows them too.
