@@ -42,7 +42,11 @@ ns.AddOptionsPage("Proc Alerts", function(b)
 
 	-- Second, so the alerts can be put in place before setting the rest up
 	b:Header("Place on the screen")
-	local move = b:Button("Move", function() P.SetMoving(not P.IsMoving()) end,
+	local move = b:Button("Move", function()
+		P.SetMoving(not P.IsMoving())
+		-- The button says Done right away while moving
+		ns.RefreshOptions()
+	end,
 		"Shows the alerts with a green frame: drag it where you want, then click again (closing the options also ends it).")
 	b:AddControl({frame = move, Refresh = function()
 		move:SetText(P.IsMoving() and L["Done"] or L["Move"])

@@ -32,7 +32,11 @@ ns.AddOptionsPage("FPS and Latency", function(b)
 
 	-- First, so it can be put in place before setting the rest up
 	b:Header("Place on the screen")
-	local move = b:Button("Move", function() P.SetMoving(not P.IsMoving()) end,
+	local move = b:Button("Move", function()
+		P.SetMoving(not P.IsMoving())
+		-- The button says Done right away while moving
+		ns.RefreshOptions()
+	end,
 		"Shows the text with a green frame: drag it where you want, then click again (closing the options also ends it).")
 	b:AddControl({frame = move, interactive = {move}, Refresh = function()
 		move:SetText(P.IsMoving() and L["Done"] or L["Move"])

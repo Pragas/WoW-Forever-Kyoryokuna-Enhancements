@@ -107,6 +107,7 @@ function ns.ShowWelcome(window, state, notes)
 		if ns.SelectOptionsPage then ns.SelectOptionsPage(1) end
 	end, 140)
 	ok:SetHeight(26)
+	ok.label:SetFontObject("GameFontNormal")
 	ok:SetPoint("BOTTOM", panel, "BOTTOM", 0, 14)
 	panel.ok = ok
 	panel:Show()

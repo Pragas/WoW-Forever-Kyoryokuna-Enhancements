@@ -48,6 +48,59 @@ local function HideTooltip()
 	GameTooltip:Hide()
 end
 
+-- Buttons ------------------------------------------------------------------------------------------
+
+-- The addon's own buttons, like the X of its window: a dark box with a thin grey border, lighter under
+-- the mouse, with gold text (a dropdown: its value in white, and a small gold arrow). Made of plain
+-- colors, so they never depend on the game's button art (on this client a thin red bar) nor on its
+-- size. A text too long for the button is cut with "...", never runs out of it.
+local BORDER_COLOR = {0.6, 0.6, 0.6, 1}
+local FILL_COLOR = {0.12, 0.12, 0.14, 1}
+local ARROW_COLOR = {1, 0.82, 0, 1}
+
+local function NewButton(parent, width, height, font)
+	local button = CreateFrame("Button", nil, parent)
+	button:SetSize(width, height)
+	local border = button:CreateTexture(nil, "BACKGROUND")
+	border:SetAllPoints(button)
+	border:SetColorTexture(unpack(BORDER_COLOR))
+	local fill = button:CreateTexture(nil, "BORDER")
+	fill:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+	fill:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+	fill:SetColorTexture(unpack(FILL_COLOR))
+	local highlight = button:CreateTexture(nil, "HIGHLIGHT")
+	highlight:SetAllPoints(fill)
+	highlight:SetColorTexture(1, 1, 1, 0.15)
+	local text = button:CreateFontString(nil, "ARTWORK", font or "GameFontNormal")
+	button:SetFontString(text)
+	text:ClearAllPoints()
+	text:SetPoint("LEFT", button, "LEFT", 6, 0)
+	text:SetPoint("RIGHT", button, "RIGHT", -6, 0)
+	text:SetWordWrap(false)
+	button:SetPushedTextOffset(1, -1)
+	button.label = text
+	return button
+end
+Widgets.NewButton = NewButton
+
+-- A dropdown's button: the value on the left, an arrow pointing down on the right (two gold bars)
+local function NewDropdownButton(parent, width, height, font)
+	local button = NewButton(parent, width, height, font or "GameFontHighlight")
+	local text = button.label
+	text:ClearAllPoints()
+	text:SetPoint("LEFT", button, "LEFT", 8, 0)
+	text:SetPoint("RIGHT", button, "RIGHT", -22, 0)
+	text:SetJustifyH("LEFT")
+	for _, side in ipairs({-1, 1}) do
+		local bar = button:CreateTexture(nil, "ARTWORK")
+		bar:SetSize(6, 2)
+		bar:SetPoint("CENTER", button, "RIGHT", -11 + side * 2, 0)
+		bar:SetColorTexture(unpack(ARROW_COLOR))
+		if bar.SetRotation then bar:SetRotation(math.rad(side * 45)) end
+	end
+	return button
+end
+
 local function SetControlEnabled(control, enabled)
 	control.frame:SetAlpha(enabled and 1 or 0.4)
 	for _, region in ipairs(control.interactive or {}) do
@@ -163,7 +216,7 @@ end
 
 local popup, catcher
 local POPUP_ROWS = 12
-local ROW_HEIGHT = 20
+local ROW_HEIGHT = 22
 
 local function ClosePopup()
 	if popup then popup:Hide() end
@@ -177,24 +230,24 @@ local function CreatePopup()
 	catcher:SetScript("OnClick", ClosePopup)
 	catcher:Hide()
 
+	-- In the buttons' style: a dark box with a thin grey border
 	popup = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
 	popup:SetFrameStrata("FULLSCREEN_DIALOG")
 	popup:SetFrameLevel(catcher:GetFrameLevel() + 10)
-	popup:SetBackdrop({
-		bgFile = WHITE, edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-		edgeSize = 12, insets = {left = 3, right = 3, top = 3, bottom = 3},
-	})
-	popup:SetBackdropColor(0.05, 0.05, 0.05, 0.95)
+	popup:SetBackdrop({bgFile = WHITE, edgeFile = WHITE, edgeSize = 1})
+	popup:SetBackdropColor(0.08, 0.08, 0.1, 0.97)
+	popup:SetBackdropBorderColor(unpack(BORDER_COLOR))
 	popup:EnableMouseWheel(true)
 	popup.rows = {}
 	for i = 1, POPUP_ROWS do
 		local row = CreateFrame("Button", nil, popup)
 		row:SetHeight(ROW_HEIGHT)
-		row:SetPoint("TOPLEFT", popup, "TOPLEFT", 6, -6 - (i - 1) * ROW_HEIGHT)
-		row:SetPoint("TOPRIGHT", popup, "TOPRIGHT", -6, -6 - (i - 1) * ROW_HEIGHT)
+		row:SetPoint("TOPLEFT", popup, "TOPLEFT", 4, -4 - (i - 1) * ROW_HEIGHT)
+		row:SetPoint("TOPRIGHT", popup, "TOPRIGHT", -4, -4 - (i - 1) * ROW_HEIGHT)
 		row:SetHighlightTexture(WHITE)
 		row:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.15)
-		row.text = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+		row.text = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+		row.text:SetWordWrap(false)
 		row.text:SetPoint("LEFT", row, "LEFT", 4, 0)
 		row.text:SetPoint("RIGHT", row, "RIGHT", -4, 0)
 		row.text:SetJustifyH("LEFT")
@@ -228,7 +281,7 @@ local function OpenPopup(anchor, options, current, onSelect)
 	popup.onSelect = onSelect
 	popup.offset = 0
 	local rows = math.min(#options, POPUP_ROWS)
-	popup:SetSize(math.max(anchor:GetWidth(), 160), rows * ROW_HEIGHT + 12)
+	popup:SetSize(math.max(anchor:GetWidth(), 160), rows * ROW_HEIGHT + 8)
 	popup:ClearAllPoints()
 	popup:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
 	popup:SetScript("OnMouseWheel", function(self, delta)
@@ -336,8 +389,9 @@ function Builder:IconCheck(label, icon, get, set, tooltip, dependsOn, extras)
 	for i = #(extras or {}), 1, -1 do
 		local extra = extras[i]
 		right = right - extra.width
-		local button = CreateFrame("Button", nil, self.content, "UIPanelButtonTemplate")
-		button:SetSize(extra.width, 20)
+		-- A plain button, or a dropdown (with its arrow)
+		local button = extra.onClick and NewButton(self.content, extra.width, 20, "GameFontNormalSmall")
+			or NewDropdownButton(self.content, extra.width, 20, "GameFontHighlightSmall")
 		button:SetPoint("TOPLEFT", self.content, "TOPLEFT", right, self.y - 2)
 		button:SetScript("OnClick", function(self)
 			-- A plain button (a fixed text and an action), or a dropdown
@@ -512,8 +566,7 @@ function Builder:Color(path, label, tooltip, dependsOn, indent)
 	-- A button that puts the color back to its default, in a column of its own so they line up
 	local section, key = path:match("^([^.]+)%.(.+)$")
 	local default = ns.DEFAULTS[section] and ns.DEFAULTS[section][key]
-	local reset = CreateFrame("Button", nil, self.content, "UIPanelButtonTemplate")
-	reset:SetSize(80, 20)
+	local reset = NewButton(self.content, 80, 20, "GameFontNormalSmall")
 	reset:SetPoint("TOPLEFT", self.content, "TOPLEFT", COLOR_RESET_X, self.y)
 	reset:SetText(L["Default"])
 	reset:SetScript("OnClick", function()
@@ -542,8 +595,7 @@ function Builder:Dropdown(path, label, options, tooltip, dependsOn, indent)
 	title:SetPoint("TOPLEFT", holder, "TOPLEFT", 0, 0)
 	title:SetText(L[label])
 
-	local button = CreateFrame("Button", nil, holder, "UIPanelButtonTemplate")
-	button:SetSize(200, 22)
+	local button = NewDropdownButton(holder, 280, 24)
 	button:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
 
 	local function GetOptions()
@@ -578,8 +630,7 @@ end
 
 -- A plain button that runs an action
 function Builder:Button(label, onClick, tooltip, width)
-	local button = CreateFrame("Button", nil, self.content, "UIPanelButtonTemplate")
-	button:SetSize(width or 200, 24)
+	local button = NewButton(self.content, width or 200, 24)
 	button:SetPoint("TOPLEFT", self.content, "TOPLEFT", LEFT + 4, self.y)
 	button:SetText(L[label])
 	button:SetScript("OnClick", onClick)
@@ -636,8 +687,7 @@ end
 
 -- A plain button placed by the caller (e.g. in a row of a list)
 function Widgets.SmallButton(parent, label, tooltip, onClick, width)
-	local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-	button:SetSize(width or 80, 20)
+	local button = NewButton(parent, width or 80, 20, "GameFontNormalSmall")
 	button:SetText(L[label])
 	button:SetScript("OnClick", onClick)
 	button:SetScript("OnEnter", function(self) ShowTooltip(self, L[label], tooltip and L[tooltip]) end)

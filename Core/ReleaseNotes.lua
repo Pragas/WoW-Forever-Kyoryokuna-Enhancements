@@ -19,6 +19,15 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.13.0",
+		new = {
+			"The buttons and dropdowns of the options in the addon's own style, like its window's buttons: a long text no longer runs out of its button.",
+		},
+		fixed = {
+			"FPS and latency, proc alerts: after Move, the button says Done right away, as in missing buffs (closing the options also ends the moving).",
+		},
+	},
+	{
 		version = "0.12.0",
 		new = {
 			"Smaller game menu (General page): the menu that opens with Escape, at the size you choose.",

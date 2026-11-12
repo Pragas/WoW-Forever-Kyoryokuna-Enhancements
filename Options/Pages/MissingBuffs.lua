@@ -90,7 +90,11 @@ ns.AddOptionsPage(PAGE, function(b)
 
 	-- First, so the groups can be put in place before setting the rest up
 	b:Header("Place on the screen")
-	local move = b:Button("Move", function() MB.SetMoving(not MB.IsMoving()) end,
+	local move = b:Button("Move", function()
+		MB.SetMoving(not MB.IsMoving())
+		-- The button says Done right away while moving
+		ns.RefreshOptions()
+	end,
 		"Shows both groups with a green frame: drag each where you want, then click again (closing the options also ends it).")
 	b:AddControl({frame = move, Refresh = function()
 		move:SetText(MB.IsMoving() and L["Done"] or L["Move"])

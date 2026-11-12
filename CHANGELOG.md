@@ -8,6 +8,12 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.13.0
+
+- Buttons and dropdowns of the options in the addon's own style, like the window's X and minimize (the same as Kyoryokuna Frames): a dark box with a thin grey border, lighter under the mouse, gold text (a dropdown: its value in white and a small gold arrow drawn with two bars), made of plain colors instead of the game's `UIPanelButtonTemplate` (a thin red bar on this client, 200 wide, where a long value ran out of the button). Dropdowns are 280 wide, and a text too long for its button is cut with "...". The dropdown's list is in the same style (flat dark box, thin grey border, taller rows in the normal font). The welcome window's OK uses the normal font.
+- Buttons inside the game's own windows keep the game's look, like the rest of those windows (the button in Options → AddOns, the trainer's Learn).
+- Fixed: the **Move** button of FPS and latency and of proc alerts didn't change its text when clicked (only when the page was drawn again), so it kept saying Move while moving. It now says **Done** right away, as the missing buffs' already did (their module redraws the options when moving starts), and Move again once done: each Move button now redraws the options itself. Closing the options (X, Escape, `/ke`, the minimap button) ends the moving of all three, as before, now tested.
+
 ## 0.12.0
 
 - General page, "Game menu": a smaller game menu (Escape), at the size chosen with a slider (50% to 100% of the game's own, 75% by default; off by default). It's set a little higher on the screen, so its top stays about where the game's own menu starts (65 points up at 75%, in the menu's units). Turned off, the game's own size and place come back (only if the addon had changed them). The game never places the menu nor changes its size again after loading (UIPanelWindows: area "center" with centerFrameSkipAnchoring, no checkFit), so it's set when the game starts, at each change, and each time the menu shows. In a fight, if the menu were protected, it would wait for the fight's end. Part of the Import / Export code and the backups.

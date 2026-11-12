@@ -7,6 +7,12 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.13.0
+	["FPS and latency, proc alerts: after Move, the button says Done right away, as in missing buffs (closing the options also ends the moving)."] =
+		"FPS e latência, alertas de procs: depois de Mover, o botão diz logo Concluído, como nos buffs em falta (fechar as opções também termina o mover).",
+	["The buttons and dropdowns of the options in the addon's own style, like its window's buttons: a long text no longer runs out of its button."] =
+		"Os botões e as listas de escolha das opções no estilo do próprio addon, como os botões da janela: um texto comprido já não sai do botão.",
+
 	-- Pages
 	["General"] = "Geral",
 	["About"] = "Sobre",
