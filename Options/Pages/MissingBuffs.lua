@@ -81,7 +81,8 @@ ns.AddOptionsPage(PAGE, function(b)
 		-- What goes on the weapons: said how it counts; a name of the addon's in the language now
 		local tooltip = choice.kind == "WEAPON"
 			and L["Shown while a weapon in your hands has none on it (both hands when you hold two weapons)."] or nil
-		b:IconCheck(choice.labelKey and L[choice.labelKey] or choice.label, choice.icon,
+		-- Its icon as on the screen: the one picked for a family, else the one used last
+		b:IconCheck(choice.labelKey and L[choice.labelKey] or choice.label, function() return MB.IconFor(choice) end,
 			function() return MB.IsWatched(choice.key) end,
 			function(checked) MB.SetWatched(choice.key, checked) end,
 			tooltip, on, extras)

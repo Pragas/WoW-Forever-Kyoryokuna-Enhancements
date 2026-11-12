@@ -965,6 +965,21 @@ local function IconOf(choice, watch, entry)
 	return (last and choice.memberIcons[last]) or choice.icon or PLACEHOLDER_ICON
 end
 
+-- The icon of a choice on the page, the same as on the screen (for one not ticked, the one it would have)
+function MissingBuffs.IconFor(choice)
+	local entry = MissingBuffs.GetCharacter()
+	if not entry then return choice.icon or PLACEHOLDER_ICON end
+	return IconOf(choice, entry.buffs[choice.key] or {}, entry)
+end
+
+-- The spell of a family last seen on the character (or put on the weapons): true when it changed, so
+-- the page shows its icon too
+local function SetLastSeen(entry, key, name)
+	if entry.lastSeen[key] == name then return false end
+	entry.lastSeen[key] = name
+	return true
+end
+
 -- Click to cast ------------------------------------------------------------------------------------
 -- A click on the icon of a missing conjured item casts the spell that makes it; on a missing buff's,
 -- the buff (on the character). Each is an option of its own. Casting needs the game's
@@ -1095,7 +1110,7 @@ function MissingBuffs.Update()
 	local fighting = InCombat()
 	local weapons = ReadWeapons()
 	if weapons then lastWeapons = weapons else weapons = lastWeapons end
-	local watchesWeapons = false
+	local watchesWeapons, seenChanged = false, false
 	local dead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
 	local shown = {[ESSENTIAL] = {}, [UTILITY] = {}}
 	-- The buffs' own icons the game shows or not (in combat), after the others of their group
@@ -1126,7 +1141,9 @@ function MissingBuffs.Update()
 					for name in pairs(choice.counts) do
 						if active[name] then
 							on = true
-							if spellbook[name] and not (hidden and fighting) then entry.lastSeen[choice.key] = name end
+							if spellbook[name] and not (hidden and fighting) then
+								seenChanged = SetLastSeen(entry, choice.key, name) or seenChanged
+							end
 							break
 						end
 					end
@@ -1172,6 +1189,8 @@ function MissingBuffs.Update()
 	SyncClickers(targets)
 	-- An enchant on the weapons watched: looked at again when it ends
 	WatchEnd(watchesWeapons and weapons and weapons.ends or nil)
+	-- A family's "last used" changed: its icon on the page too, if it's open
+	if seenChanged and ns.RefreshOptions then ns.RefreshOptions() end
 end
 
 -- /ke bufftest (out of combat): each buff's own icon (the ones the game may hide) shown in its group for
@@ -1294,8 +1313,9 @@ ns.RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", function(_, unit, _, spellID)
 	local choice = FindChoice(weapon.key)
 	local name = SpellName(ns.Known(spellID))
 	if choice and name and choice.memberIcons[name] then
-		MissingBuffs.GetCharacter().lastSeen[choice.key] = name
+		local changed = SetLastSeen(MissingBuffs.GetCharacter(), choice.key, name)
 		MissingBuffs.Update()
+		if changed and ns.RefreshOptions then ns.RefreshOptions() end
 	end
 end)
 -- On a frame of its own: older versions of the game don't have this event

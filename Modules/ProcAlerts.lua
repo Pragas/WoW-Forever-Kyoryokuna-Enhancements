@@ -60,14 +60,15 @@ local TOP_TURNED = {"TOP_CW"}
 -- name can be auras always on, whose art would never go away), a name for when the game doesn't give
 -- one, combatOnly (only shown in combat), test (the stacks its test shows; else its most), and its art:
 -- {stacks (nil: any; a number: that many; the game shows it from that many up), art, sides,
--- scale, shade (0-255, grey to white) or color ({r, g, b}, 0-255), alpha (0-255), pulse}
+-- scale, shade (0-255, grey to white) or color ({r, g, b}, 0-255), alpha (0-255), pulse (false: stays still
+-- whatever animation is picked; only for the first stacks of a proc whose moving says it's at its most)}
 local EFFECTS = {
 	MAGE = {
 		{key = "missileBarrage", spell = 400589, name = "Missile Barrage", overlays = {
 			{art = ART.ARCANE_MISSILES, sides = BOTH_SIDES, scale = 1.22},
 		}},
 		{key = "clearcasting", spell = 12536, name = "Clearcasting", overlays = {
-			{art = ART.GENERIC_ARC_05, sides = BOTH_SIDES, scale = 1.5, pulse = false},
+			{art = ART.GENERIC_ARC_05, sides = BOTH_SIDES, scale = 1.5},
 		}},
 		-- One charge on the left, two on the right: each place asks the game for its number of stacks, and
 		-- the game shows it from there up, so two charges light both sides (a place for "any" number never
@@ -77,9 +78,10 @@ local EFFECTS = {
 			{stacks = 2, art = ART.FROZEN_FINGERS, sides = {"RIGHT_FLIPPED"}},
 		}},
 		-- Heating Up gets stronger with its stacks: one faint, two stronger, three (Hot Streak) whole and
-		-- moving. The game shows each piece from its stacks up (at 3, all three at once), so they're the same
-		-- art at the same size and place: on top of each other they look like one, never three of different
-		-- sizes. Its test shows the three, as the game does at 3 stacks.
+		-- moving (the only proc that waits to move: its moving says it's at its most; every other proc moves
+		-- at any stacks). The game shows each piece from its stacks up (at 3, all three at once), so they're
+		-- the same art at the same size and place: on top of each other they look like one, never three of
+		-- different sizes. Its test shows the three, as the game does at 3 stacks.
 		{key = "heatingUp", spell = 400625, name = "Heating Up", test = {1, 2, 3}, overlays = {
 			{stacks = 1, art = ART.HOT_STREAK, sides = BOTH_SIDES, shade = 200, alpha = 100, pulse = false},
 			{stacks = 2, art = ART.HOT_STREAK, sides = BOTH_SIDES, shade = 222, alpha = 100, pulse = false},
@@ -90,10 +92,10 @@ local EFFECTS = {
 		-- One aura whose stacks tell the eclipse: 1-2 lunar (left), 3-4 solar (right); the second of each
 		-- is the full one
 		{key = "eclipse", spell = 408255, also = {441260}, name = "Eclipse", overlays = {
-			{stacks = 1, art = ART.ECLIPSE_MOON, sides = {"LEFT"}, scale = 0.8, alpha = 192, pulse = false},
-			{stacks = 2, art = ART.ECLIPSE_MOON, sides = {"LEFT"}, scale = 1.1, pulse = false},
-			{stacks = 3, art = ART.ECLIPSE_MOON, sides = {"RIGHT_FLIPPED"}, scale = 0.8, alpha = 192, pulse = false},
-			{stacks = 4, art = ART.ECLIPSE_MOON, sides = {"RIGHT_FLIPPED"}, scale = 1.1, pulse = false},
+			{stacks = 1, art = ART.ECLIPSE_MOON, sides = {"LEFT"}, scale = 0.8, alpha = 192},
+			{stacks = 2, art = ART.ECLIPSE_MOON, sides = {"LEFT"}, scale = 1.1},
+			{stacks = 3, art = ART.ECLIPSE_MOON, sides = {"RIGHT_FLIPPED"}, scale = 0.8, alpha = 192},
+			{stacks = 4, art = ART.ECLIPSE_MOON, sides = {"RIGHT_FLIPPED"}, scale = 1.1},
 		}},
 		{key = "omenOfClarity", spell = 16870, name = "Omen of Clarity", overlays = {
 			{art = ART.NATURES_GRACE, sides = BOTH_SIDES},
@@ -117,7 +119,7 @@ local EFFECTS = {
 	},
 	PRIEST = {
 		{key = "martyrdom", spell = 27828, name = "Martyrdom", overlays = {
-			{art = ART.WHITE_TIGER, sides = BOTH_SIDES, scale = 1.25, color = {32, 192, 255}, pulse = false},
+			{art = ART.WHITE_TIGER, sides = BOTH_SIDES, scale = 1.25, color = {32, 192, 255}},
 		}},
 		{key = "searingLight", spell = 1284536, name = "Searing Light", overlays = {
 			{art = ART.HAND_OF_LIGHT, sides = TOP},
@@ -137,11 +139,11 @@ local EFFECTS = {
 	SHAMAN = {
 		-- Grows lighter with each stack; at 5 it's whole
 		{key = "maelstromWeapon", spell = 408505, name = "Maelstrom Weapon", overlays = {
-			{stacks = 1, art = ART.MAELSTROM_1, sides = TOP, shade = 128, pulse = false},
-			{stacks = 2, art = ART.MAELSTROM_2, sides = TOP, shade = 160, pulse = false},
-			{stacks = 3, art = ART.MAELSTROM_3, sides = TOP, shade = 192, pulse = false},
-			{stacks = 4, art = ART.MAELSTROM_4, sides = TOP, shade = 224, pulse = false},
-			{stacks = 5, art = ART.MAELSTROM_5, sides = TOP, pulse = false},
+			{stacks = 1, art = ART.MAELSTROM_1, sides = TOP, shade = 128},
+			{stacks = 2, art = ART.MAELSTROM_2, sides = TOP, shade = 160},
+			{stacks = 3, art = ART.MAELSTROM_3, sides = TOP, shade = 192},
+			{stacks = 4, art = ART.MAELSTROM_4, sides = TOP, shade = 224},
+			{stacks = 5, art = ART.MAELSTROM_5, sides = TOP},
 		}},
 	},
 	WARLOCK = {
@@ -152,7 +154,7 @@ local EFFECTS = {
 			{art = ART.IMPACT, sides = TOP, scale = 0.8},
 		}},
 		{key = "eyeOfKilrogg", spell = 126, name = "Eye of Kilrogg", overlays = {
-			{art = ART.GENERIC_TOP_01, sides = TOP, color = {64, 255, 64}, pulse = false},
+			{art = ART.GENERIC_TOP_01, sides = TOP, color = {64, 255, 64}},
 		}},
 	},
 	WARRIOR = {
@@ -209,6 +211,22 @@ end
 function ProcAlerts.SpellName(effect)
 	local name = C_Spell and C_Spell.GetSpellName and Known(C_Spell.GetSpellName(effect.spell))
 	return type(name) == "string" and name or effect.name
+end
+
+-- Every proc's art follows the animation picked, at any stacks; a proc whose first stacks stay still (its
+-- moving says it's at its most, e.g. Heating Up): the fewest stacks it moves from, else nil
+function ProcAlerts.MovesFrom(effect)
+	local still, movesFrom = false, nil
+	for _, overlay in ipairs(effect.overlays or {}) do
+		if overlay.pulse == false then
+			still = true
+		elseif overlay.stacks then
+			movesFrom = math.min(movesFrom or overlay.stacks, overlay.stacks)
+		else
+			return nil
+		end
+	end
+	return still and movesFrom or nil
 end
 
 local function Settings()
@@ -334,8 +352,9 @@ end
 
 -- Animations ---------------------------------------------------------------------------------------
 
--- While a proc is there its art can move (each player picks; some procs always stay still, as in the
--- game): one cycle lasts the time asked, and the strength (%) is how much it changes:
+-- While a proc is there its art can move (each player picks, for every proc; only a proc whose moving says
+-- it's at its most waits for those stacks): one cycle lasts the time asked, and the strength (%) is how
+-- much it changes:
 --   PULSE    grows and comes back (by the strength; 8% in 1 second is the game's own spell alerts)
 --   BREATHE  fades a little and comes back, its size never changes (3 times the strength, in %)
 --   BLINK    fades out fast and comes back, then waits (4 times the strength, in %)

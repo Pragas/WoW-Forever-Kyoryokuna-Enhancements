@@ -63,6 +63,8 @@ ns.AddOptionsPage("Proc Alerts", function(b)
 		b:Text("No proc alerts for your class yet.", GREY)
 	else
 		b:Text("Tick the ones to show. \"Test\" beside a proc keeps its alert on the screen while you set its look below (drag this window aside to see it): \"Close test\", or closing the options, ends it.", GREY)
+		-- A proc whose art waits for its most stacks to move
+		local anyWaits = false
 		for _, effect in ipairs(effects) do
 			local icon = C_Spell and C_Spell.GetSpellTexture and ns.Known(C_Spell.GetSpellTexture(effect.spell))
 			-- The fixed test of this proc
@@ -82,6 +84,14 @@ ns.AddOptionsPage("Proc Alerts", function(b)
 			elseif effect.kind == "counter" then
 				label = label .. "  |cff9d9d9d(" .. L["when usable"] .. ")|r"
 				tooltip = L["Shown while this ability can be used (e.g. after a kill, a parry or a dodge)."]
+			end
+			-- Every proc moves as picked below; one whose moving says it's at its most waits for those stacks
+			local movesFrom = P.MovesFrom(effect)
+			if movesFrom then
+				anyWaits = true
+				label = label .. "  |cff9d9d9d(" .. string.format(L["animated from %d stacks"], movesFrom) .. ")|r"
+				local why = string.format(L["Its art stays still until it has %d stacks, its most: only then it moves as picked below, so you know it's full."], movesFrom)
+				tooltip = tooltip and (tooltip .. " " .. why) or why
 			end
 			local extras = {show}
 			-- An ability with art and a button: the art, its button glowing, or both
@@ -104,6 +114,9 @@ ns.AddOptionsPage("Proc Alerts", function(b)
 		end
 		b:Space(4)
 		b:Text("\"Button glows\": while the ability is ready, its button on the game's action bars gets a moving gold outline (also a macro that casts it).", GREY)
+		if anyWaits then
+			b:Text("\"Animated from\": the proc's art stays still until it has that many stacks, its most, so its moving tells you it's full.", GREY)
+		end
 	end
 
 	b:Header("Look")
@@ -113,7 +126,7 @@ ns.AddOptionsPage("Proc Alerts", function(b)
 
 	b:Header("Animation")
 	b:Dropdown("procAlerts.animation", "Animation", ANIMATIONS,
-		"How the art moves while the proc is there. Some procs always stay still, as in the game.", on)
+		"How the art moves while the proc is there, for every proc (one marked \"animated from\" in the list above only at its most stacks).", on)
 	local moves = W.All(on, function() return ns.Get("procAlerts.animation") ~= "NONE" end)
 	b:Slider("procAlerts.animTime", "Speed (one cycle)", 0.1, " s", "How long one cycle lasts: less is faster. The game's own spell alerts take 1 second.", moves)
 	b:Slider("procAlerts.animStrength", "Strength", 1, "%", "How much it changes: how much it grows (Pulse), fades (Breathe, Blink) or rises (Float).", moves)

@@ -369,14 +369,15 @@ end
 -- tells whether it's ticked, set(checked) keeps it. The label is shown as given (e.g. a spell's name,
 -- already in the game's language). extras: small dropdowns on the right of the row, shown while it's
 -- ticked: {{width, label, get, set, options = function() return {{value, text}} end}} (texts as given),
--- or a plain button {width, label, tooltip, text (or a function giving it), onClick}.
+-- or a plain button {width, label, tooltip, text (or a function giving it), onClick}. The icon may be a
+-- function giving it (asked again whenever the page is refreshed, e.g. the icon picked for a family).
 function Builder:IconCheck(label, icon, get, set, tooltip, dependsOn, extras)
 	local check = CreateCheckButton(self.content)
 	check:SetPoint("TOPLEFT", self.content, "TOPLEFT", LEFT, self.y)
 	local texture = check:CreateTexture(nil, "ARTWORK")
 	texture:SetSize(20, 20)
 	texture:SetPoint("LEFT", check, "RIGHT", 2, 0)
-	texture:SetTexture(icon)
+	texture:SetTexture(type(icon) == "function" and icon() or icon)
 	texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 	local text = check:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 	text:SetPoint("LEFT", texture, "RIGHT", 6, 0)
@@ -414,6 +415,7 @@ function Builder:IconCheck(label, icon, get, set, tooltip, dependsOn, extras)
 	function control:Refresh()
 		local checked = get() and true or false
 		check:SetChecked(checked)
+		if type(icon) == "function" then texture:SetTexture(icon()) end
 		for _, button in ipairs(self.extras) do
 			local shown = button.extra.text
 			if type(shown) == "function" then shown = shown() end

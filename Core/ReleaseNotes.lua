@@ -19,6 +19,13 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.15.2",
+		fixed = {
+			"Missing buffs: on the options page, a family's icon (for example a shaman's weapon imbues) is the one shown on the screen, the one you picked or the one you used last (it always showed its first spell).",
+			"Proc alerts: the animation you pick now moves every proc (some always stayed still). Only Heating Up waits for its 3 stacks, its most, as its row on the page says.",
+		},
+	},
+	{
 		version = "0.15.1",
 		fixed = {
 			"Missing buffs: a buff the game hides from addons in combat shows as soon as it goes, in combat too, through the game's own frames (it only showed after the fight).",

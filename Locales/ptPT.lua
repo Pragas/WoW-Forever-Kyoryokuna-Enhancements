@@ -7,6 +7,12 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.15.2
+	["Missing buffs: on the options page, a family's icon (for example a shaman's weapon imbues) is the one shown on the screen, the one you picked or the one you used last (it always showed its first spell)."] =
+		"Buffs em falta: na página das opções, o ícone de uma família (por exemplo os encantamentos de arma de um shaman) é o que aparece no ecrã, o que escolheste ou o último que usaste (aparecia sempre o do primeiro feitiço).",
+	["Proc alerts: the animation you pick now moves every proc (some always stayed still). Only Heating Up waits for its 3 stacks, its most, as its row on the page says."] =
+		"Alertas de procs: a animação que escolheres passa a mexer todos os procs (alguns ficavam sempre parados). Só o Heating Up espera pelas 3 stacks, o máximo, como diz a linha dele na página.",
+
 	-- Release notes 0.15.1
 	["Missing buffs: a buff the game hides from addons in combat shows as soon as it goes, in combat too, through the game's own frames (it only showed after the fight)."] =
 		"Buffs em falta: um buff que o jogo esconde dos addons em combate aparece assim que acaba, também em combate, através das frames do próprio jogo (só aparecia depois do combate).",
@@ -441,8 +447,8 @@ ns.LOCALES.ptPT = {
 	["Height"] = "Altura",
 	["How see-through the art is: lower is more faded."] = "Quão transparente é a arte: mais baixo, mais desvanecida.",
 	["Animation"] = "Animação",
-	["How the art moves while the proc is there. Some procs always stay still, as in the game."] =
-		"Como a arte se mexe enquanto o proc está ativo. Alguns procs ficam sempre parados, como no jogo.",
+	["How the art moves while the proc is there, for every proc (one marked \"animated from\" in the list above only at its most stacks)."] =
+		"Como a arte se mexe enquanto o proc está ativo, em todos os procs (um marcado com \"com animação a partir de\" na lista acima só com o máximo de stacks).",
 	["None"] = "Nenhuma",
 	["Pulse"] = "Pulsar",
 	["Breathe"] = "Respirar",
@@ -480,6 +486,12 @@ ns.LOCALES.ptPT = {
 		"Alertas de procs para todas as classes: druid, hunter, paladin, priest, rogue, shaman, warlock e warrior, e habilidades que ficam disponíveis (Victory Rush, Riposte, Mongoose Bite). \"Testar\" ao lado de um proc deixa-o fixo no ecrã enquanto afinas o aspeto.",
 	-- Proc alerts, phase 3
 	["button glows"] = "o botão brilha",
+	-- A proc whose art waits for its most stacks to move
+	["animated from %d stacks"] = "com animação a partir de %d stacks",
+	["Its art stays still until it has %d stacks, its most: only then it moves as picked below, so you know it's full."] =
+		"A arte fica parada até ter %d stacks, o máximo: só aí se mexe como escolheres em baixo, para saberes que está no máximo.",
+	["\"Animated from\": the proc's art stays still until it has that many stacks, its most, so its moving tells you it's full."] =
+		"\"Com animação a partir de\": a arte do proc fica parada até ter esse número de stacks, o máximo, para que o movimento te diga que está no máximo.",
 	["Its button on your action bars glows while this ability can be used."] =
 		"O botão desta habilidade nas tuas barras de ações brilha enquanto ela pode ser usada.",
 	["\"Button glows\": while the ability is ready, its button on the game's action bars gets a moving gold outline (also a macro that casts it)."] =
