@@ -340,8 +340,11 @@ function Builder:Text(text, color, raw, indent)
 	return fontString
 end
 
--- A check box bound to a setting
+-- A check box bound to a setting, or to a choice that isn't one (e.g. kept for each character): path is
+-- then {get = function() return checked end, set = function(checked) end}
 function Builder:Check(path, label, tooltip, dependsOn, indent)
+	local get = type(path) == "table" and path.get or function() return ns.Get(path) end
+	local set = type(path) == "table" and path.set or function(checked) ns.Set(path, checked) end
 	local x = LEFT + (indent and INDENT or 0)
 	local check = CreateCheckButton(self.content)
 	check:SetPoint("TOPLEFT", self.content, "TOPLEFT", x, self.y)
@@ -352,10 +355,10 @@ function Builder:Check(path, label, tooltip, dependsOn, indent)
 
 	local control = {frame = check, interactive = {check}}
 	function control:Refresh()
-		check:SetChecked(ns.Get(path) and true or false)
+		check:SetChecked(get() and true or false)
 	end
 	check:SetScript("OnClick", function(self)
-		ns.Set(path, self:GetChecked() and true or false)
+		set(self:GetChecked() and true or false)
 	end)
 	check:SetScript("OnEnter", function(self) ShowTooltip(self, L[label], tooltip and L[tooltip]) end)
 	check:SetScript("OnLeave", HideTooltip)

@@ -360,6 +360,9 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 	local command = strtrim and strtrim(message or ""):lower() or (message or ""):lower()
 	if command == "errors" then
 		ns.PrintErrors()
+	-- The same three ways in every Kyoryokuna addon (Plates, Enhancements, Frames)
+	elseif command == "errors clear" or command == "clearerrors" or command == "clear errors" then
+		ns.ClearErrors()
 	elseif command == "darkscan" then
 		-- How many pieces each part of the dark mode finds in the game now
 		ns.Print(L["Dark mode: pieces found by part"])
@@ -458,6 +461,7 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke darkscan - " .. L["what the dark mode finds of each part"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke procscan - " .. L["what the proc alerts know now"])
 		DEFAULT_CHAT_FRAME:AddMessage("  /ke errors - " .. L["show recorded errors"])
+		DEFAULT_CHAT_FRAME:AddMessage("  /ke errors clear - " .. L["clear the recorded errors"])
 	else
 		ns.ToggleOptions()
 	end

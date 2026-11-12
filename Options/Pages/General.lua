@@ -19,4 +19,9 @@ ns.AddOptionsPage("General", function(b)
 		"The menu that opens with Escape is much bigger than it used to be: shown at the size below, a little higher on the screen. Turned off, it gets the game's own size back.")
 	b:Slider("general.gameMenuSize", "Size", 5, "%",
 		"Next to the game's own menu (100%). Press Escape to see it.", W.IsOn("general.smallGameMenu"))
+
+	-- Modules\QuestTracker.lua
+	b:Header("Quests")
+	b:Check({get = ns.QuestTracker.IsOn, set = ns.QuestTracker.SetOn}, "Hide the quest tracker",
+		"The list of the quests you follow, on the right of the screen: hidden, also when the game brings it back. Your quests are still in the quest log and on the map. Only on this character: each of your characters has its own. Turned off, the list comes back.")
 end)

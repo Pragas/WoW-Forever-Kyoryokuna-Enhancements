@@ -63,6 +63,15 @@ function ns.PrintErrors()
 	end
 end
 
+-- /ke errors clear: the list emptied (the saved data too, written at the next /reload); the chat says so
+-- again at the next error
+function ns.ClearErrors()
+	for i = #sessionErrors, 1, -1 do sessionErrors[i] = nil end
+	if ns.db then ns.db.errors = {} end
+	warned = false
+	ns.Print(L["Recorded errors cleared."])
+end
+
 -- Diagnostics: what the /ke ...scan commands write in the chat is also kept in the saved data
 -- (diagnostics, the newest last), so it can be read from the file the game writes at the next /reload
 -- instead of from screenshots. The last 20 are kept.

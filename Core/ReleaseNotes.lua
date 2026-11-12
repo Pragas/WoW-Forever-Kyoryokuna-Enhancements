@@ -19,6 +19,13 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.17.0",
+		new = {
+			"Hide the quest tracker (General page): the list of the quests you follow, on the right of the screen, stays hidden, on the characters you choose.",
+			"/ke errors clear empties the list of recorded errors (old ones stayed in it for good).",
+		},
+	},
+	{
 		version = "0.16.2",
 		fixed = {
 			"Missing buffs: how the groups look (place, size, animation, glow...) is now each character's own, like what it watches, and \"Copy from\" copies it too. Your characters keep the look they had.",

@@ -7,6 +7,12 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.17.0
+	["/ke errors clear empties the list of recorded errors (old ones stayed in it for good)."] =
+		"/ke errors clear apaga a lista dos erros registados (os antigos ficavam lá para sempre).",
+	["Hide the quest tracker (General page): the list of the quests you follow, on the right of the screen, stays hidden, on the characters you choose."] =
+		"Esconder a lista de missões (página Geral): a lista das missões que segues, à direita do ecrã, fica escondida, nos personagens que escolheres.",
+
 	-- Release notes 0.16.2
 	["Missing buffs: how the groups look (place, size, animation, glow...) is now each character's own, like what it watches, and \"Copy from\" copies it too. Your characters keep the look they had."] =
 		"Buffs em falta: o aspeto dos grupos (lugar, tamanho, animação, brilho...) passa a ser de cada personagem, como o que vigia, e o \"Copiar de\" também o copia. Os teus personagens ficam com o aspeto que tinham.",
@@ -63,6 +69,10 @@ ns.LOCALES.ptPT = {
 		"O menu que abre com o Escape está muito maior do que era: aparece com o tamanho de baixo, um pouco mais acima no ecrã. Desligado, volta ao tamanho do jogo.",
 	["Next to the game's own menu (100%). Press Escape to see it."] =
 		"Comparado com o menu do jogo (100%). Carrega no Escape para o veres.",
+	["Quests"] = "Missões",
+	["Hide the quest tracker"] = "Esconder a lista de missões",
+	["The list of the quests you follow, on the right of the screen: hidden, also when the game brings it back. Your quests are still in the quest log and on the map. Only on this character: each of your characters has its own. Turned off, the list comes back."] =
+		"A lista das missões que segues, à direita do ecrã: fica escondida, também quando o jogo a volta a mostrar. As tuas missões continuam no registo de missões e no mapa. Só neste personagem: cada um dos teus personagens tem a sua. Desligado, a lista volta.",
 	["Dark mode"] = "Modo escuro",
 	["Darkens the art of the game's interface: frames, borders and bar decorations. Turned off, everything gets its own colors back."] =
 		"Escurece a arte da interface do jogo: molduras, bordas e decorações das barras. Desligado, tudo volta às suas cores.",
@@ -115,6 +125,8 @@ ns.LOCALES.ptPT = {
 	["Commands:"] = "Comandos:",
 	["open the options"] = "abrir as opções",
 	["show recorded errors"] = "mostrar os erros registados",
+	["clear the recorded errors"] = "apagar os erros registados",
+	["Recorded errors cleared."] = "Erros registados apagados.",
 
 	-- Errors
 	["An error happened. Type /ke errors to see it."] = "Aconteceu um erro. Escreve /ke errors para o veres.",

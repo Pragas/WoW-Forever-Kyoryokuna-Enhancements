@@ -324,8 +324,8 @@ local function Validate(db)
 		if type(backup) ~= "table" or type(backup.settings) ~= "table" then table.remove(db.backups, i) end
 	end
 	-- What each character keeps for itself, by "Name-Realm": its class, what it watches (by key: the
-	-- group, the icon picked, the minimum of an item), the spell of each family last seen on it, and how
-	-- its groups look
+	-- group, the icon picked, the minimum of an item), the spell of each family last seen on it, how its
+	-- groups look, its macros of food and drink, and whether it hides the quest tracker
 	if type(db.characters) ~= "table" then db.characters = {} end
 	for key, entry in pairs(db.characters) do
 		if type(key) ~= "string" or type(entry) ~= "table" or type(entry.class) ~= "string" then
@@ -370,6 +370,8 @@ local function Validate(db)
 			for key, on in pairs(entry.supplies) do
 				if (key ~= "FOOD" and key ~= "DRINK" and key ~= "BOTH") or on ~= true then entry.supplies[key] = nil end
 			end
+			-- The quest tracker hidden (Modules\QuestTracker.lua)
+			if entry.hideQuestTracker ~= true then entry.hideQuestTracker = nil end
 			-- Its trainer's list and the trainers it had been to, kept before 0.14.0 for the new spells told
 			-- in the chat and the spellbook's Trainer tab: gone with them
 			entry.trainer, entry.trainerVisits, entry.trainerVisit = nil, nil, nil

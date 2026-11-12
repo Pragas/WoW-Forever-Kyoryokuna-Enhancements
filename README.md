@@ -27,6 +27,7 @@ This link always gives the newest version. Don't use the green **Code → Downlo
   - Hide the micro menu's frame.
 - **Experience Bar**, **Queue Timer** (the time left to accept a queue) and **Dark Mode** (darker unit frames, action bars, cast bars, minimap and tooltips).
 - **Smaller Game Menu:** the menu that opens with Escape, at the size you choose.
+- **Hide the Quest Tracker:** the list of the quests you follow, on the right of the screen, stays hidden, on the characters you choose.
 - **Import / Export:** share your settings with a code, and keep backups to put back later.
 
 ## Install
