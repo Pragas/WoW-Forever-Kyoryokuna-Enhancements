@@ -92,11 +92,6 @@ ns.DEFAULTS = {
 		newRanks = false,
 	},
 
-	-- Quest items sparkling in the world (Modules\QuestSparkles.lua)
-	questSparkles = {
-		enabled = false,
-	},
-
 	-- FPS and latency on the screen (Modules\Performance.lua): what's shown (BOTH, FPS, PING), which
 	-- latency (WORLD, HOME, BOTH), colored by value, the text's size and color, a dark background, and its
 	-- place from the middle of the screen
@@ -277,6 +272,14 @@ local function Validate(db)
 		if db.procAlerts.pulse == true and db.procAlerts.animation == nil then db.procAlerts.animation = "PULSE" end
 		db.procAlerts.pulse = nil
 	end
+	-- The quest item sparkles (gone in 0.15.0, its settings with it): the game's setting the addon had turned
+	-- on goes back off, as when the option was turned off
+	if db.questSparklesSet ~= nil then
+		if db.questSparklesSet == true and C_CVar and C_CVar.SetCVar then
+			pcall(C_CVar.SetCVar, "outlineModeShowLootEffectWhenDisabled", "0")
+		end
+		db.questSparklesSet = nil
+	end
 	for name, defaults in pairs(ns.DEFAULTS) do
 		if type(db[name]) ~= "table" then db[name] = {} end
 		ValidateSection(name, db[name], defaults)
@@ -387,7 +390,6 @@ function ns.OnSettingChanged(path)
 	if path:find("^queueTimer%.") and ns.QueueTimer then ns.QueueTimer.Refresh() end
 	if path:find("^errorMessages%.") and ns.ErrorMessages then ns.ErrorMessages.Apply() end
 	if path:find("^trainer%.") and ns.Trainer then ns.Trainer.Apply() end
-	if path:find("^questSparkles%.") and ns.QuestSparkles then ns.QuestSparkles.Apply() end
 	if path:find("^performance%.") and ns.Performance then ns.Performance.Update() end
 	-- missingBuffs, missingBuffsEssential, missingBuffsUtility
 	if path:find("^missingBuffs") and ns.MissingBuffs then ns.MissingBuffs.Update() end
@@ -411,7 +413,6 @@ function ns.OnAllSettingsChanged()
 	if ns.QueueTimer then ns.QueueTimer.Refresh() end
 	if ns.ErrorMessages then ns.ErrorMessages.Apply() end
 	if ns.Trainer then ns.Trainer.Apply() end
-	if ns.QuestSparkles then ns.QuestSparkles.Apply() end
 	if ns.Performance then ns.Performance.Update() end
 	if ns.MissingBuffs then ns.MissingBuffs.Update() end
 	if ns.Supplies then ns.Supplies.Update() end

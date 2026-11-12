@@ -7,6 +7,12 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.15.0
+	["Missing buffs: what goes on the weapons (a shaman's imbues, a rogue's poisons, and for the other classes an oil or a stone), shown while a weapon in your hands has none."] =
+		"Buffs em falta: o que se põe nas armas (os encantamentos do shaman, os venenos do rogue e, para as outras classes, um óleo ou uma pedra), aparece enquanto uma arma nas tuas mãos não tiver nenhum.",
+	["The Quest Sparkles page is gone. If you had it on, the game's own setting goes back off (the sparkles already shown go away after restarting the game)."] =
+		"A página Brilho das quests saiu. Se a tinhas ligada, a definição do próprio jogo volta a ficar desligada (os brilhos que já aparecem desaparecem depois de reiniciar o jogo).",
+
 	-- Release notes 0.14.0
 	["Trainer: the new spells told in the chat at each level and the spellbook's Trainer tab are gone, with the lists kept for them. Choosing the spells to learn and the new ranks on the action bars stay."] =
 		"Treinador: os feitiços novos ditos no chat em cada nível e a aba Treinador do spellbook saíram, com as listas guardadas para eles. Escolher os feitiços a aprender e os ranks novos nas barras de ação ficam.",
@@ -201,6 +207,14 @@ ns.LOCALES.ptPT = {
 	-- Missing buffs (page and Modules\MissingBuffs.lua)
 	["Missing Buffs"] = "Buffs em falta",
 	["Missing buffs"] = "Buffs em falta",
+	["Poisons on your weapons"] = "Venenos nas armas",
+	["Oil or stone on your weapon"] = "Óleo ou pedra na arma",
+	["Shown while a weapon in your hands has none on it (both hands when you hold two weapons)."] =
+		"Aparece enquanto uma arma nas tuas mãos não tiver nenhum (nas duas mãos, quando tens duas armas).",
+	["On the weapons (imbues, poisons): main hand %s, off hand %s."] =
+		"Nas armas (encantamentos, venenos): mão principal %s, mão secundária %s.",
+	["no weapon"] = "sem arma",
+	["hidden"] = "escondido",
 	["When something you chose is missing, its icon shows on the screen, grey and faded, in and out of combat (not while you're dead). Each thing goes to one of two groups, Essential or Utility, each with its own place and look."] =
 		"Quando falta alguma coisa que escolheste, o ícone dela aparece no ecrã, cinzento e desvanecido, dentro e fora de combate (não enquanto estás morto). Cada coisa vai para um de dois grupos, Essenciais ou Utilidade, cada um com o seu sítio e aspeto.",
 	["Show what's missing"] = "Mostrar o que está em falta",
@@ -578,17 +592,6 @@ ns.LOCALES.ptPT = {
 	["%s (Rank %d) put on your action bars in place of Rank %d."] = "%s (rank %d) foi posto nas tuas barras de ação no lugar do rank %d.",
 	["New ranks on the action bars (Trainer page): a new rank you learn takes the place of the one before on your bars."] =
 		"Ranks novos nas barras de ação (página Treinador): um rank novo que aprendes fica no lugar do anterior nas tuas barras.",
-
-	-- Quest sparkles (Modules\QuestSparkles.lua, Options\Pages\QuestSparkles.lua)
-	["Quest Sparkles"] = "Brilho das quests",
-	["Quest item sparkles"] = "Brilho nos itens de quest",
-	["Quest items you can loot sparkle, so they're easy to spot: on the ground, on objects and on creatures. It's a setting of the game that its graphics presets turn off: the addon keeps it on, at login and after any change of the graphics."] =
-		"Os itens de quest que podes apanhar brilham, para os veres facilmente: no chão, em objetos e em criaturas. É uma opção do próprio jogo que as predefinições de gráficos desligam: o addon mantém-na ligada, ao entrar e depois de qualquer mudança nos gráficos.",
-	["Make quest items sparkle"] = "Fazer brilhar os itens de quest",
-	["Turning this off takes effect after restarting the game (a /reload isn't enough)."] =
-		"Desligar isto só tem efeito depois de reiniciares o jogo (um /reload não chega).",
-	["Quest item sparkles: restart the game to remove the ones already shown (a /reload isn't enough)."] =
-		"Brilho nos itens de quest: reinicia o jogo para tirar os que já aparecem (um /reload não chega).",
 
 	-- FPS and latency (Modules\Performance.lua, Options\Pages\Performance.lua)
 	["FPS and Latency"] = "FPS e latência",

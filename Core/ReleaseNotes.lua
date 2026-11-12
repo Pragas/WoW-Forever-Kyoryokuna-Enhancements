@@ -19,6 +19,13 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.15.0",
+		new = {
+			"Missing buffs: what goes on the weapons (a shaman's imbues, a rogue's poisons, and for the other classes an oil or a stone), shown while a weapon in your hands has none.",
+			"The Quest Sparkles page is gone. If you had it on, the game's own setting goes back off (the sparkles already shown go away after restarting the game).",
+		},
+	},
+	{
 		version = "0.14.0",
 		new = {
 			"Trainer: the new spells told in the chat at each level and the spellbook's Trainer tab are gone, with the lists kept for them. Choosing the spells to learn and the new ranks on the action bars stay.",

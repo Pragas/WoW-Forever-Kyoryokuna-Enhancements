@@ -6,8 +6,10 @@
 -- spellbook. The player ticks what to watch; while one is missing, its icon shows on the screen, grey and
 -- faded, in and out of combat (not while dead).
 --
---   - Two kinds: buffs (missing when not on the character) and conjured items (missing when the bags
---     hold fewer than a minimum: mana gems, conjured food and water, healthstones...).
+--   - Three kinds: buffs (missing when not on the character), conjured items (missing when the bags
+--     hold fewer than a minimum: mana gems, conjured food and water, healthstones...), and what goes on
+--     the weapons (a shaman's imbues, a rogue's poisons: missing while a weapon in the character's hands
+--     has none). Those aren't auras: they're the weapons' temporary enchants, read from the weapons.
 --   - Two groups, each with its own place and look: Essential and Utility. Each thing ticked goes to the
 --     group the player picks (buffs start in Essential, items in Utility).
 --   - The choice is kept for each character. A new character with nothing chosen can copy the choice of
@@ -121,7 +123,17 @@ local ITEMS = {
 		}},
 	},
 }
-MissingBuffs.BUFFS, MissingBuffs.ITEMS = BUFFS, ITEMS
+-- What a class puts on its weapons (one family each): any of it is enough on each weapon held. A family of
+-- spells is offered once one is known; a rogue's poisons are items (made with its Poisons skill), so their
+-- family is offered to every rogue, with a name of its own and the icon of an item. The other classes
+-- get the oils and stones anyone can put on a weapon (sharpening stones, weightstones, wizard and mana
+-- oils: items too).
+local WEAPONS = {
+	SHAMAN = {key = "WEAPON_IMBUE", spells = {8017, 8024, 8033, 8232}}, -- Rockbiter, Flametongue, Frostbrand, Windfury Weapon
+	ROGUE = {key = "POISONS", labelKey = "Poisons on your weapons", iconItem = 6947}, -- (Instant Poison)
+	ANY = {key = "WEAPON_OIL", labelKey = "Oil or stone on your weapon", iconItem = 2862}, -- (Rough Sharpening Stone)
+}
+MissingBuffs.BUFFS, MissingBuffs.ITEMS, MissingBuffs.WEAPONS = BUFFS, ITEMS, WEAPONS
 
 -- The icon shown when nothing is chosen yet, while moving the icons
 local PLACEHOLDER_ICON = 134400
@@ -226,10 +238,11 @@ local function ReadSpellbook()
 	return changed
 end
 
--- The choices of this character. Each: {key, kind = "BUFF" or "ITEM", label, icon, group (where it
--- starts)}; a buff also has members (names known, with memberIcons) and counts (names that count); an
--- item has items (every rank's item IDs).
---   suggested: the buff families of its class it knows a spell of
+-- The choices of this character. Each: {key, kind = "BUFF", "WEAPON" or "ITEM", label, icon, group (where
+-- it starts)}; a buff also has members (names known, with memberIcons) and counts (names that count); what
+-- goes on the weapons has members too (its spells known, none for poisons) and maybe a labelKey (its name,
+-- translated when shown); an item has items (every rank's item IDs).
+--   suggested: the buff families of its class it knows a spell of, and what goes on its weapons
 --   items: the items of its class it knows a spell to make
 --   others: every other spell of its spellbook, as a buff
 local suggested, items, others
@@ -260,6 +273,30 @@ local function BuildChoices()
 			end
 		end
 		if #choice.members > 0 then
+			choice.label = table.concat(choice.members, " / ")
+			suggested[#suggested + 1] = choice
+		end
+	end
+	local weapon = WEAPONS[playerClass] or WEAPONS.ANY
+	if weapon then
+		local choice = {key = weapon.key, kind = "WEAPON", group = ESSENTIAL, members = {}, memberIcons = {}, counts = {}}
+		for _, id in ipairs(weapon.spells or {}) do
+			local name = SpellName(id)
+			if name then
+				inCatalog[name] = true
+				local known = spellbook[name]
+				if known then
+					choice.members[#choice.members + 1] = name
+					choice.memberIcons[name] = known.icon or SpellIcon(id)
+					choice.icon = choice.icon or choice.memberIcons[name]
+				end
+			end
+		end
+		if weapon.labelKey then
+			choice.labelKey, choice.label = weapon.labelKey, L[weapon.labelKey]
+			choice.icon = choice.icon or ItemIcon(weapon.iconItem) or PLACEHOLDER_ICON
+			suggested[#suggested + 1] = choice
+		elseif #choice.members > 0 then
 			choice.label = table.concat(choice.members, " / ")
 			suggested[#suggested + 1] = choice
 		end
@@ -468,13 +505,45 @@ local function InCombat()
 	return (InCombatLockdown and InCombatLockdown()) or (UnitAffectingCombat and UnitAffectingCombat("player")) or false
 end
 
--- What the addon can read now, for /ke buffscan: {inCombat, readable, count, names = {sorted}}
+local MAIN_HAND, OFF_HAND = 16, 17
+local WEAPON_CLASS = (Enum and Enum.ItemClass and Enum.ItemClass.Weapon) or 2
+
+-- Whether a hand holds a weapon (a shield, or an item held in the off hand, isn't one)
+local function HoldsWeapon(slot)
+	local id = GetInventoryItemID and ns.Known(GetInventoryItemID("player", slot))
+	if not id then return false end
+	local info = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+	local classID = info and select(6, info(id))
+	if classID == nil then return slot == MAIN_HAND end
+	return classID == WEAPON_CLASS
+end
+
+-- The weapons' temporary enchants (imbues, poisons): {mainHand, offHand} each "on", "off" (a weapon
+-- without one) or "none" (no weapon in that hand), missing (a weapon without one), and the seconds until
+-- the first one ends (nil if unknown); nil when the game hides them
+local function ReadWeapons()
+	if not GetWeaponEnchantInfo then return nil end
+	local ok, hasMain, mainLeft, _, _, hasOff, offLeft = pcall(GetWeaponEnchantInfo)
+	if not ok or ns.IsSecret(hasMain) or ns.IsSecret(hasOff) then return nil end
+	local function State(slot, has)
+		if not HoldsWeapon(slot) then return "none" end
+		return has and "on" or "off"
+	end
+	local weapons = {mainHand = State(MAIN_HAND, hasMain), offHand = State(OFF_HAND, hasOff)}
+	weapons.missing = weapons.mainHand == "off" or weapons.offHand == "off"
+	for _, left in ipairs({hasMain and ns.Known(mainLeft), hasOff and ns.Known(offLeft)}) do
+		if type(left) == "number" and left > 0 and (not weapons.ends or left / 1000 < weapons.ends) then weapons.ends = left / 1000 end
+	end
+	return weapons
+end
+
+-- What the addon can read now, for /ke buffscan: {inCombat, readable, count, names = {sorted}, weapons}
 function MissingBuffs.Scan()
 	local names, count = ReadActiveNames()
 	local list = {}
 	for name in pairs(names or {}) do list[#list + 1] = name end
 	table.sort(list)
-	return {inCombat = InCombat(), readable = names ~= nil, count = count or 0, names = list}
+	return {inCombat = InCombat(), readable = names ~= nil, count = count or 0, names = list, weapons = ReadWeapons()}
 end
 
 -- How many of an item family the bags hold (every rank); nil when the game hides it
@@ -706,7 +775,7 @@ function MissingBuffs.CastInfo()
 			local watch = entry.buffs[choice.key]
 			if watch then
 				local name, id = choice.castName, choice.castID
-				if choice.kind == "BUFF" then
+				if choice.kind == "BUFF" or choice.kind == "WEAPON" then
 					name = CastOf(choice, watch, entry)
 					id = name and spellbook[name] and spellbook[name].best
 				end
@@ -722,17 +791,43 @@ local function HideAll()
 	SyncClickers({})
 end
 
+-- The weapons as last read (kept while the game hides them), and the check when the first enchant ends
+-- (the game says nothing then)
+local lastWeapons
+local endTimer, endsAt
+
+local function WatchEnd(seconds)
+	if not (seconds and C_Timer and C_Timer.NewTimer and GetTime) then
+		if endTimer then endTimer:Cancel() end
+		endTimer, endsAt = nil, nil
+		return
+	end
+	local at = GetTime() + seconds
+	-- The same end already watched (each update reads it again)
+	if endTimer and endsAt and math.abs(endsAt - at) < 1 then return end
+	if endTimer then endTimer:Cancel() end
+	endsAt = at
+	endTimer = C_Timer.NewTimer(seconds + 0.5, function()
+		endTimer, endsAt = nil, nil
+		ns.SafeCall(MissingBuffs.Update)
+	end)
+end
+
 function MissingBuffs.Update()
 	if not (ns.db and characterKey) then return end
 	local entry = MissingBuffs.GetCharacter()
 	if not ns.db.missingBuffs.enabled and not moving then
 		HideAll()
+		WatchEnd(nil)
 		return
 	end
 	local active, count = ReadActiveNames()
 	-- In combat, an empty list when there were buffs before is the game hiding them, not every buff gone
 	if active and count == 0 and InCombat() and lastActive and next(lastActive) then active = nil end
 	if active then lastActive = active else active = lastActive or {} end
+	local weapons = ReadWeapons()
+	if weapons then lastWeapons = weapons else weapons = lastWeapons end
+	local watchesWeapons = false
 	local dead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
 	local shown = {[ESSENTIAL] = {}, [UTILITY] = {}}
 	local lists = {MissingBuffs.GetChoices()}
@@ -745,6 +840,10 @@ function MissingBuffs.Update()
 					itemCount = CountItems(choice)
 					if itemCount then lastCounts[choice.key] = itemCount else itemCount = lastCounts[choice.key] end
 					missing = itemCount ~= nil and itemCount < (watch.minimum or 1)
+				elseif choice.kind == "WEAPON" then
+					-- Nothing known yet (the game hiding the weapons from the start): not shown
+					watchesWeapons = true
+					missing = weapons ~= nil and weapons.missing
 				else
 					local on = false
 					for name in pairs(choice.counts) do
@@ -774,7 +873,7 @@ function MissingBuffs.Update()
 			if choice and info.frame then
 				if choice.kind == "ITEM" and settings.clickToConjure and choice.castName then
 					targets[#targets + 1] = {frame = info.frame, castName = choice.castName, castID = choice.castID}
-				elseif choice.kind == "BUFF" and settings.clickToCast then
+				elseif (choice.kind == "BUFF" or choice.kind == "WEAPON") and settings.clickToCast then
 					local name = CastOf(choice, entry.buffs[choice.key], entry)
 					local known = name and spellbook[name]
 					if known then
@@ -785,6 +884,8 @@ function MissingBuffs.Update()
 		end
 	end
 	SyncClickers(targets)
+	-- An enchant on the weapons watched: looked at again when it ends
+	WatchEnd(watchesWeapons and weapons and weapons.ends or nil)
 end
 
 -- Moving the icons (from the page; ends when the options close)
@@ -844,6 +945,31 @@ else
 end
 auraFrame:SetScript("OnEvent", function(_, _, unit)
 	if unit == "player" then ns.SafeCall(MissingBuffs.Update) end
+end)
+
+-- The weapons: an enchant put on or gone, a weapon changed. And the last of a family cast on them (an
+-- imbue), for the family's icon when it's the one last used.
+ns.RegisterEvent("UNIT_INVENTORY_CHANGED", function(_, unit)
+	if unit == "player" then MissingBuffs.Update() end
+end)
+ns.RegisterEvent("PLAYER_EQUIPMENT_CHANGED", function() MissingBuffs.Update() end)
+ns.RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", function(_, unit, _, spellID)
+	if unit ~= "player" or not characterKey then return end
+	local weapon = WEAPONS[playerClass]
+	if not weapon then return end
+	local choice = FindChoice(weapon.key)
+	local name = SpellName(ns.Known(spellID))
+	if choice and name and choice.memberIcons[name] then
+		MissingBuffs.GetCharacter().lastSeen[choice.key] = name
+		MissingBuffs.Update()
+	end
+end)
+-- On a frame of its own: older versions of the game don't have this event
+local weaponFrame = CreateFrame("Frame")
+pcall(weaponFrame.RegisterEvent, weaponFrame, "WEAPON_ENCHANT_CHANGED")
+weaponFrame:SetScript("OnEvent", function()
+	if ns.NEEDS_RESTART then return end
+	ns.SafeCall(MissingBuffs.Update)
 end)
 
 -- For the tests

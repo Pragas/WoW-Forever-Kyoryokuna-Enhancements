@@ -78,10 +78,13 @@ ns.AddOptionsPage(PAGE, function(b)
 		elseif #choice.members > 1 then
 			extras[#extras + 1] = IconExtra(choice)
 		end
-		b:IconCheck(choice.label, choice.icon,
+		-- What goes on the weapons: said how it counts; a name of the addon's in the language now
+		local tooltip = choice.kind == "WEAPON"
+			and L["Shown while a weapon in your hands has none on it (both hands when you hold two weapons)."] or nil
+		b:IconCheck(choice.labelKey and L[choice.labelKey] or choice.label, choice.icon,
 			function() return MB.IsWatched(choice.key) end,
 			function(checked) MB.SetWatched(choice.key, checked) end,
-			nil, on, extras)
+			tooltip, on, extras)
 	end
 
 	b:Header("Missing buffs")
@@ -109,7 +112,12 @@ ns.AddOptionsPage(PAGE, function(b)
 	local suggested, items, others = MB.GetChoices()
 	b:Header(string.format(L["Buffs of %s (%s)"], MB.GetCharacterName(), MB.GetClassName()), true)
 	b:Text("Tick the buffs to watch, and pick their group. Buffs that can't be on together, like the armors of a mage, are one line: any of them is enough, and you can pick the icon. The same buff from someone else counts too.", GREY)
-	if #suggested == 0 then
+	-- (what goes on the weapons is offered to every class: not one of its buffs)
+	local buffs = 0
+	for _, choice in ipairs(suggested) do
+		if choice.kind == "BUFF" then buffs = buffs + 1 end
+	end
+	if buffs == 0 then
 		b:Text("No usual buffs of your class in your spellbook. Any other spell can be chosen at the bottom of the page.", GREY)
 	end
 	for _, choice in ipairs(suggested) do Row(choice) end

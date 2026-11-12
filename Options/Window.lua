@@ -374,6 +374,11 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 		for _, name in ipairs(scan.names) do
 			DEFAULT_CHAT_FRAME:AddMessage("  " .. name)
 		end
+		-- What's on the weapons (imbues, poisons): each hand's, or hidden by the game
+		local STATES = {on = L["Yes"], off = L["No"], none = L["no weapon"]}
+		local weapons = scan.weapons
+		DEFAULT_CHAT_FRAME:AddMessage("  " .. string.format(L["On the weapons (imbues, poisons): main hand %s, off hand %s."],
+			weapons and STATES[weapons.mainHand] or L["hidden"], weapons and STATES[weapons.offHand] or L["hidden"]))
 		-- What a click on each icon casts: the spell and its exact ID (rank)
 		local casts = ns.MissingBuffs.CastInfo()
 		if #casts > 0 then
