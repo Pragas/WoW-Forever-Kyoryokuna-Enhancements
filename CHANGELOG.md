@@ -8,6 +8,11 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.16.2
+
+- Fixed: missing buffs, the look of the two groups (place, size, opacity, space, direction, the number, the animation and the glow) was shared by every character of the account, so a shaman's animation showed on a mage. It's now each character's own, kept with what it watches (`characters[...].look`, one copy of each group's settings). The settings (`missingBuffsEssential`, `missingBuffsUtility`) hold the look of the character playing: put there at login, kept back at each change (a setting changed, or a group dragged). "Copy from" copies the look with the choice. A character from before keeps the look the account had (copied to it when the addon loads, so nothing changes for it); a new character starts with the first look. Each character's look is checked on load like the settings. Turning the missing buffs on and the clicks to cast or conjure stay the account's. The page says the look is the character's, and "Copy" copies both.
+- Tests: a new test covers each character's look (kept as the character's, also when dragged; a new character with the first look, not another's; each one's changes its own; back to a character, its look again; copied with the choice, and its own afterwards; a character from before taking the account's look; a look saved wrong checked on load).
+
 ## 0.16.1
 
 - Missing buffs: "Glow color" is white by default in both groups (it was gold, {1, 0.82, 0}), for the game's glow, its moving outline and the border. A group still on 0.16.0's gold (the old default, kept in the saved variables) gets white when the addon loads; a color picked in the color picker is never exactly that gold, so it's kept. "Default" beside the color now gives white.

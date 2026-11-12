@@ -7,6 +7,10 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.16.2
+	["Missing buffs: how the groups look (place, size, animation, glow...) is now each character's own, like what it watches, and \"Copy from\" copies it too. Your characters keep the look they had."] =
+		"Buffs em falta: o aspeto dos grupos (lugar, tamanho, animação, brilho...) passa a ser de cada personagem, como o que vigia, e o \"Copiar de\" também o copia. Os teus personagens ficam com o aspeto que tinham.",
+
 	-- Release notes 0.16.1
 	["Missing buffs: the glow's color is white by default (it was gold). If you never changed it, it's white now."] =
 		"Buffs em falta: a cor do brilho é branca por defeito (era dourada). Se nunca a mudaste, fica branca.",
@@ -249,8 +253,8 @@ ns.LOCALES.ptPT = {
 	["Conjured items"] = "Itens conjurados",
 	["Shown when your bags hold fewer than the minimum (any rank counts)."] =
 		"Aparecem quando tens nas bags menos do que o mínimo (qualquer rank conta).",
-	["All this is kept for this character only, and read from your spellbook: a spell you learn later shows up then."] =
-		"Tudo isto fica guardado só para este personagem e é lido do teu spellbook: um feitiço que aprendas mais tarde aparece nessa altura.",
+	["All this, and how the groups look below (their place, size, animation, glow...), is kept for this character only. The buffs are read from your spellbook: a spell you learn later shows up then."] =
+		"Tudo isto, e o aspeto dos grupos mais abaixo (o lugar, o tamanho, a animação, o brilho...), fica guardado só para este personagem. Os buffs são lidos do teu spellbook: um feitiço que aprendas mais tarde aparece nessa altura.",
 	["Group"] = "Grupo",
 	["Where its icon shows: with the essential buffs, or with the utility ones."] =
 		"Onde aparece o ícone: com os buffs essenciais ou com os de utilidade.",
@@ -264,13 +268,13 @@ ns.LOCALES.ptPT = {
 	["Shown when your bags hold fewer than this. The icon shows how many you have."] =
 		"Aparece quando tens nas bags menos do que isto. O ícone mostra quantos tens.",
 	["Min. %d"] = "Mín. %d",
-	["Copy the choice of another character of your class (it replaces this character's):"] =
-		"Copiar a escolha de outro personagem da tua classe (substitui a deste personagem):",
+	["Copy the choice and the look of another character of your class (they replace this character's):"] =
+		"Copiar a escolha e o aspeto de outro personagem da tua classe (substituem os deste personagem):",
 	["Copy"] = "Copiar",
 	["Copy from %s (%d)"] = "Copiar de %s (%d)",
 	["Puts that character's choice on this one."] = "Põe neste personagem a escolha desse personagem.",
-	["Copy the missing buffs of %s to this character? Its own choice is replaced."] =
-		"Copiar os buffs em falta de %s para este personagem? A escolha dele é substituída.",
+	["Copy the missing buffs of %s (what it watches and how its groups look) to this character? Its own are replaced."] =
+		"Copiar os buffs em falta de %s (o que vigia e o aspeto dos grupos) para este personagem? Os dele são substituídos.",
 	["Missing buffs copied from %s."] = "Buffs em falta copiados de %s.",
 	["Your %s %s has missing buffs chosen. To copy them to this character: /ke, Missing Buffs page."] =
 		"O teu %s %s tem buffs em falta escolhidos. Para os copiar para este personagem: /ke, página Buffs em falta.",

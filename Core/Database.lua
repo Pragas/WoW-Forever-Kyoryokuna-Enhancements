@@ -174,6 +174,9 @@ ns.DEFAULTS = {
 		riposteAlert = "ART",
 		mongooseBiteAlert = "ART",
 	},
+	-- The look of the missing buffs' two groups: each character's own (kept in characters[...].look, see
+	-- Modules\MissingBuffs.lua); the settings hold the one of the character playing, and these defaults
+	-- are a new character's first look.
 	-- The number on an item's icon (how many the bags hold): hidden at 0 unless asked, in a corner or in
 	-- the middle, with a size of its own
 	missingBuffsEssential = {
@@ -321,7 +324,8 @@ local function Validate(db)
 		if type(backup) ~= "table" or type(backup.settings) ~= "table" then table.remove(db.backups, i) end
 	end
 	-- What each character keeps for itself, by "Name-Realm": its class, what it watches (by key: the
-	-- group, the icon picked, the minimum of an item), and the spell of each family last seen on it
+	-- group, the icon picked, the minimum of an item), the spell of each family last seen on it, and how
+	-- its groups look
 	if type(db.characters) ~= "table" then db.characters = {} end
 	for key, entry in pairs(db.characters) do
 		if type(key) ~= "string" or type(entry) ~= "table" or type(entry.class) ~= "string" then
@@ -351,6 +355,16 @@ local function Validate(db)
 				if type(buff) ~= "string" or type(name) ~= "string" then entry.lastSeen[buff] = nil end
 			end
 			if entry.copyOffered ~= true then entry.copyOffered = nil end
+			-- How its missing buffs groups look (Modules\MissingBuffs.lua); a character from before it was its
+			-- own takes the look the account had, so nothing changes for it
+			if type(entry.look) ~= "table" then entry.look = {} end
+			for name in pairs(entry.look) do
+				if name ~= "missingBuffsEssential" and name ~= "missingBuffsUtility" then entry.look[name] = nil end
+			end
+			for _, name in ipairs({"missingBuffsEssential", "missingBuffsUtility"}) do
+				if type(entry.look[name]) ~= "table" then entry.look[name] = CopyValue(db[name]) end
+				ValidateSection(name, entry.look[name], ns.DEFAULTS[name])
+			end
 			-- The macros of food and drink it wants (Modules\Supplies.lua)
 			if type(entry.supplies) ~= "table" then entry.supplies = {} end
 			for key, on in pairs(entry.supplies) do
@@ -420,7 +434,8 @@ function ns.OnSettingChanged(path)
 	if path:find("^errorMessages%.") and ns.ErrorMessages then ns.ErrorMessages.Apply() end
 	if path:find("^trainer%.") and ns.Trainer then ns.Trainer.Apply() end
 	if path:find("^performance%.") and ns.Performance then ns.Performance.Update() end
-	-- missingBuffs, missingBuffsEssential, missingBuffsUtility
+	-- missingBuffs, missingBuffsEssential, missingBuffsUtility (the groups' look: the character's own, kept)
+	if path:find("^missingBuffs[EU]") and ns.MissingBuffs then ns.MissingBuffs.SaveLook() end
 	if path:find("^missingBuffs") and ns.MissingBuffs then ns.MissingBuffs.Update() end
 	if path:find("^procAlerts%.") and ns.ProcAlerts then ns.ProcAlerts.Update() end
 	-- A new language renames the macros

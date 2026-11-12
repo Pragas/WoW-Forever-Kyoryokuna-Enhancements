@@ -157,15 +157,15 @@ ns.AddOptionsPage(PAGE, function(b)
 	end
 
 	b:Space(6)
-	b:Text("All this is kept for this character only, and read from your spellbook: a spell you learn later shows up then.", GREY)
-	-- Another character of the same class already chose: its choice can be copied here
+	b:Text("All this, and how the groups look below (their place, size, animation, glow...), is kept for this character only. The buffs are read from your spellbook: a spell you learn later shows up then.", GREY)
+	-- Another character of the same class already chose: its choice and look can be copied here
 	local sources = MB.GetCopySources()
 	if #sources > 0 then
-		b:Text("Copy the choice of another character of your class (it replaces this character's):", GREY)
+		b:Text("Copy the choice and the look of another character of your class (they replace this character's):", GREY)
 		for _, source in ipairs(sources) do
 			local button = b:Button("Copy", function()
 				W.Confirm("KYORYOKUNAENHANCEMENTS_COPY_BUFFS",
-					string.format(L["Copy the missing buffs of %s to this character? Its own choice is replaced."], source.name),
+					string.format(L["Copy the missing buffs of %s (what it watches and how its groups look) to this character? Its own are replaced."], source.name),
 					function() MB.CopyFrom(source.key) end)
 			end, "Puts that character's choice on this one.", 280)
 			button:SetText(string.format(L["Copy from %s (%d)"], source.name, source.count))

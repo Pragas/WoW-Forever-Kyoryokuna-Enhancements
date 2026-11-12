@@ -404,15 +404,55 @@ end
 
 -- Characters -----------------------------------------------------------------------------------------
 
--- This character's saved choice: {class, buffs = {key = {group, icon, minimum}}, lastSeen = {key = name}}
+-- How the groups look (their sections of the settings: place, size, opacity, number, animation, glow) is
+-- each character's own too, kept with its choice: look = {section = {...}}. The settings hold the look
+-- of the character playing: put there at login, kept back at each change. A new character starts with
+-- the first look; one from before it was its own, with the one the account had (Core\Database.lua).
+local LOOK_SECTIONS = {"missingBuffsEssential", "missingBuffsUtility"}
+
+local function NewLook()
+	local look = {}
+	for _, section in ipairs(LOOK_SECTIONS) do look[section] = ns.CopyValue(ns.DEFAULTS[section]) end
+	return look
+end
+
+-- This character's saved choice: {class, buffs = {key = {group, icon, minimum}}, lastSeen = {key = name},
+-- look}
 function MissingBuffs.GetCharacter()
 	if not (ns.db and characterKey) then return nil end
 	local entry = ns.db.characters[characterKey]
 	if type(entry) ~= "table" then
-		entry = {class = playerClass, buffs = {}, lastSeen = {}}
+		entry = {class = playerClass, buffs = {}, lastSeen = {}, look = NewLook()}
 		ns.db.characters[characterKey] = entry
 	end
 	return entry
+end
+
+-- The look in the settings kept as this character's (after each change)
+function MissingBuffs.SaveLook()
+	local entry = MissingBuffs.GetCharacter()
+	if not entry then return end
+	if type(entry.look) ~= "table" then entry.look = {} end
+	for _, section in ipairs(LOOK_SECTIONS) do entry.look[section] = ns.CopyValue(ns.db[section]) end
+end
+
+-- This character's look put in the settings (at login, or copied from another); one without a look yet
+-- keeps the one there
+local function LoadLook(entry)
+	if type(entry.look) ~= "table" then
+		MissingBuffs.SaveLook()
+		return
+	end
+	for _, section in ipairs(LOOK_SECTIONS) do
+		local saved = entry.look[section]
+		if type(saved) == "table" then
+			local live = ns.db[section]
+			for key in pairs(live) do live[key] = nil end
+			for key, value in pairs(saved) do live[key] = ns.CopyValue(value) end
+		end
+	end
+	ns.ValidateSettings()
+	MissingBuffs.SaveLook()
 end
 
 local function DisplayName(key)
@@ -511,6 +551,11 @@ function MissingBuffs.CopyFrom(sourceKey)
 	if not (entry and type(source) == "table" and source.class == playerClass and sourceKey ~= characterKey) then return false end
 	entry.buffs = ns.CopyValue(source.buffs)
 	entry.lastSeen = ns.CopyValue(source.lastSeen or {})
+	-- And how its groups look (one from before it was its own has none to give)
+	if type(source.look) == "table" then
+		entry.look = ns.CopyValue(source.look)
+		LoadLook(entry)
+	end
 	ns.Print(string.format(L["Missing buffs copied from %s."], DisplayName(sourceKey)))
 	Changed()
 	return true
@@ -975,6 +1020,8 @@ local function GetHolder(group)
 		if x then
 			settings.x, settings.y = x, y
 			ns.ValidateSettings()
+			-- (the place is part of the character's look)
+			MissingBuffs.SaveLook()
 		end
 		Changed()
 	end)
@@ -1451,6 +1498,8 @@ ns.RegisterEvent("PLAYER_LOGIN", function()
 	className, playerClass = UnitClass("player")
 	local entry = MissingBuffs.GetCharacter()
 	entry.class = playerClass
+	-- Its groups' look in the settings
+	LoadLook(entry)
 	ReadSpellbook()
 	suggested, items, others = nil, nil, nil
 	-- A character with nothing chosen, and another of its class with a choice: said once

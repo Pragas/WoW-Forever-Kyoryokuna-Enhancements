@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.16.2",
+		fixed = {
+			"Missing buffs: how the groups look (place, size, animation, glow...) is now each character's own, like what it watches, and \"Copy from\" copies it too. Your characters keep the look they had.",
+		},
+	},
+	{
 		version = "0.16.1",
 		new = {
 			"Missing buffs: the glow's color is white by default (it was gold). If you never changed it, it's white now.",
