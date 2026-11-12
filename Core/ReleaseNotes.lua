@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.14.0",
+		new = {
+			"Trainer: the new spells told in the chat at each level and the spellbook's Trainer tab are gone, with the lists kept for them. Choosing the spells to learn and the new ranks on the action bars stay.",
+		},
+	},
+	{
 		version = "0.13.0",
 		new = {
 			"The buttons and dropdowns of the options in the addon's own style, like its window's buttons: a long text no longer runs out of its button.",

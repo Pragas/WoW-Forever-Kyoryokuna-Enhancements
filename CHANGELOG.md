@@ -8,6 +8,12 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.14.0
+
+- Trainer: removed "Tell me when I reach the level of new spells" and "Show a Trainer tab in the spellbook", with all their code: the spellbook's tab (`Modules\SpellbookTab.lua`), the reading of the trainer's whole list at each visit (its filters turned on and put back, the spells for later levels and the learned ones, the trainers told apart), the lists kept for each character (`characters[...].trainer`, `trainerVisits`) and for each class (`trainerClasses`), the new spells told in the chat at a level up and the "Waiting at your trainer" list on the Trainer page. Those lists are taken out of the saved variables when the addon loads, and the two settings with them (also from an imported code).
+- The Trainer page keeps "Choose the spells to learn" (the boxes at the class trainer and "Learn ticked") and "Put new ranks on the action bars", as before.
+- Tests: the trainer's test covers the boxes and "Learn ticked" only, and that the old lists and settings are taken out; the spellbook tab's and the visits' tests are gone.
+
 ## 0.13.0
 
 - Buttons and dropdowns of the options in the addon's own style, like the window's X and minimize (the same as Kyoryokuna Frames): a dark box with a thin grey border, lighter under the mouse, gold text (a dropdown: its value in white and a small gold arrow drawn with two bars), made of plain colors instead of the game's `UIPanelButtonTemplate` (a thin red bar on this client, 200 wide, where a long value ran out of the button). Dropdowns are 280 wide, and a text too long for its button is cut with "...". The dropdown's list is in the same style (flat dark box, thin grey border, taller rows in the normal font). The welcome window's OK uses the normal font.

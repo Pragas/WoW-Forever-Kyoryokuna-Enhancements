@@ -7,6 +7,10 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.14.0
+	["Trainer: the new spells told in the chat at each level and the spellbook's Trainer tab are gone, with the lists kept for them. Choosing the spells to learn and the new ranks on the action bars stay."] =
+		"Treinador: os feitiços novos ditos no chat em cada nível e a aba Treinador do spellbook saíram, com as listas guardadas para eles. Escolher os feitiços a aprender e os ranks novos nas barras de ação ficam.",
+
 	-- Release notes 0.13.0
 	["FPS and latency, proc alerts: after Move, the button says Done right away, as in missing buffs (closing the options also ends the moving)."] =
 		"FPS e latência, alertas de procs: depois de Mover, o botão diz logo Concluído, como nos buffs em falta (fechar as opções também termina o mover).",
@@ -554,18 +558,6 @@ ns.LOCALES.ptPT = {
 	["Choose the spells to learn"] = "Escolher os feitiços a aprender",
 	["At your class trainer, each spell you can learn gets a box. Tick the ones you want and click \"Learn ticked\", at the top of the window: only those are learned, one after another. Nothing is learned without your tick, and the game's Train button works as always."] =
 		"No treinador da tua classe, cada feitiço que podes aprender ganha uma caixa. Marca os que queres e carrega em \"Aprender marcados\", no topo da janela: só esses são aprendidos, um a seguir ao outro. Nada é aprendido sem a tua marca, e o botão Treinar do jogo funciona como sempre.",
-	["New spells"] = "Feitiços novos",
-	["Tell me when I reach the level of new spells"] = "Avisar quando chego ao nível de feitiços novos",
-	["When you level up, the chat lists the spells waiting at your trainer for that level. They're read at each visit to your trainer, for every character of your class: visit it once, with any of them, after turning this on."] =
-		"Quando sobes de nível, o chat diz os feitiços que esse nível traz no teu treinador. São lidos em cada visita ao treinador, para todas as personagens da tua classe: visita-o uma vez, com qualquer uma delas, depois de ligares isto.",
-	["Waiting at your trainer"] = "À tua espera no treinador",
-	["Nothing known yet: visit your class trainer once, with any character of this class."] =
-		"Ainda não se sabe nada: visita uma vez o treinador da tua classe, com qualquer personagem desta classe.",
-	["(From %s's last visit to the class trainer.)"] = "(Da última visita de %s ao treinador da classe.)",
-	["You can learn now: %s."] = "Podes aprender já: %s.",
-	["Nothing to learn at your level."] = "Nada para aprender no teu nível.",
-	["Level %d: %s."] = "Nível %d: %s.",
-	["(From your last visit to your trainer.)"] = "(Da tua última visita ao treinador.)",
 	["Learn ticked"] = "Aprender marcados",
 	["Learn ticked (%d)"] = "Aprender marcados (%d)",
 	["Learning..."] = "A aprender...",
@@ -577,27 +569,6 @@ ns.LOCALES.ptPT = {
 	["Learn this spell"] = "Aprender este feitiço",
 	["Ticked spells are learned with the \"Learn ticked\" button, at the top of the window."] =
 		"Os feitiços marcados são aprendidos com o botão \"Aprender marcados\", no topo da janela.",
-	["New at your trainer (level %d): %s."] = "Novo no teu treinador (nível %d): %s.",
-	["Show a Trainer tab in the spellbook"] = "Mostrar uma aba Treinador no spellbook",
-	["One more tab in your spellbook, after the game's: a click on it shows the spells still to learn at your class trainer and the other trainers you go to (weapon masters, riding...), by level, with their cost, and a box to search them. They're read at each visit to your trainer, for every character of your class: visit it once, with any of them, after turning this on."] =
-		"Mais uma aba no teu spellbook, a seguir às do jogo: ao carregares nela, vês os feitiços que ainda tens para aprender no treinador da tua classe e nos outros treinadores onde vais (de armas, de montadas...), por nível, com o custo, e uma caixa para os procurar. São lidos em cada visita ao treinador, para todas as personagens da tua classe: visita-o uma vez, com qualquer uma delas, depois de ligares isto.",
-	["Trainer: the spells still to learn"] = "Treinador: os feitiços que faltam aprender",
-	["Spells to learn"] = "Feitiços para aprender",
-	["From your last visit to your trainer: %s."] = "Da tua última visita ao treinador: %s.",
-	["From your last visit to your trainer."] = "Da tua última visita ao treinador.",
-	["From %s's last visit to the class trainer: %s."] = "Da última visita de %s ao treinador da classe: %s.",
-	["From %s's last visit to the class trainer."] = "Da última visita de %s ao treinador da classe.",
-	["Nothing known yet: visit your class trainer once, with any character of this class, and its spells show here."] =
-		"Ainda não se sabe nada: visita uma vez o treinador da tua classe, com qualquer personagem desta classe, e os feitiços dele aparecem aqui.",
-	["Nothing left to learn at your trainer."] = "Já não há nada para aprender no teu treinador.",
-	["And also: %s."] = "E também: %s.",
-	["Search a spell"] = "Procurar um feitiço",
-	["No spell has \"%s\" in its name."] = "Nenhum feitiço tem \"%s\" no nome.",
-	["You can learn now: %s"] = "Podes aprender já: %s",
-	["All of the list: %s"] = "Toda a lista: %s",
-	["Level %d: you can learn these now"] = "Nível %d: podes aprender estes já",
-	["Level %d"] = "Nível %d",
-	["Level %d, at your class trainer: %s"] = "Nível %d, no treinador da tua classe: %s",
 	["A Trainer tab in the spellbook (Trainer page): the spells still to learn at your trainer, by level, with their cost."] =
 		"Uma aba Treinador no spellbook (página Treinador): os feitiços que ainda tens para aprender no treinador, por nível, com o custo.",
 	["New ranks on the action bars"] = "Ranks novos nas barras de ação",

@@ -15,9 +15,7 @@ This link always gives the newest version. Don't use the green **Code → Downlo
 - **Proc Alerts:** the game's spell alert art beside your character when a proc happens, for every class and in combat too. Abilities that become usable can also make their action button glow. You can move the alerts, choose their look and animation, and test each one.
 - **Trainer:**
   - Tick the spells you want at your class trainer, then learn only those.
-  - A **Trainer tab in your spellbook** shows the spells still to learn, by level, with their cost. It has a search box and the total cost. It covers every trainer you visit (class, weapon master, riding...), and all characters of a class share it.
   - A new rank you learn takes the place of the old one on your action bars.
-  - The chat tells you when you reach the level of new spells.
 - **Missing Buffs:** the buffs and conjured items your character should have show faded on the screen while they're missing. Click one to cast or conjure it (out of combat).
 - **Supplies:** macros that eat and drink the best food and drink in your bags, kept up to date by the addon.
 - **Error Messages:** hide the game's red messages you don't want (their sound still plays), and silence their voice.

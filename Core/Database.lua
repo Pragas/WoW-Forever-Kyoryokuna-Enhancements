@@ -85,16 +85,11 @@ ns.DEFAULTS = {
 		muteVoice = false,
 	},
 
-	-- The class trainer (Modules\Trainer.lua): a box on each spell to choose the ones learned, and the new
-	-- spells told at each level. The trainer's list is kept for each character, in characters, and whole
-	-- for each class, in trainerClasses (for its characters that haven't been to the trainer). A new rank
+	-- The class trainer (Modules\Trainer.lua): a box on each spell to choose the ones learned. A new rank
 	-- learned takes the place of the one before on the action bars (Modules\NewRanks.lua).
 	trainer = {
 		choose = false,
-		notify = false,
 		newRanks = false,
-		-- A tab in the spellbook with the spells still to learn (Modules\SpellbookTab.lua)
-		spellbookTab = false,
 	},
 
 	-- Quest items sparkling in the world (Modules\QuestSparkles.lua)
@@ -268,74 +263,13 @@ local function ValidateSection(name, saved, defaults)
 	end
 end
 
--- A trainer's list kept ("Name\tRank" -> the level it needs, its cost, icon and spell, and an ability it
--- needs that the trainer doesn't teach), made right in place (Modules\Trainer.lua)
-local function ValidateTrainerSpells(spells)
-	for key, data in pairs(spells) do
-		-- At first only the level was kept
-		if type(data) == "number" then
-			data = {level = data}
-			spells[key] = data
-		end
-		if type(key) ~= "string" or type(data) ~= "table" or type(data.level) ~= "number" then
-			spells[key] = nil
-		else
-			if type(data.cost) ~= "number" then data.cost = 0 end
-			if type(data.icon) ~= "number" and type(data.icon) ~= "string" then data.icon = nil end
-			if type(data.id) ~= "number" then data.id = nil end
-			if type(data.requires) ~= "string" then data.requires = nil end
-			-- The trainer that teaches it, and its group on that trainer's window
-			if type(data.from) ~= "string" then data.from = nil end
-			if type(data.category) ~= "string" then data.category = nil end
-		end
-	end
-end
-
--- Before each spell said its trainer, a list had one visit ({name, zone, by}): its spells are that
--- trainer's. Gives that trainer's name, place and who went, and takes the old visit away.
-local function OldVisit(spells, visit)
-	if type(visit) ~= "table" or type(visit.name) ~= "string" then return nil end
-	for _, data in pairs(spells) do
-		if type(data) == "table" and data.from == nil then data.from = visit.name end
-	end
-	return visit.name, type(visit.zone) == "string" and visit.zone or nil, type(visit.by) == "string" and visit.by or nil
-end
-
 local function Validate(db)
+	-- (Gone with them: the trainer's lists of each class, "trainerClasses", kept before 0.14.0 for the new
+	-- spells told in the chat and the spellbook's Trainer tab)
 	for name in pairs(db) do
 		if type(db[name]) == "table" and not ns.DEFAULTS[name] and name ~= "errors" and name ~= "backups" and name ~= "characters"
-			and name ~= "procScan" and name ~= "diagnostics" and name ~= "trainerClasses" then
+			and name ~= "procScan" and name ~= "diagnostics" then
 			db[name] = nil
-		end
-	end
-	-- The trainer's whole list of each class ("MAGE"), from the last visit of any of its characters
-	if db.trainerClasses ~= nil and type(db.trainerClasses) ~= "table" then db.trainerClasses = nil end
-	for class, list in pairs(db.trainerClasses or {}) do
-		if type(class) ~= "string" or type(list) ~= "table" or type(list.spells) ~= "table" then
-			db.trainerClasses[class] = nil
-		else
-			ValidateTrainerSpells(list.spells)
-			-- The trainers visited: name -> {zone, by (the character who went)}
-			if type(list.visits) ~= "table" then list.visits = {} end
-			local oldName, oldZone, oldBy = OldVisit(list.spells, list.visit)
-			if oldName then
-				list.visits[oldName] = {zone = oldZone, by = oldBy}
-				if list.complete == true then list.complete = {[oldName] = true} end
-			end
-			list.visit = nil
-			for name, info in pairs(list.visits) do
-				if type(name) ~= "string" or type(info) ~= "table" then
-					list.visits[name] = nil
-				else
-					if type(info.zone) ~= "string" then info.zone = nil end
-					if type(info.by) ~= "string" then info.by = nil end
-				end
-			end
-			-- The trainers whose learned spells it has (read once with their "Used" filter)
-			if type(list.complete) ~= "table" then list.complete = nil end
-			for name, on in pairs(list.complete or {}) do
-				if type(name) ~= "string" or on ~= true then list.complete[name] = nil end
-			end
 		end
 	end
 	-- Before the choice of animations, the proc alerts had a "Pulse" check: on, it's the pulse now
@@ -390,24 +324,9 @@ local function Validate(db)
 			for key, on in pairs(entry.supplies) do
 				if (key ~= "FOOD" and key ~= "DRINK" and key ~= "BOTH") or on ~= true then entry.supplies[key] = nil end
 			end
-			-- Its trainer's list from the last visit: each spell not learned yet ("Name\tRank") with the
-			-- level it needs, its cost, icon and spell; and that trainer's name and place (Modules\Trainer.lua)
-			if type(entry.trainer) ~= "table" then
-				entry.trainer = nil
-			else
-				ValidateTrainerSpells(entry.trainer)
-			end
-			-- The trainers it has been to: name -> place ("" when unknown)
-			if type(entry.trainerVisits) ~= "table" then entry.trainerVisits = nil end
-			local oldName, oldZone = OldVisit(entry.trainer or {}, entry.trainerVisit)
-			if oldName then
-				entry.trainerVisits = entry.trainerVisits or {}
-				entry.trainerVisits[oldName] = oldZone or ""
-			end
-			entry.trainerVisit = nil
-			for name, zone in pairs(entry.trainerVisits or {}) do
-				if type(name) ~= "string" or type(zone) ~= "string" then entry.trainerVisits[name] = nil end
-			end
+			-- Its trainer's list and the trainers it had been to, kept before 0.14.0 for the new spells told
+			-- in the chat and the spellbook's Trainer tab: gone with them
+			entry.trainer, entry.trainerVisits, entry.trainerVisit = nil, nil, nil
 		end
 	end
 	db.version = DB_VERSION
@@ -468,9 +387,6 @@ function ns.OnSettingChanged(path)
 	if path:find("^queueTimer%.") and ns.QueueTimer then ns.QueueTimer.Refresh() end
 	if path:find("^errorMessages%.") and ns.ErrorMessages then ns.ErrorMessages.Apply() end
 	if path:find("^trainer%.") and ns.Trainer then ns.Trainer.Apply() end
-	-- The trainer's page shows the spells waiting only while they're kept
-	if (path == "trainer.notify" or path == "trainer.spellbookTab") and ns.RebuildOptionsPage then ns.RebuildOptionsPage("Trainer") end
-	if path == "trainer.spellbookTab" and ns.SpellbookTab then ns.SpellbookTab.Apply() end
 	if path:find("^questSparkles%.") and ns.QuestSparkles then ns.QuestSparkles.Apply() end
 	if path:find("^performance%.") and ns.Performance then ns.Performance.Update() end
 	-- missingBuffs, missingBuffsEssential, missingBuffsUtility
@@ -495,7 +411,6 @@ function ns.OnAllSettingsChanged()
 	if ns.QueueTimer then ns.QueueTimer.Refresh() end
 	if ns.ErrorMessages then ns.ErrorMessages.Apply() end
 	if ns.Trainer then ns.Trainer.Apply() end
-	if ns.SpellbookTab then ns.SpellbookTab.Apply() end
 	if ns.QuestSparkles then ns.QuestSparkles.Apply() end
 	if ns.Performance then ns.Performance.Update() end
 	if ns.MissingBuffs then ns.MissingBuffs.Update() end
