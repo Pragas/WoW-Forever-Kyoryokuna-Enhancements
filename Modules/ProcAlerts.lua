@@ -353,13 +353,8 @@ end
 -- Animations ---------------------------------------------------------------------------------------
 
 -- While a proc is there its art can move (each player picks, for every proc; only a proc whose moving says
--- it's at its most waits for those stacks): one cycle lasts the time asked, and the strength (%) is how
--- much it changes:
---   PULSE    grows and comes back (by the strength; 8% in 1 second is the game's own spell alerts)
---   BREATHE  fades a little and comes back, its size never changes (3 times the strength, in %)
---   BLINK    fades out fast and comes back, then waits (4 times the strength, in %)
---   FLOAT    rises and comes back down (1.5 pixels per % of strength)
--- And it can appear softly (a fade-in) instead of at once.
+-- it's at its most waits for those stacks), as Core\Effects.lua says: on the frame for a size or a place,
+-- on the art for its light. And it can appear softly (a fade-in) instead of at once.
 local FADE_IN_TIME = 0.25
 
 local function AnimationSettings(overlay)
@@ -368,76 +363,13 @@ local function AnimationSettings(overlay)
 	return settings.animation or "NONE", settings.animTime or 1, (settings.animStrength or 8) / 100
 end
 
-local function Step(group, kind, duration, order, a, b)
-	local step = group:CreateAnimation(kind)
-	step:SetDuration(duration)
-	step:SetSmoothing("IN_OUT")
-	step:SetOrder(order)
-	if kind == "Scale" then
-		-- From one size to another (the game's older way: a size relative to the last)
-		if step.SetScale then
-			step:SetScale(b / a, b / a)
-		else
-			step:SetScaleFrom(a, a)
-			step:SetScaleTo(b, b)
-		end
-	elseif kind == "Alpha" then
-		step:SetFromAlpha(a)
-		step:SetToAlpha(b)
-	elseif kind == "Translation" then
-		step:SetOffset(0, b - a)
-	end
-	return step
-end
-
--- The animation for these settings, made once for each (an animation can't be changed once made):
--- on the frame for a size or a place, on the art for its light
-local function MakeAnimation(frame, art, kind, time, strength)
-	local half = time / 2
-	if kind == "PULSE" then
-		local group = frame:CreateAnimationGroup()
-		Step(group, "Scale", half, 1, 1, 1 + strength)
-		Step(group, "Scale", half, 2, 1 + strength, 1)
-		return group
-	elseif kind == "BREATHE" then
-		local low = math.max(0.1, 1 - strength * 3)
-		local group = art:CreateAnimationGroup()
-		Step(group, "Alpha", half, 1, 1, low)
-		Step(group, "Alpha", half, 2, low, 1)
-		return group
-	elseif kind == "BLINK" then
-		local low = math.max(0.1, 1 - strength * 4)
-		local group = art:CreateAnimationGroup()
-		Step(group, "Alpha", time * 0.15, 1, 1, low)
-		Step(group, "Alpha", time * 0.15, 2, low, 1)
-		Step(group, "Alpha", time * 0.7, 3, 1, 1)
-		return group
-	elseif kind == "FLOAT" then
-		local height = strength * 100 * 1.5
-		local group = frame:CreateAnimationGroup()
-		Step(group, "Translation", half, 1, 0, height)
-		Step(group, "Translation", half, 2, height, 0)
-		return group
-	end
-end
-
 -- Stops what the art did, and starts what it must do now (nothing when it stays still)
 local function Animate(frame, art, overlay, playing)
-	if frame.animation then frame.animation:Stop() end
-	frame.animation = nil
-	if not playing then return end
-	local kind, time, strength = AnimationSettings(overlay)
-	if kind == "NONE" then return end
-	frame.animations = frame.animations or {}
-	local key = kind .. ":" .. time .. ":" .. strength
-	if not frame.animations[key] then
-		local group = MakeAnimation(frame, art, kind, time, strength)
-		if not group then return end
-		group:SetLooping("REPEAT")
-		frame.animations[key] = group
+	if not playing then
+		ns.Effects.Play(frame, frame, art, "NONE")
+		return
 	end
-	frame.animation = frame.animations[key]
-	frame.animation:Play()
+	ns.Effects.Play(frame, frame, art, AnimationSettings(overlay))
 end
 
 -- The soft appearance: from nothing to whole, quickly (when asked)
@@ -501,21 +433,17 @@ local BAR_BUTTONS = {
 	"ActionButton", "MultiBarBottomLeftButton", "MultiBarBottomRightButton", "MultiBarRightButton",
 	"MultiBarLeftButton", "MultiBar5Button", "MultiBar6Button", "MultiBar7Button",
 }
-local GLOW_ART = "Interface\\SpellActivationOverlay\\IconAlert"
-local ANTS_ART = "Interface\\SpellActivationOverlay\\IconAlertAnts"
--- The ants: 22 pictures of 48 x 48 in a 256 x 256 sheet, 5 to a row
-local ANTS_FRAMES, ANTS_SIZE, ANTS_SHEET, ANTS_STEP = 22, 48, 256, 0.03
+-- (the art and its ants: Core\Effects.lua)
+local Effects = ns.Effects
 
 local glows = {}
 
 local function AnimateAnts(glow, elapsed)
 	glow.elapsed = (glow.elapsed or 0) + elapsed
-	if glow.elapsed < ANTS_STEP then return end
+	if glow.elapsed < Effects.ANTS_STEP then return end
 	glow.elapsed = 0
-	glow.step = ((glow.step or 0) + 1) % ANTS_FRAMES
-	local column, row = glow.step % 5, math.floor(glow.step / 5)
-	local size = ANTS_SIZE / ANTS_SHEET
-	glow.ants:SetTexCoord(column * size, (column + 1) * size, row * size, (row + 1) * size)
+	glow.step = ((glow.step or 0) + 1) % Effects.ANTS_FRAMES
+	glow.ants:SetTexCoord(Effects.AntsCoords(glow.step))
 end
 
 local function GetGlow(button)
@@ -526,16 +454,17 @@ local function GetGlow(button)
 	glow:EnableMouse(false)
 	local width, height = button:GetSize()
 	width, height = Known(width) or 36, Known(height) or 36
-	glow:SetPoint("TOPLEFT", button, "TOPLEFT", -width * 0.2, height * 0.2)
-	glow:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", width * 0.2, -height * 0.2)
+	local reach = Effects.GLOW_REACH
+	glow:SetPoint("TOPLEFT", button, "TOPLEFT", -width * reach, height * reach)
+	glow:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", width * reach, -height * reach)
 	glow.outer = glow:CreateTexture(nil, "ARTWORK")
-	glow.outer:SetTexture(GLOW_ART)
-	glow.outer:SetTexCoord(0.0078125, 0.5078125, 0.27734375, 0.52734375)
+	glow.outer:SetTexture(Effects.GLOW_ART)
+	glow.outer:SetTexCoord(unpack(Effects.GLOW_COORDS))
 	glow.outer:SetAllPoints(glow)
 	glow.ants = glow:CreateTexture(nil, "OVERLAY")
-	glow.ants:SetTexture(ANTS_ART)
+	glow.ants:SetTexture(Effects.ANTS_ART)
 	glow.ants:SetPoint("CENTER", glow, "CENTER", 0, 0)
-	glow.ants:SetSize(width * 1.4 * 0.85, height * 1.4 * 0.85)
+	glow.ants:SetSize(width * Effects.ANTS_SCALE, height * Effects.ANTS_SCALE)
 	glow:SetScript("OnUpdate", AnimateAnts)
 	glow:Hide()
 	glows[button] = glow

@@ -32,6 +32,23 @@ local COUNT_POSITIONS = {
 	{value = "TOPLEFT", text = "Top left corner"},
 }
 
+-- As the proc alerts' (Core\Effects.lua)
+local ANIMATIONS = {
+	{value = "NONE", text = "None"},
+	{value = "PULSE", text = "Pulse"},
+	{value = "BREATHE", text = "Breathe"},
+	{value = "BLINK", text = "Blink"},
+	{value = "FLOAT", text = "Float"},
+}
+
+local GLOWS = {
+	{value = "NONE", text = "None"},
+	{value = "GLOW", text = "The game's glow"},
+	{value = "ANTS", text = "Moving outline"},
+	{value = "BOTH", text = "Glow and moving outline"},
+	{value = "BORDER", text = "Border of a color"},
+}
+
 ns.AddOptionsPage(PAGE, function(b)
 	local MB = ns.MissingBuffs
 	local on = W.IsOn("missingBuffs.enabled")
@@ -165,6 +182,16 @@ ns.AddOptionsPage(PAGE, function(b)
 		b:Check(section .. ".showZero", "Show the number when there are none", "The number on a conjured item's icon is how many your bags hold. Off, an item you have none of shows no number.", on)
 		b:Dropdown(section .. ".countPosition", "Number position", COUNT_POSITIONS, "Where the number of a conjured item goes on its icon.", on)
 		b:Slider(section .. ".countSize", "Number size", 1, nil, "How big the number of a conjured item is on its icon.", on)
+		-- How the icons move, as the proc alerts can, and what surrounds them
+		b:Dropdown(section .. ".animation", "Animation", ANIMATIONS, "How the icons move while they show.", on)
+		local moves = W.All(on, function() return ns.Get(section .. ".animation") ~= "NONE" end)
+		b:Slider(section .. ".animTime", "Speed (one cycle)", 0.1, " s", "How long one cycle lasts: less is faster. The game's own spell alerts take 1 second.", moves)
+		b:Slider(section .. ".animStrength", "Strength", 1, "%", "How much it changes: how much it grows (Pulse), fades (Breathe, Blink) or rises (Float).", moves)
+		b:Dropdown(section .. ".glow", "Glow", GLOWS, "What surrounds the icons: the glow of the game's spell alerts, its moving outline, both, or a border of a color.", on)
+		local glows = W.All(on, function() return ns.Get(section .. ".glow") ~= "NONE" end)
+		b:Color(section .. ".glowColor", "Glow color", "The color of the glow, the outline or the border.", glows)
+		local border = W.All(on, function() return ns.Get(section .. ".glow") == "BORDER" end)
+		b:Slider(section .. ".borderSize", "Border size", 1, " px", "How thick the border of a color is.", border)
 	end
 	Look("Essential group", "missingBuffsEssential")
 	Look("Utility group", "missingBuffsUtility")

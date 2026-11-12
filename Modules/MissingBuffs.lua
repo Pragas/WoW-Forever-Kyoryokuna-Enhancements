@@ -23,6 +23,8 @@
 
 local _, ns = ...
 local L = ns.L
+-- How the icons move and what surrounds them (shared with the proc alerts)
+local Effects = ns.Effects
 
 local MissingBuffs = {}
 ns.MissingBuffs = MissingBuffs
@@ -643,8 +645,10 @@ local function CountItems(choice)
 	return total
 end
 
--- An icon of the groups: its frame, a thin black border, the spell's icon (grey) and a number (items).
--- Only textures and text in it (no frames), so it can be made with a template that keeps scripts away
+-- An icon of the groups: its frame, a thin black border, the spell's icon (grey), a number (items), and
+-- what may surround it (its group's choice, hidden until then): the game's glow, its moving outline, a
+-- border of a color. Only textures and text in it (no frames), so it can be made with a template that
+-- keeps scripts away
 local function MakeIcon(parent, template)
 	local icon = CreateFrame("Frame", nil, parent, template)
 	-- A thin black border around the icon, cut a little so the game's own edge doesn't show
@@ -657,12 +661,82 @@ local function MakeIcon(parent, template)
 	icon.texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 	-- Grey, so it never looks like something that's there: it's something to do
 	icon.texture:SetDesaturated(true)
-	-- How many of an item there are
+	-- The game's glow and its moving outline (Core\Effects.lua), grey so the color asked tints them
+	icon.glow = icon:CreateTexture(nil, "OVERLAY")
+	icon.glow:SetTexture(Effects.GLOW_ART)
+	icon.glow:SetTexCoord(unpack(Effects.GLOW_COORDS))
+	icon.glow:SetDesaturated(true)
+	icon.glow:Hide()
+	icon.ants = icon:CreateTexture(nil, "OVERLAY", nil, 1)
+	icon.ants:SetTexture(Effects.ANTS_ART)
+	icon.ants:SetTexCoord(Effects.AntsCoords(0))
+	icon.ants:SetDesaturated(true)
+	icon.ants:SetPoint("CENTER", icon, "CENTER", 0, 0)
+	icon.ants:Hide()
+	-- A border of a color: four edges over the icon's own edge (top, bottom, left, right)
+	icon.edges = {}
+	for i = 1, 4 do
+		icon.edges[i] = icon:CreateTexture(nil, "OVERLAY", nil, 2)
+		icon.edges[i]:Hide()
+	end
+	-- How many of an item there are (over everything)
 	icon.count = icon:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+	icon.count:SetDrawLayer("OVERLAY", 7)
 	icon.count:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -2, 2)
 	-- The game's number font and its outline, kept to give it the size of the settings
 	icon.countFont, _, icon.countFlags = icon.count:GetFont()
+	-- Its textures, fitted to the screen's pixels as the game does unless it moves (see SetSmooth)
+	icon.textures = {icon.border, icon.texture, icon.glow, icon.ants, unpack(icon.edges)}
+	icon.snapBias = icon.texture.GetTexelSnappingBias and icon.texture:GetTexelSnappingBias()
 	return icon
+end
+
+-- While an icon grows or floats, its textures aren't fitted to the screen's pixels (as the game does for
+-- its own health bars): fitted, an icon this small grows in jumps of a whole pixel, not smoothly. Still
+-- (or only fading), they're fitted again, sharp.
+local function SetSmooth(icon, smooth)
+	if icon.smooth == smooth then return end
+	icon.smooth = smooth
+	for _, texture in ipairs(icon.textures) do
+		if texture.SetSnapToPixelGrid then
+			if smooth then texture:SetTexelSnappingBias(0) elseif icon.snapBias then texture:SetTexelSnappingBias(icon.snapBias) end
+			texture:SetSnapToPixelGrid(not smooth)
+		end
+	end
+end
+
+-- What surrounds an icon, as its group's settings say, at its size: the game's glow (reaching out of the
+-- icon), its moving outline, both, or a border of a color over the icon's edge. True when its outline
+-- moves (the ants: moved all together, see MoveAnts)
+local function SetGlow(icon, settings, size)
+	local style = settings.glow
+	local r, g, b = ns.Unpack(settings.glowColor)
+	local reach = size * Effects.GLOW_REACH
+	icon.glow:ClearAllPoints()
+	icon.glow:SetPoint("TOPLEFT", icon, "TOPLEFT", -reach, reach)
+	icon.glow:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", reach, -reach)
+	icon.glow:SetVertexColor(r, g, b)
+	icon.glow:SetShown(style == "GLOW" or style == "BOTH")
+	local ants = style == "ANTS" or style == "BOTH"
+	icon.ants:SetSize(size * Effects.ANTS_SCALE, size * Effects.ANTS_SCALE)
+	icon.ants:SetVertexColor(r, g, b)
+	icon.ants:SetShown(ants)
+	local thickness = settings.borderSize
+	local top, bottom, left, right = icon.edges[1], icon.edges[2], icon.edges[3], icon.edges[4]
+	for _, edge in ipairs(icon.edges) do
+		edge:ClearAllPoints()
+		edge:SetColorTexture(r, g, b, 1)
+		edge:SetShown(style == "BORDER")
+	end
+	top:SetPoint("TOPLEFT", icon, "TOPLEFT", 0, 0)
+	top:SetPoint("BOTTOMRIGHT", icon, "TOPRIGHT", 0, -thickness)
+	bottom:SetPoint("TOPLEFT", icon, "BOTTOMLEFT", 0, thickness)
+	bottom:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 0, 0)
+	left:SetPoint("TOPLEFT", icon, "TOPLEFT", 0, 0)
+	left:SetPoint("BOTTOMRIGHT", icon, "BOTTOMLEFT", thickness, 0)
+	right:SetPoint("TOPLEFT", icon, "TOPRIGHT", -thickness, 0)
+	right:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 0, 0)
+	return ants
 end
 
 -- Buffs the game hides in combat ---------------------------------------------------------------------
@@ -677,7 +751,8 @@ end
 --     their own frames to such a container, if they're made with DisableUntrustedLayoutScriptsTemplate
 --     (their layout scripts then never run, so they can't learn its size);
 --   - the buff's own icon is such a frame, tied to the container's right side, inside a "window" of its
---     group (a frame that only shows what's within it), where the container starts too;
+--     group (in it, a frame that only shows what's within it, a little larger for the icon's glow, and
+--     that moves as the group's animation asks), where the container starts too;
 --   - while the buff is on, the container is wide and pushes the icon far out of its window: unseen;
 --     when it goes, the container is 1 wide and the icon sits in its window: seen at once.
 --   The container is never seen (no alpha): the game's frames in it, never touched, show the buff's icon.
@@ -726,6 +801,17 @@ local function MakeContainer(spells)
 	return container
 end
 
+-- The room around a buff's own icon in its window, for its glow (what reaches out of an icon of this
+-- size): what's seen of it starts that much before the window and ends that much after
+local function SetPad(window, size)
+	local pad = math.ceil(size * Effects.GLOW_REACH) + 2
+	local clip = window.clip
+	clip:ClearAllPoints()
+	clip:SetPoint("TOPLEFT", window, "TOPLEFT", -pad, pad)
+	clip:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", pad, -pad)
+	clip.pad = pad
+end
+
 -- A buff's own icon, moved by the game: its window (what the groups place), made the first time out of
 -- combat (its spells changed when a new rank is learned); nil without one
 local function GameIcon(choice, texture, parent)
@@ -754,13 +840,18 @@ local function GameIcon(choice, texture, parent)
 		return nil
 	end
 	gameNote = "made"
-	-- The window, in its group: only what's within it is seen
+	-- The window, in its group (the place of an icon)
 	local window = CreateFrame("Frame", nil, parent or UIParent)
-	window:SetClipsChildren(true)
 	window:SetSize(40, 40)
 	window:Hide()
+	-- In it, what's seen: only what's within this frame, a little larger than the window so the icon's
+	-- glow shows; it's what moves (its group's animation), the icon with it
+	local clip = CreateFrame("Frame", nil, window)
+	clip:SetClipsChildren(true)
+	window.clip, window.inner = clip, clip
+	SetPad(window, 40)
 	-- The icon, made so the game lets it be tied to its container
-	local face = MakeIcon(window, "DisableUntrustedLayoutScriptsTemplate")
+	local face = MakeIcon(clip, "DisableUntrustedLayoutScriptsTemplate")
 	face:SetSize(40, 40)
 	face.texture:SetTexture(texture)
 	local ok, problem = pcall(function()
@@ -809,10 +900,11 @@ local function GameIconState(choice)
 		tostring(known.window:IsVisible()))
 end
 
--- Every buff's own icon (hidden before each layout; the ones in use are shown again)
-local function HideGameIcons()
+-- Every buff's own icon not in use (all without a list): never hidden and shown again in one go, which
+-- would stop its animation
+local function HideGameIcons(inUse)
 	for _, known in pairs(gameIcons) do
-		if known.window then known.window:Hide() end
+		if known.window and not (inUse and inUse[known.window]) then known.window:Hide() end
 	end
 end
 
@@ -899,13 +991,88 @@ local function GetHolder(group)
 	return holder
 end
 
+-- An icon of a group: its place (and the group's opacity), and in it what's seen, which moves as the
+-- group's animation asks (its inner part, as a buff's own icon has)
 local function GetIcon(group, index)
 	local list = icons[group]
 	local icon = list[index]
 	if icon then return icon end
-	icon = MakeIcon(GetHolder(group))
+	icon = CreateFrame("Frame", nil, GetHolder(group))
+	local face = MakeIcon(icon)
+	face:SetAllPoints(icon)
+	icon.face, icon.inner = face, face
+	icon.texture, icon.count, icon.countFont, icon.countFlags = face.texture, face.count, face.countFont, face.countFlags
 	list[index] = icon
 	return icon
+end
+
+-- The moving outlines shown, by group: one clock moves them all, in step, while there are any
+local antsShown = {}
+local antsClock
+
+local function MoveAnts(group, list)
+	antsShown[group] = list
+	local any = false
+	for _, shown in pairs(antsShown) do
+		if #shown > 0 then any = true end
+	end
+	if any and not antsClock then
+		antsClock = CreateFrame("Frame")
+		antsClock:SetScript("OnUpdate", function(self, elapsed)
+			self.elapsed = (self.elapsed or 0) + elapsed
+			if self.elapsed < Effects.ANTS_STEP then return end
+			self.elapsed = 0
+			self.step = ((self.step or 0) + 1) % Effects.ANTS_FRAMES
+			local left, right, top, bottom = Effects.AntsCoords(self.step)
+			for _, shown in pairs(antsShown) do
+				for _, ants in ipairs(shown) do ants:SetTexCoord(left, right, top, bottom) end
+			end
+		end)
+	end
+	if antsClock then antsClock:SetShown(any) end
+end
+
+-- The animation of a group's icons (its settings), on each one's inner part. When one starts (an icon
+-- newly shown, or the settings changed), all of the group's start again, so they move in step; the ones
+-- gone stop. playing: by group, {icon = what it plays}
+local playing = {}
+
+local function AnimateGroup(group, list, settings)
+	local kind, time, strength = settings.animation, settings.animTime, settings.animStrength / 100
+	local key = kind .. ":" .. time .. ":" .. strength
+	local before, now, restart = playing[group] or {}, {}, false
+	for _, icon in ipairs(list) do
+		now[icon] = key
+		if before[icon] ~= key or (kind ~= "NONE" and not (icon.animation and icon.animation:IsPlaying())) then
+			restart = true
+		end
+	end
+	-- (an icon gone to the other group is that group's now)
+	for icon in pairs(before) do
+		if not now[icon] and icon.animGroup == group then
+			Effects.Play(icon, icon.inner, icon.inner, "NONE")
+			icon.animGroup = nil
+		end
+	end
+	if restart then
+		for _, icon in ipairs(list) do
+			Effects.Play(icon, icon.inner, icon.inner, kind, time, strength)
+			icon.animGroup = group
+		end
+	end
+	playing[group] = now
+end
+
+-- Every icon still, and no outline moving (nothing shown)
+local function StopEffects()
+	for group, list in pairs(playing) do
+		for icon in pairs(list) do
+			if icon.animGroup == group then Effects.Play(icon, icon.inner, icon.inner, "NONE") end
+			icon.animGroup = nil
+		end
+	end
+	playing = {}
+	for group in pairs(antsShown) do MoveAnts(group, {}) end
 end
 
 -- shown: {{texture, count}} in order
@@ -918,17 +1085,24 @@ local function Layout(group, shown)
 	if growth == "UP" or growth == "DOWN" then frame:SetSize(size, length) else frame:SetSize(length, size) end
 	frame:ClearAllPoints()
 	frame:SetPoint(ANCHORS[growth] or "CENTER", UIParent, "CENTER", settings.x, settings.y)
+	-- The icons shown (their animation) and their moving outlines
+	local placed, ants = {}, {}
 	for i, info in ipairs(shown) do
 		-- A buff's own icon (its window, the icon in it moved by the game) in place of the group's
 		local icon = info.own or GetIcon(group, i)
 		if info.own then
 			if icon:GetParent() ~= frame then icon:SetParent(frame) end
 			if icons[group][i] then icons[group][i]:Hide() end
+			-- Room in its window for its glow
+			SetPad(icon, size)
 		end
-		local face = icon.face or icon
+		local face = icon.face
 		local offset = (i - 1) * (size + gap)
 		icon:SetSize(size, size)
-		if face ~= icon then face:SetSize(size, size) end
+		face:SetSize(size, size)
+		if SetGlow(face, settings, size) then ants[#ants + 1] = face.ants end
+		SetSmooth(face, settings.animation == "PULSE" or settings.animation == "FLOAT")
+		placed[#placed + 1] = icon
 		icon:ClearAllPoints()
 		if growth == "LEFT" then icon:SetPoint("RIGHT", frame, "RIGHT", -offset, 0)
 		elseif growth == "UP" then icon:SetPoint("BOTTOM", frame, "BOTTOM", 0, offset)
@@ -948,6 +1122,8 @@ local function Layout(group, shown)
 		icon:Show()
 	end
 	for i = total + 1, #icons[group] do icons[group][i]:Hide() end
+	MoveAnts(group, ants)
+	AnimateGroup(group, placed, settings)
 	frame.mover:SetShown(moving)
 	frame.hint:SetShown(moving)
 	frame.hint:SetText(L[HINTS[group]])
@@ -1072,6 +1248,7 @@ local function HideAll()
 	for _, holder in pairs(holders) do holder:Hide() end
 	SyncClickers({})
 	HideGameIcons()
+	StopEffects()
 end
 
 -- The weapons as last read (kept while the game hides them), and the check when the first enchant ends
@@ -1165,7 +1342,12 @@ function MissingBuffs.Update()
 	lastActive = active
 	local settings = ns.db.missingBuffs
 	local targets = {}
-	HideGameIcons()
+	-- The buffs' own icons in use now; the others put away
+	local inUse = {}
+	for _, list in pairs(byGame) do
+		for _, info in ipairs(list) do inUse[info.own] = true end
+	end
+	HideGameIcons(inUse)
 	for group, list in pairs(shown) do
 		for _, info in ipairs(byGame[group]) do list[#list + 1] = info end
 		if moving and #list == 0 then list[1] = {texture = PLACEHOLDER_ICON} end
@@ -1215,6 +1397,7 @@ function MissingBuffs.TestGameIcons(seconds)
 				window:SetPoint("CENTER", holder, "CENTER", 0, 0)
 				window:SetSize(40, 40)
 				known.face:SetSize(40, 40)
+				SetPad(window, 40)
 				window:SetAlpha(1)
 				window:Show()
 				testLabel = testLabel or UIParent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -1329,4 +1512,8 @@ end)
 -- For the tests
 function MissingBuffs.GetHolder(group)
 	return holders[group or ESSENTIAL]
+end
+
+function MissingBuffs.GetAntsClock()
+	return antsClock
 end

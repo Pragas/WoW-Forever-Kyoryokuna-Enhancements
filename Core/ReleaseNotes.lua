@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.16.0",
+		new = {
+			"Missing buffs: each group can move (pulse, breathe, blink or float, with its speed and strength) and glow (the game's glow, its moving outline, both, or a border of a color), in the color you pick.",
+		},
+	},
+	{
 		version = "0.15.2",
 		fixed = {
 			"Missing buffs: on the options page, a family's icon (for example a shaman's weapon imbues) is the one shown on the screen, the one you picked or the one you used last (it always showed its first spell).",

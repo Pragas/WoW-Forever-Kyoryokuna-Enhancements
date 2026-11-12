@@ -186,6 +186,15 @@ ns.DEFAULTS = {
 		showZero = false,
 		countPosition = "BOTTOMRIGHT",
 		countSize = 14,
+		-- How the icons move while shown (as the proc alerts: NONE, PULSE, BREATHE, BLINK, FLOAT), a cycle's
+		-- length (seconds) and its strength (%); what surrounds them (NONE, GLOW: the game's glow, ANTS: its
+		-- moving outline, BOTH, BORDER: a border of a color), its color, and the border's size (pixels)
+		animation = "NONE",
+		animTime = 1,
+		animStrength = 8,
+		glow = "NONE",
+		glowColor = {1, 0.82, 0},
+		borderSize = 2,
 	},
 	missingBuffsUtility = {
 		iconSize = 32,
@@ -197,12 +206,24 @@ ns.DEFAULTS = {
 		showZero = false,
 		countPosition = "BOTTOMRIGHT",
 		countSize = 14,
+		-- How the icons move while shown (as the proc alerts: NONE, PULSE, BREATHE, BLINK, FLOAT), a cycle's
+		-- length (seconds) and its strength (%); what surrounds them (NONE, GLOW: the game's glow, ANTS: its
+		-- moving outline, BOTH, BORDER: a border of a color), its color, and the border's size (pixels)
+		animation = "NONE",
+		animTime = 1,
+		animStrength = 8,
+		glow = "NONE",
+		glowColor = {1, 0.82, 0},
+		borderSize = 2,
 	},
 }
 
-local GROUP_LIMITS = {iconSize = {20, 80}, alpha = {10, 100}, spacing = {0, 20}, countSize = {8, 40}, x = {-1500, 1500}, y = {-1000, 1000}}
+local GROUP_LIMITS = {iconSize = {20, 80}, alpha = {10, 100}, spacing = {0, 20}, countSize = {8, 40}, x = {-1500, 1500}, y = {-1000, 1000},
+	animTime = {0.5, 3}, animStrength = {2, 20}, borderSize = {1, 6}}
 local GROWTH = {CENTER = true, RIGHT = true, LEFT = true, UP = true, DOWN = true}
 local COUNT_POSITIONS = {BOTTOMRIGHT = true, BOTTOMLEFT = true, CENTER = true, TOPRIGHT = true, TOPLEFT = true}
+local ANIMATIONS = {NONE = true, PULSE = true, BREATHE = true, BLINK = true, FLOAT = true}
+local GLOWS = {NONE = true, GLOW = true, ANTS = true, BOTH = true, BORDER = true}
 -- How an ability with art warns: its art, its button glowing, or both
 local ALERT_KINDS = {ART = true, BUTTON = true, BOTH = true}
 
@@ -223,11 +244,11 @@ ns.CHOICES = {
 	general = {language = {enUS = true, ptPT = true}},
 	actionBars = {keyPressStyle = {FLASH = true, BORDER = true}},
 	experienceBar = {texture = {FLAT = true, SMOOTH = true, CLASSIC = true, RAID = true}},
-	missingBuffsEssential = {growth = GROWTH, countPosition = COUNT_POSITIONS},
-	missingBuffsUtility = {growth = GROWTH, countPosition = COUNT_POSITIONS},
+	missingBuffsEssential = {growth = GROWTH, countPosition = COUNT_POSITIONS, animation = ANIMATIONS, glow = GLOWS},
+	missingBuffsUtility = {growth = GROWTH, countPosition = COUNT_POSITIONS, animation = ANIMATIONS, glow = GLOWS},
 	supplies = {bothIcon = {FOOD = true, DRINK = true}},
 	procAlerts = {victoryRushAlert = ALERT_KINDS, riposteAlert = ALERT_KINDS, mongooseBiteAlert = ALERT_KINDS,
-		animation = {NONE = true, PULSE = true, BREATHE = true, BLINK = true, FLOAT = true}},
+		animation = ANIMATIONS},
 	performance = {show = {BOTH = true, FPS = true, PING = true}, ping = {WORLD = true, HOME = true, BOTH = true}},
 }
 

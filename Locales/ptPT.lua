@@ -7,6 +7,10 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.16.0
+	["Missing buffs: each group can move (pulse, breathe, blink or float, with its speed and strength) and glow (the game's glow, its moving outline, both, or a border of a color), in the color you pick."] =
+		"Buffs em falta: cada grupo pode mexer-se (pulsar, respirar, piscar ou flutuar, com velocidade e intensidade) e brilhar (o brilho do jogo, o contorno em movimento, os dois, ou uma borda de cor), na cor que escolheres.",
+
 	-- Release notes 0.15.2
 	["Missing buffs: on the options page, a family's icon (for example a shaman's weapon imbues) is the one shown on the screen, the one you picked or the one you used last (it always showed its first spell)."] =
 		"Buffs em falta: na página das opções, o ícone de uma família (por exemplo os encantamentos de arma de um shaman) é o que aparece no ecrã, o que escolheste ou o último que usaste (aparecia sempre o do primeiro feitiço).",
@@ -304,6 +308,19 @@ ns.LOCALES.ptPT = {
 	["Where the number of a conjured item goes on its icon."] = "Onde fica o número de um item conjurado no seu ícone.",
 	["Number size"] = "Tamanho do número",
 	["How big the number of a conjured item is on its icon."] = "O tamanho do número de um item conjurado no seu ícone.",
+	-- Each group's animation and glow
+	["How the icons move while they show."] = "Como os ícones se mexem enquanto aparecem.",
+	["Glow"] = "Brilho",
+	["What surrounds the icons: the glow of the game's spell alerts, its moving outline, both, or a border of a color."] =
+		"O que rodeia os ícones: o brilho dos alertas de feitiços do jogo, o contorno em movimento, os dois, ou uma borda de cor.",
+	["The game's glow"] = "Brilho do jogo",
+	["Moving outline"] = "Contorno em movimento",
+	["Glow and moving outline"] = "Brilho e contorno em movimento",
+	["Border of a color"] = "Borda de cor",
+	["Glow color"] = "Cor do brilho",
+	["The color of the glow, the outline or the border."] = "A cor do brilho, do contorno ou da borda.",
+	["Border size"] = "Grossura da borda",
+	["How thick the border of a color is."] = "Quão grossa é a borda de cor.",
 	["Bottom right corner"] = "Canto inferior direito",
 	["Bottom left corner"] = "Canto inferior esquerdo",
 	["Top right corner"] = "Canto superior direito",
