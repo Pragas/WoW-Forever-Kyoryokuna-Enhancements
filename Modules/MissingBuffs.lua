@@ -247,11 +247,41 @@ end
 --   others: every other spell of its spellbook, as a buff
 local suggested, items, others
 
+-- Whether the game may hide an aura from addons (in combat, or always): C_Secrets says so
+local function CanBeHidden(id)
+	if not (C_Secrets and C_Secrets.GetSpellAuraSecrecy and Enum and Enum.SecrecyLevel) then return false end
+	local ok, secrecy = pcall(C_Secrets.GetSpellAuraSecrecy, id)
+	return ok and (secrecy == Enum.SecrecyLevel.ContextuallySecret or secrecy == Enum.SecrecyLevel.AlwaysSecret) or false
+end
+
+-- A buff's spells (spellIDs: every rank known, and the family's own and group versions), and whether the
+-- game may hide it (hidable)
+local function SetSpells(choice, ids)
+	choice.spellIDs = choice.spellIDs or {}
+	for _, id in ipairs(ids) do choice.spellIDs[id] = true end
+end
+
+-- (asked once, when it's first needed: the other spells are many, and few are watched)
+local function Hidable(choice)
+	if choice.hidable == nil then
+		choice.hidable = false
+		for id in pairs(choice.spellIDs or {}) do
+			if CanBeHidden(id) then
+				choice.hidable = true
+				break
+			end
+		end
+	end
+	return choice.hidable
+end
+
 local function BuildChoices()
 	suggested, items, others = {}, {}, {}
 	local inCatalog = {}
 	for _, family in ipairs(BUFFS[playerClass] or {}) do
 		local choice = {key = family.key, kind = "BUFF", group = ESSENTIAL, members = {}, memberIcons = {}, counts = {}}
+		SetSpells(choice, family.spells)
+		SetSpells(choice, family.also or {})
 		for _, id in ipairs(family.spells) do
 			local name = SpellName(id)
 			if name then
@@ -262,6 +292,7 @@ local function BuildChoices()
 					choice.members[#choice.members + 1] = name
 					choice.memberIcons[name] = known.icon or SpellIcon(id)
 					choice.icon = choice.icon or choice.memberIcons[name]
+					SetSpells(choice, known.ids)
 				end
 			end
 		end
@@ -332,8 +363,10 @@ local function BuildChoices()
 	end
 	for name, known in pairs(spellbook) do
 		if not inCatalog[name] then
-			others[#others + 1] = {key = "spell:" .. name, kind = "BUFF", group = ESSENTIAL, label = name, icon = known.icon,
+			local choice = {key = "spell:" .. name, kind = "BUFF", group = ESSENTIAL, label = name, icon = known.icon,
 				members = {name}, memberIcons = {[name] = known.icon}, counts = {[name] = true}}
+			SetSpells(choice, known.ids)
+			others[#others + 1] = choice
 		end
 	end
 	table.sort(others, function(a, b) return a.label < b.label end)
@@ -483,8 +516,10 @@ end
 
 -- What's on the character ------------------------------------------------------------------------------
 
--- The names of the buffs on the character and how many; nil when the game hides them (in combat, the
--- game may make auras secret, or not list them at all)
+-- The names of the buffs on the character and how many; nil when the game hides some of them (in combat
+-- it may make auras secret, or refuse them with an error). An empty list is an empty list: the game
+-- never hides auras by leaving them out (a buff that was the only one, like a shaman's Lightning Shield at
+-- low level, shows as missing as soon as it goes, in combat too).
 local function ReadActiveNames()
 	if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return nil end
 	local names, count = {}, 0
@@ -499,6 +534,41 @@ local function ReadActiveNames()
 		count = count + 1
 	end
 	return names, count
+end
+
+-- One buff asked for by its name, when the game hides some of the others: true (on), false (not on), or
+-- nil when the game hides that one too
+local function ReadByName(name)
+	if not (C_UnitAuras and C_UnitAuras.GetAuraDataBySpellName) then return nil end
+	local ok, aura = pcall(C_UnitAuras.GetAuraDataBySpellName, "player", name, "HELPFUL")
+	if not ok or ns.IsSecret(aura) then return nil end
+	return aura ~= nil
+end
+
+-- The names of the buffs this character watches (any that counts for each of its families)
+local function WatchedNames(entry)
+	local names = {}
+	local families, _, spells = MissingBuffs.GetChoices()
+	for _, list in ipairs({families, spells}) do
+		for _, choice in ipairs(list) do
+			if choice.kind == "BUFF" and entry.buffs[choice.key] then
+				for name in pairs(choice.counts) do names[name] = true end
+			end
+		end
+	end
+	return names
+end
+
+-- The buffs on the character when the game hides some of them: each one watched asked for by its name;
+-- the ones the game hides too stay as they were (before: the last names known)
+local function ReadWatched(entry, before)
+	local active = {}
+	for name, on in pairs(before) do active[name] = on end
+	for name in pairs(WatchedNames(entry)) do
+		local on = ReadByName(name)
+		if on ~= nil then active[name] = on or nil end
+	end
+	return active
 end
 
 local function InCombat()
@@ -538,12 +608,28 @@ local function ReadWeapons()
 end
 
 -- What the addon can read now, for /ke buffscan: {inCombat, readable, count, names = {sorted}, weapons}
+-- and watched: each buff watched asked for by its name ({name, answer = "on", "off" or "hidden", secrecy:
+-- how secret the game says its aura is, "?" when it can't tell})
 function MissingBuffs.Scan()
 	local names, count = ReadActiveNames()
 	local list = {}
 	for name in pairs(names or {}) do list[#list + 1] = name end
 	table.sort(list)
-	return {inCombat = InCombat(), readable = names ~= nil, count = count or 0, names = list, weapons = ReadWeapons()}
+	local watched = {}
+	local entry = MissingBuffs.GetCharacter()
+	for name in pairs(entry and WatchedNames(entry) or {}) do
+		local on = ReadByName(name)
+		local secrecy = "?"
+		local known = spellbook[name]
+		if known and C_Secrets and C_Secrets.GetSpellAuraSecrecy then
+			local ok, value = pcall(C_Secrets.GetSpellAuraSecrecy, known.best)
+			secrecy = ok and tostring(value) or "?"
+		end
+		watched[#watched + 1] = {name = name, answer = on == nil and "hidden" or (on and "on" or "off"), secrecy = secrecy}
+	end
+	table.sort(watched, function(a, b) return a.name < b.name end)
+	return {inCombat = InCombat(), readable = names ~= nil, count = count or 0, names = list, weapons = ReadWeapons(),
+		watched = watched}
 end
 
 -- How many of an item family the bags hold (every rank); nil when the game hides it
@@ -555,6 +641,195 @@ local function CountItems(choice)
 		total = total + count
 	end
 	return total
+end
+
+-- An icon of the groups: its frame, a thin black border, the spell's icon (grey) and a number (items).
+-- Only textures and text in it (no frames), so it can be made with a template that keeps scripts away
+local function MakeIcon(parent, template)
+	local icon = CreateFrame("Frame", nil, parent, template)
+	-- A thin black border around the icon, cut a little so the game's own edge doesn't show
+	icon.border = icon:CreateTexture(nil, "BACKGROUND")
+	icon.border:SetAllPoints(icon)
+	icon.border:SetColorTexture(0, 0, 0, 1)
+	icon.texture = icon:CreateTexture(nil, "ARTWORK")
+	icon.texture:SetPoint("TOPLEFT", icon, "TOPLEFT", 1, -1)
+	icon.texture:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -1, 1)
+	icon.texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+	-- Grey, so it never looks like something that's there: it's something to do
+	icon.texture:SetDesaturated(true)
+	-- How many of an item there are
+	icon.count = icon:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+	icon.count:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -2, 2)
+	-- The game's number font and its outline, kept to give it the size of the settings
+	icon.countFont, _, icon.countFlags = icon.count:GetFont()
+	return icon
+end
+
+-- Buffs the game hides in combat ---------------------------------------------------------------------
+--
+-- In combat WoW Forever hides many auras from addons by leaving them out of what they read (no error, no
+-- secret value): "not there" can't be believed for a buff the game says it may hide (C_Secrets), so in
+-- combat such a buff stays as it was when the fight began. And so its icon still shows as soon as it
+-- goes, the game itself moves it, without the addon ever knowing:
+--   - each such buff gets one of the game's own AuraContainers (made out of combat, once), with a group
+--     for that buff alone; the game sizes the container by what's in it: 1 wide while the buff is gone,
+--     FAR wide while it's on (the width given to the group's frame). The game's code says addons may tie
+--     their own frames to such a container, if they're made with DisableUntrustedLayoutScriptsTemplate
+--     (their layout scripts then never run, so they can't learn its size);
+--   - the buff's own icon is such a frame, tied to the container's right side, inside a "window" of its
+--     group (a frame that only shows what's within it), where the container starts too;
+--   - while the buff is on, the container is wide and pushes the icon far out of its window: unseen;
+--     when it goes, the container is 1 wide and the icon sits in its window: seen at once.
+--   The container is never seen (no alpha): the game's frames in it, never touched, show the buff's icon.
+-- In combat that window stays in its group, after the others. (A first try, a mask in the game's frame,
+-- didn't work: the game's frames, and so anything in them, can't be read by addons, and it seems a hidden
+-- mask still cuts.) Nothing is read or listened to: the game moves the icon itself.
+
+-- Why the game's containers can't be made (or "made"), for /ke buffscan
+local gameNote = "not needed yet"
+-- For each buff (its choice's key): {signature (its spells), window (in its group), face (the icon, in the
+-- window, tied to the container), container, note (why there's none)}
+local gameIcons = {}
+-- The width of the game's frame for a buff that's on: far more than any icon, so the icon is far out
+local FAR = 1000
+local GROUP_KEY = "KE_MB"
+
+local function Signature(ids)
+	local list = {}
+	for id in pairs(ids) do list[#list + 1] = id end
+	table.sort(list)
+	return table.concat(list, ",")
+end
+
+-- One of the game's containers, sized by the buff's spells; nil and why when it can't be made
+local function MakeContainer(spells)
+	if not (C_Secrets and C_Secrets.GetSpellAuraSecrecy) then return nil, "the game has no C_Secrets" end
+	if C_AddOns and C_AddOns.LoadAddOn then pcall(C_AddOns.LoadAddOn, "Blizzard_AuraContainer") end
+	local ok, container = pcall(CreateFrame, "AuraContainer", nil, UIParent, "CustomAuraContainerTemplate")
+	if not ok or not container then return nil, "not made: " .. tostring(container) end
+	local okSetup, problem = pcall(function()
+		container:SetSize(1, 1)
+		-- Never seen: the game's frames in it show the buff's own icon
+		container:SetAlpha(0)
+		container:SetUnit("player")
+		container:SetEnabled(true)
+		container:AddAuraGroup(GROUP_KEY, "HELPFUL", {
+			candidateFilters = {includeSpellIDs = spells},
+			maxFrameCount = 1,
+			layout = {elementWidth = FAR, elementHeight = 1},
+		})
+	end)
+	if not okSetup then
+		container:Hide()
+		return nil, "not set up: " .. tostring(problem)
+	end
+	return container
+end
+
+-- A buff's own icon, moved by the game: its window (what the groups place), made the first time out of
+-- combat (its spells changed when a new rank is learned); nil without one
+local function GameIcon(choice, texture, parent)
+	local signature = Signature(choice.spellIDs or {})
+	local known = gameIcons[choice.key]
+	if known and known.signature == signature then return known.window end
+	-- The game's containers are only made or changed out of combat
+	if InCombatLockdown and InCombatLockdown() then return known and known.window or nil end
+	local spells = {}
+	for id in pairs(choice.spellIDs or {}) do spells[id] = true end
+	-- A new rank learned: the same container, with the spells known now
+	if known and known.container then
+		local ok, problem = pcall(known.container.SetAuraGroupCandidateFilters, known.container, GROUP_KEY,
+			{includeSpellIDs = spells})
+		known.signature = signature
+		if ok then return known.window end
+		known.window:Hide()
+		gameIcons[choice.key] = {signature = signature, note = "not changed: " .. tostring(problem)}
+		return nil
+	end
+	local container, why = MakeContainer(spells)
+	if not container then
+		-- (each buff says why it has none; this says it of all, until one is made)
+		if gameNote ~= "made" then gameNote = why end
+		gameIcons[choice.key] = {signature = signature, note = why}
+		return nil
+	end
+	gameNote = "made"
+	-- The window, in its group: only what's within it is seen
+	local window = CreateFrame("Frame", nil, parent or UIParent)
+	window:SetClipsChildren(true)
+	window:SetSize(40, 40)
+	window:Hide()
+	-- The icon, made so the game lets it be tied to its container
+	local face = MakeIcon(window, "DisableUntrustedLayoutScriptsTemplate")
+	face:SetSize(40, 40)
+	face.texture:SetTexture(texture)
+	local ok, problem = pcall(function()
+		-- The container starts where the window does; the icon starts where the container ends
+		container:SetPoint("TOPLEFT", window, "TOPLEFT", 0, 0)
+		face:SetPoint("TOPLEFT", container, "TOPRIGHT", -1, 0)
+	end)
+	if not ok then
+		container:Hide()
+		gameIcons[choice.key] = {signature = signature, note = "not tied: " .. tostring(problem)}
+		return nil
+	end
+	-- What the groups change on an icon, on the window's icon
+	window.face, window.texture, window.count = face, face.texture, face.count
+	window.countFont, window.countFlags = face.countFont, face.countFlags
+	gameIcons[choice.key] = {signature = signature, window = window, face = face, container = container}
+	return window
+end
+
+-- A question to the game's container or the icon tied to it: its answer, or why there's none
+local function Ask(object, method)
+	if not object then return "none" end
+	local ok, answer = pcall(object[method], object)
+	if not ok then return "forbidden" end
+	if ns.IsSecret(answer) then return "secret" end
+	if type(answer) == "number" then return string.format("%.0f", answer) end
+	return tostring(answer)
+end
+
+-- How far the icon is from the start of its window (0: seen; FAR: unseen), or why it can't be told
+local function Offset(known)
+	local ok, faceLeft, windowLeft = pcall(function() return known.face:GetLeft(), known.window:GetLeft() end)
+	if not ok then return "forbidden" end
+	if ns.IsSecret(faceLeft) or ns.IsSecret(windowLeft) then return "secret" end
+	if not (faceLeft and windowLeft) then return "unknown" end
+	return string.format("%.0f", faceLeft - windowLeft)
+end
+
+-- What there is for a buff the game may hide, for /ke buffscan: "ready" (its own icon tied to the
+-- game's container) with the container's width and where the icon is, or why there's none
+local function GameIconState(choice)
+	local known = gameIcons[choice.key]
+	if not (known and known.window) then return known and known.note or gameNote end
+	return string.format("ready (game's width %s; icon %s from its window; window shown %s, visible %s)",
+		Ask(known.container, "GetWidth"), Offset(known), tostring(known.window:IsShown()),
+		tostring(known.window:IsVisible()))
+end
+
+-- Every buff's own icon (hidden before each layout; the ones in use are shown again)
+local function HideGameIcons()
+	for _, known in pairs(gameIcons) do
+		if known.window then known.window:Hide() end
+	end
+end
+
+-- For /ke buffscan: what happened to the game's containers, and each buff watched the game may hide
+-- ({label, state})
+function MissingBuffs.ScanGame()
+	local list = {}
+	local entry = MissingBuffs.GetCharacter()
+	local families, _, spells = MissingBuffs.GetChoices()
+	for _, choices in ipairs({families, spells}) do
+		for _, choice in ipairs(choices) do
+			if choice.kind == "BUFF" and entry and entry.buffs[choice.key] and Hidable(choice) then
+				list[#list + 1] = {label = choice.label, state = GameIconState(choice)}
+			end
+		end
+	end
+	return gameNote, list
 end
 
 -- The screen -----------------------------------------------------------------------------------------
@@ -628,22 +903,7 @@ local function GetIcon(group, index)
 	local list = icons[group]
 	local icon = list[index]
 	if icon then return icon end
-	icon = CreateFrame("Frame", nil, GetHolder(group))
-	-- A thin black border around the icon, cut a little so the game's own edge doesn't show
-	icon.border = icon:CreateTexture(nil, "BACKGROUND")
-	icon.border:SetAllPoints(icon)
-	icon.border:SetColorTexture(0, 0, 0, 1)
-	icon.texture = icon:CreateTexture(nil, "ARTWORK")
-	icon.texture:SetPoint("TOPLEFT", icon, "TOPLEFT", 1, -1)
-	icon.texture:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -1, 1)
-	icon.texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-	-- Grey, so it never looks like something that's there: it's something to do
-	icon.texture:SetDesaturated(true)
-	-- How many of an item there are
-	icon.count = icon:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
-	icon.count:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -2, 2)
-	-- The game's number font and its outline, kept to give it the size of the settings
-	icon.countFont, _, icon.countFlags = icon.count:GetFont()
+	icon = MakeIcon(GetHolder(group))
 	list[index] = icon
 	return icon
 end
@@ -659,9 +919,16 @@ local function Layout(group, shown)
 	frame:ClearAllPoints()
 	frame:SetPoint(ANCHORS[growth] or "CENTER", UIParent, "CENTER", settings.x, settings.y)
 	for i, info in ipairs(shown) do
-		local icon = GetIcon(group, i)
+		-- A buff's own icon (its window, the icon in it moved by the game) in place of the group's
+		local icon = info.own or GetIcon(group, i)
+		if info.own then
+			if icon:GetParent() ~= frame then icon:SetParent(frame) end
+			if icons[group][i] then icons[group][i]:Hide() end
+		end
+		local face = icon.face or icon
 		local offset = (i - 1) * (size + gap)
 		icon:SetSize(size, size)
+		if face ~= icon then face:SetSize(size, size) end
 		icon:ClearAllPoints()
 		if growth == "LEFT" then icon:SetPoint("RIGHT", frame, "RIGHT", -offset, 0)
 		elseif growth == "UP" then icon:SetPoint("BOTTOM", frame, "BOTTOM", 0, offset)
@@ -675,7 +942,7 @@ local function Layout(group, shown)
 		icon.count:ClearAllPoints()
 		local point = COUNT_OFFSETS[settings.countPosition] and settings.countPosition or "BOTTOMRIGHT"
 		local offset = COUNT_OFFSETS[point]
-		icon.count:SetPoint(point, icon, point, offset[1], offset[2])
+		icon.count:SetPoint(point, face, point, offset[1], offset[2])
 		icon.count:SetFont(icon.countFont or STANDARD_TEXT_FONT or "Fonts\\ARIALN.TTF", settings.countSize, icon.countFlags or "OUTLINE")
 		icon:SetAlpha(settings.alpha / 100)
 		icon:Show()
@@ -789,6 +1056,7 @@ end
 local function HideAll()
 	for _, holder in pairs(holders) do holder:Hide() end
 	SyncClickers({})
+	HideGameIcons()
 end
 
 -- The weapons as last read (kept while the game hides them), and the check when the first enchant ends
@@ -821,21 +1089,23 @@ function MissingBuffs.Update()
 		WatchEnd(nil)
 		return
 	end
-	local active, count = ReadActiveNames()
-	-- In combat, an empty list when there were buffs before is the game hiding them, not every buff gone
-	if active and count == 0 and InCombat() and lastActive and next(lastActive) then active = nil end
-	if active then lastActive = active else active = lastActive or {} end
+	-- All the buffs; when the game hides some (in combat), each one watched asked for by its name
+	local before = lastActive or {}
+	local active = ReadActiveNames() or ReadWatched(entry, before)
+	local fighting = InCombat()
 	local weapons = ReadWeapons()
 	if weapons then lastWeapons = weapons else weapons = lastWeapons end
 	local watchesWeapons = false
 	local dead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
 	local shown = {[ESSENTIAL] = {}, [UTILITY] = {}}
+	-- The buffs' own icons the game shows or not (in combat), after the others of their group
+	local byGame = {[ESSENTIAL] = {}, [UTILITY] = {}}
 	local lists = {MissingBuffs.GetChoices()}
 	for _, list in ipairs(lists) do
 		for _, choice in ipairs(list) do
 			local watch = entry.buffs[choice.key]
 			if watch then
-				local missing, itemCount = false, nil
+				local missing, itemCount, own = false, nil, nil
 				if choice.kind == "ITEM" then
 					itemCount = CountItems(choice)
 					if itemCount then lastCounts[choice.key] = itemCount else itemCount = lastCounts[choice.key] end
@@ -845,32 +1115,48 @@ function MissingBuffs.Update()
 					watchesWeapons = true
 					missing = weapons ~= nil and weapons.missing
 				else
+					-- A buff the game may hide: in combat, as it was when the fight began (the game leaves
+					-- it out of what's read), and its own icon is there, in its window only when the game
+					-- shrinks its container (the buff gone); out of combat, that icon made for the next fight
+					local hidden = Hidable(choice)
+					if hidden and fighting then
+						for name in pairs(choice.counts) do active[name] = before[name] end
+					end
 					local on = false
 					for name in pairs(choice.counts) do
 						if active[name] then
 							on = true
-							if spellbook[name] then entry.lastSeen[choice.key] = name end
+							if spellbook[name] and not (hidden and fighting) then entry.lastSeen[choice.key] = name end
 							break
 						end
 					end
 					missing = not on
+					if hidden then
+						own = GameIcon(choice, IconOf(choice, watch, entry), GetHolder(GROUP_SETTINGS[watch.group] and watch.group or ESSENTIAL))
+						if own and fighting and not moving then missing = true else own = nil end
+					end
 				end
 				-- While moving, everything chosen shows, so the groups can be placed as they will look
 				if moving or (missing and not dead) then
-					local group = shown[watch.group] or shown[ESSENTIAL]
-					group[#group + 1] = {texture = IconOf(choice, watch, entry), count = itemCount, choice = choice}
+					local groups = own and byGame or shown
+					local group = groups[watch.group] or groups[ESSENTIAL]
+					group[#group + 1] = {texture = IconOf(choice, watch, entry), count = itemCount, choice = choice, own = own}
 				end
 			end
 		end
 	end
+	lastActive = active
 	local settings = ns.db.missingBuffs
 	local targets = {}
+	HideGameIcons()
 	for group, list in pairs(shown) do
+		for _, info in ipairs(byGame[group]) do list[#list + 1] = info end
 		if moving and #list == 0 then list[1] = {texture = PLACEHOLDER_ICON} end
 		Layout(group, list)
 		for _, info in ipairs(list) do
 			local choice = info.choice
-			if choice and info.frame then
+			-- (no click on a buff's own icon: it may be there unseen, with the buff on)
+			if choice and info.frame and not info.own then
 				if choice.kind == "ITEM" and settings.clickToConjure and choice.castName then
 					targets[#targets + 1] = {frame = info.frame, castName = choice.castName, castID = choice.castID}
 				elseif (choice.kind == "BUFF" or choice.kind == "WEAPON") and settings.clickToCast then
@@ -886,6 +1172,53 @@ function MissingBuffs.Update()
 	SyncClickers(targets)
 	-- An enchant on the weapons watched: looked at again when it ends
 	WatchEnd(watchesWeapons and weapons and weapons.ends or nil)
+end
+
+-- /ke bufftest (out of combat): each buff's own icon (the ones the game may hide) shown in its group for
+-- a few seconds as in a fight, with "KE test" over it: it should be seen while the buff is gone and
+-- unseen while it's on (pushed out of its window by the game's container). The container's width and
+-- where the icon is then are given back to be kept. Nil in combat, false with nothing to test.
+local testLabel
+function MissingBuffs.TestGameIcons(seconds)
+	if InCombatLockdown and InCombatLockdown() then return nil end
+	local entry = MissingBuffs.GetCharacter()
+	local lines = {}
+	local families, _, spells = MissingBuffs.GetChoices()
+	for _, choices in ipairs({families, spells}) do
+		for _, choice in ipairs(choices) do
+			local watch = entry and entry.buffs[choice.key]
+			local known = gameIcons[choice.key]
+			if watch and known and known.window then
+				local holder = GetHolder(GROUP_SETTINGS[watch.group] and watch.group or ESSENTIAL)
+				holder:Show()
+				local window = known.window
+				window:ClearAllPoints()
+				window:SetPoint("CENTER", holder, "CENTER", 0, 0)
+				window:SetSize(40, 40)
+				known.face:SetSize(40, 40)
+				window:SetAlpha(1)
+				window:Show()
+				testLabel = testLabel or UIParent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+				testLabel:ClearAllPoints()
+				testLabel:SetPoint("BOTTOM", window, "TOP", 0, 6)
+				testLabel:SetText("KE test")
+				testLabel:Show()
+				lines[#lines + 1] = string.format("%s: %s; on now: %s", choice.label, GameIconState(choice),
+					tostring(lastActive and next(choice.counts) and (function()
+						for name in pairs(choice.counts) do if lastActive[name] then return true end end
+						return false
+					end)()))
+			end
+		end
+	end
+	if #lines == 0 then return false end
+	if C_Timer and C_Timer.After then
+		C_Timer.After(seconds, function()
+			if testLabel then testLabel:Hide() end
+			ns.SafeCall(MissingBuffs.Update)
+		end)
+	end
+	return lines
 end
 
 -- Moving the icons (from the page; ends when the options close)
@@ -931,8 +1264,9 @@ ns.RegisterEvent("PLAYER_LOGIN", function()
 end)
 ns.RegisterEvent("SPELLS_CHANGED", OnSpellsChanged)
 -- PLAYER_REGEN_ENABLED: the fight is over, the click buttons can follow the icons again
+-- PLAYER_REGEN_DISABLED: the fight starts, the buffs the game may hide follow its frames
 for _, event in ipairs({"PLAYER_ENTERING_WORLD", "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "BAG_UPDATE_DELAYED",
-	"PLAYER_REGEN_ENABLED", "UI_SCALE_CHANGED"}) do
+	"PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED", "UI_SCALE_CHANGED"}) do
 	ns.RegisterEvent(event, function() MissingBuffs.Update() end)
 end
 

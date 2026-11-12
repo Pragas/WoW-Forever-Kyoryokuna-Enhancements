@@ -7,6 +7,10 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.15.1
+	["Missing buffs: a buff the game hides from addons in combat shows as soon as it goes, in combat too, through the game's own frames (it only showed after the fight)."] =
+		"Buffs em falta: um buff que o jogo esconde dos addons em combate aparece assim que acaba, também em combate, através das frames do próprio jogo (só aparecia depois do combate).",
+
 	-- Release notes 0.15.0
 	["Missing buffs: what goes on the weapons (a shaman's imbues, a rogue's poisons, and for the other classes an oil or a stone), shown while a weapon in your hands has none."] =
 		"Buffs em falta: o que se põe nas armas (os encantamentos do shaman, os venenos do rogue e, para as outras classes, um óleo ou uma pedra), aparece enquanto uma arma nas tuas mãos não tiver nenhum.",
@@ -208,6 +212,11 @@ ns.LOCALES.ptPT = {
 	["Missing Buffs"] = "Buffs em falta",
 	["Missing buffs"] = "Buffs em falta",
 	["Poisons on your weapons"] = "Venenos nas armas",
+	["Out of combat only."] = "Só fora de combate.",
+	["Nothing to test: no buff watched that the game hides in combat."] =
+		"Nada para testar: nenhum buff vigiado que o jogo esconda em combate.",
+	["Look at the missing buffs' group: the buff's icon shows there for 10 seconds, under \"KE test\". With the buff on you shouldn't see it; with it off you should."] =
+		"Olha para o grupo dos buffs em falta: o ícone do buff aparece lá durante 10 segundos, por baixo de \"KE test\". Com o buff ativo não o deves ver; sem ele, deves.",
 	["Oil or stone on your weapon"] = "Óleo ou pedra na arma",
 	["Shown while a weapon in your hands has none on it (both hands when you hold two weapons)."] =
 		"Aparece enquanto uma arma nas tuas mãos não tiver nenhum (nas duas mãos, quando tens duas armas).",

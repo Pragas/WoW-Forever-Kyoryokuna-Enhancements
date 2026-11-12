@@ -367,26 +367,58 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 			DEFAULT_CHAT_FRAME:AddMessage("  " .. part.key .. ": " .. part.found)
 		end
 	elseif command == "buffscan" then
-		-- The buffs the addon can read on the character now (in combat the game may hide them)
+		-- The buffs the addon can read on the character now (in combat the game may hide them); each line
+		-- in the chat is also kept in the saved data
+		local lines = {}
+		local function Say(text, header)
+			lines[#lines + 1] = text
+			if header then ns.Print(text) else DEFAULT_CHAT_FRAME:AddMessage("  " .. text) end
+		end
 		local scan = ns.MissingBuffs.Scan()
-		ns.Print(string.format(L["Buffs read: %d. In combat: %s. Readable: %s."], scan.count,
-			scan.inCombat and L["Yes"] or L["No"], scan.readable and L["Yes"] or L["No"]))
-		for _, name in ipairs(scan.names) do
-			DEFAULT_CHAT_FRAME:AddMessage("  " .. name)
+		Say(string.format(L["Buffs read: %d. In combat: %s. Readable: %s."], scan.count,
+			scan.inCombat and L["Yes"] or L["No"], scan.readable and L["Yes"] or L["No"]), true)
+		for _, name in ipairs(scan.names) do Say(name) end
+		-- Each buff watched, asked for by its name (how the addon still knows it when the game hides
+		-- others), and how secret the game says it is (as the game gives it: not translated)
+		for _, buff in ipairs(scan.watched) do
+			Say(string.format("%s: by name %s, secrecy %s", buff.name, buff.answer, buff.secrecy))
+		end
+		-- The buffs the game may hide in combat, watched by the game itself (an AuraContainer each): its
+		-- width now and where the buff's own icon is
+		local watcherNote, byGame = ns.MissingBuffs.ScanGame()
+		Say("AuraContainer: " .. tostring(watcherNote))
+		for _, buff in ipairs(byGame) do
+			Say(string.format("%s: hidden in combat, by the game: %s", tostring(buff.label), tostring(buff.state)))
 		end
 		-- What's on the weapons (imbues, poisons): each hand's, or hidden by the game
 		local STATES = {on = L["Yes"], off = L["No"], none = L["no weapon"]}
 		local weapons = scan.weapons
-		DEFAULT_CHAT_FRAME:AddMessage("  " .. string.format(L["On the weapons (imbues, poisons): main hand %s, off hand %s."],
+		Say(string.format(L["On the weapons (imbues, poisons): main hand %s, off hand %s."],
 			weapons and STATES[weapons.mainHand] or L["hidden"], weapons and STATES[weapons.offHand] or L["hidden"]))
 		-- What a click on each icon casts: the spell and its exact ID (rank)
 		local casts = ns.MissingBuffs.CastInfo()
 		if #casts > 0 then
-			ns.Print(L["A click on each icon casts:"])
+			Say(L["A click on each icon casts:"], true)
 			for _, cast in ipairs(casts) do
-				DEFAULT_CHAT_FRAME:AddMessage(string.format("  %s: %s (ID %s) %s", tostring(cast.label), tostring(cast.spell),
-					tostring(cast.id), cast.rank))
+				Say(string.format("%s: %s (ID %s) %s", tostring(cast.label), tostring(cast.spell), tostring(cast.id), cast.rank))
 			end
+		end
+		-- Also in the saved data, read from the file at the next /reload (no screenshots needed)
+		ns.SaveDiagnostic(command, lines)
+		ns.Print(L["Kept in the addon's saved data: type /reload so the game writes it down."])
+	elseif command == "bufftest" then
+		-- The own icons of the buffs the game hides in combat, shown for a few seconds as in a fight
+		-- (seen with the buff gone, unseen with it on), and what the game says of them then, kept
+		local lines = ns.MissingBuffs.TestGameIcons(10)
+		if lines == nil then
+			ns.Print(L["Out of combat only."])
+		elseif lines == false then
+			ns.Print(L["Nothing to test: no buff watched that the game hides in combat."])
+		else
+			ns.Print(L["Look at the missing buffs' group: the buff's icon shows there for 10 seconds, under \"KE test\". With the buff on you shouldn't see it; with it off you should."])
+			for _, line in ipairs(lines) do DEFAULT_CHAT_FRAME:AddMessage("  " .. line) end
+			ns.SaveDiagnostic(command, lines)
+			ns.Print(L["Kept in the addon's saved data: type /reload so the game writes it down."])
 		end
 	elseif command == "procscan all" then
 		-- Every proc of every class: the spell IDs the game has with its name (out of combat is best)

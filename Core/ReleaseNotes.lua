@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.15.1",
+		fixed = {
+			"Missing buffs: a buff the game hides from addons in combat shows as soon as it goes, in combat too, through the game's own frames (it only showed after the fight).",
+		},
+	},
+	{
 		version = "0.15.0",
 		new = {
 			"Missing buffs: what goes on the weapons (a shaman's imbues, a rogue's poisons, and for the other classes an oil or a stone), shown while a weapon in your hands has none.",
