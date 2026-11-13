@@ -7,6 +7,10 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.19.1
+	["Error messages: turning \"Silence the voice of the messages\" off turned the game's voice on, even for a player who had it off. It's now put back as it was."] =
+		"Mensagens de erro: desligar \"Calar a voz das mensagens\" ligava a voz do jogo, mesmo a quem a tinha desligada. Agora volta ao que estava.",
+
 	-- Release notes 0.19.0
 	["Proc alerts: mages can see when their target is frozen (Frost Nova, Frostbite...), with the Frozen Fingers art on top, in combat too."] =
 		"Alertas de procs: os mages podem ver quando o alvo está congelado (Frost Nova, Frostbite...), com a arte do Frozen Fingers em cima, também em combate.",
@@ -609,8 +613,8 @@ ns.LOCALES.ptPT = {
 	["Only in combat"] = "Só em combate",
 	["Out of combat every message shows, as in the game."] = "Fora de combate aparecem todas as mensagens, como no jogo.",
 	["Silence the voice of the messages"] = "Calar a voz das mensagens",
-	["Your character no longer says \"Not enough mana\" and the like, for every message, hidden or not. (The game's own setting: turned back on when this is off.)"] =
-		"A tua personagem deixa de dizer \"Not enough mana\" e afins, em todas as mensagens, escondidas ou não. (É uma opção do próprio jogo: volta a ficar ligada quando desligas esta.)",
+	["Your character no longer says \"Not enough mana\" and the like, for every message, hidden or not. (The game's own setting: put back as it was when this is off.)"] =
+		"A tua personagem deixa de dizer \"Not enough mana\" e afins, em todas as mensagens, escondidas ou não. (É uma opção do próprio jogo: volta ao que estava quando desligas esta.)",
 	["Error Messages (new page): hide the game's red messages you don't want, like \"Spell is not ready yet\" (their sound still plays), and silence their voice."] =
 		"Mensagens de erro (página nova): esconde as mensagens vermelhas do jogo que não queres, como \"Spell is not ready yet\" (o som continua a tocar), e cala a voz delas.",
 

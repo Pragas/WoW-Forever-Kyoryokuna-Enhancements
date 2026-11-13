@@ -100,6 +100,18 @@ local function HandOn(messageType, message)
 	end
 end
 
+-- The game's setting for the voice of the messages, as "1" (on) or "0" (off); on when it can't be read,
+-- as the game has it at first
+local function ReadVoice()
+	local value = C_CVar.GetCVar and C_CVar.GetCVar("Sound_EnableErrorSpeech")
+	if value == "0" or value == "1" then return value end
+	if C_CVar.GetCVarBool then
+		local on = C_CVar.GetCVarBool("Sound_EnableErrorSpeech")
+		if on ~= nil then return on and "1" or "0" end
+	end
+	return "1"
+end
+
 -- The filter on: the addon takes the game's red messages; off: the game's frame has them again
 local taking = false
 local function Apply()
@@ -110,16 +122,23 @@ local function Apply()
 		if wanted then frame:UnregisterEvent("UI_ERROR_MESSAGE") else frame:RegisterEvent("UI_ERROR_MESSAGE") end
 		taking = wanted
 	end
-	-- The voice of the messages kept (the game's own setting): silenced, or back as it was. Whether the
-	-- addon silenced it is kept in the saved data, so turning the option off another day brings it back
+	-- The voice of the messages kept (the game's own setting): silenced, or put back as it was. The value
+	-- it had before the addon silenced it is kept in the saved data, so turning the option off, another
+	-- day too, brings back exactly that: still off for a player who had it off in the game's options.
+	-- Versions before 0.19.1 only noted that the addon had silenced it (errorVoiceMuted): the value then
+	-- is unknown, so the voice comes back, as they did.
 	local settings = Settings()
 	if C_CVar and C_CVar.SetCVar then
 		if settings.enabled and settings.muteVoice then
-			C_CVar.SetCVar("Sound_EnableErrorSpeech", "0")
-			ns.db.errorVoiceMuted = true
-		elseif ns.db.errorVoiceMuted then
-			C_CVar.SetCVar("Sound_EnableErrorSpeech", "1")
+			if ns.db.errorVoiceBefore == nil then
+				ns.db.errorVoiceBefore = ns.db.errorVoiceMuted and "1" or ReadVoice()
+			end
 			ns.db.errorVoiceMuted = nil
+			C_CVar.SetCVar("Sound_EnableErrorSpeech", "0")
+		elseif ns.db.errorVoiceBefore ~= nil or ns.db.errorVoiceMuted then
+			local before = ns.db.errorVoiceBefore or "1"
+			ns.db.errorVoiceBefore, ns.db.errorVoiceMuted = nil, nil
+			C_CVar.SetCVar("Sound_EnableErrorSpeech", before)
 		end
 	end
 end

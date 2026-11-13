@@ -38,5 +38,5 @@ ns.AddOptionsPage("Error Messages", function(b)
 
 	b:Header("When and how")
 	b:Check("errorMessages.onlyInCombat", "Only in combat", "Out of combat every message shows, as in the game.", on)
-	b:Check("errorMessages.muteVoice", "Silence the voice of the messages", "Your character no longer says \"Not enough mana\" and the like, for every message, hidden or not. (The game's own setting: turned back on when this is off.)", on)
+	b:Check("errorMessages.muteVoice", "Silence the voice of the messages", "Your character no longer says \"Not enough mana\" and the like, for every message, hidden or not. (The game's own setting: put back as it was when this is off.)", on)
 end)

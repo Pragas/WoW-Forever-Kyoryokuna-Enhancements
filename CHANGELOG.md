@@ -8,6 +8,11 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.19.1
+
+- Error messages: "Silence the voice of the messages" turned off set the game's voice of the messages (`Sound_EnableErrorSpeech`) to on, whatever it was before the addon silenced it: a player who had it off in the game's options got it on. The value before is now kept in the saved data (`errorVoiceBefore`, also across sessions) and put back as it was. Data saved by earlier versions only noted "silenced by the addon" (`errorVoiceMuted`): the value then is unknown, so the voice comes back, as those versions did. The option's tooltip says "put back as it was" (translated too).
+- Tests: the voice off in the game's options stays off once the option is unticked; the value from before the addon is kept when the game's option is changed meanwhile; data of earlier versions brings the voice back and is cleared.
+
 ## 0.19.0
 
 - Proc alerts: "Frozen target" for mages, as SpellActivationOverlay 2.9.0 has it in Forever: while the target is frozen, by anyone (Frost Nova, Frostbite, Freezing Trap, Freeze, Shattered Barrier, Deep Freeze, Hungering Cold, Improved Cone of Cold, Ring of Frost: SpellActivationOverlay's IDs), the art of Frozen Fingers on top, turned, moving as picked. Off at first (`procAlerts.frozen`); its row is named by the addon ("Frozen target", translated), with Frost Nova's icon.

@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.19.1",
+		fixed = {
+			"Error messages: turning \"Silence the voice of the messages\" off turned the game's voice on, even for a player who had it off. It's now put back as it was.",
+		},
+	},
+	{
 		version = "0.19.0",
 		new = {
 			"Proc alerts: mages can see when their target is frozen (Frost Nova, Frostbite...), with the Frozen Fingers art on top, in combat too.",
