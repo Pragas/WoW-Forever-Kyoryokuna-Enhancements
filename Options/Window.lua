@@ -380,6 +380,9 @@ SlashCmdList.KYORYOKUNAENHANCEMENTS = function(message)
 		local scan = ns.MissingBuffs.Scan()
 		Say(string.format(L["Buffs read: %d. In combat: %s. Readable: %s."], scan.count,
 			scan.inCombat and L["Yes"] or L["No"], scan.readable and L["Yes"] or L["No"]), true)
+		-- The game's restrictions on now (a boss encounter, a keystone...): the auras may be hidden then
+		-- too (as the game names them: not translated)
+		Say("Restrictions: " .. tostring(scan.restrictions))
 		for _, name in ipairs(scan.names) do Say(name) end
 		-- Each buff watched, asked for by its name (how the addon still knows it when the game hides
 		-- others), and how secret the game says it is (as the game gives it: not translated)

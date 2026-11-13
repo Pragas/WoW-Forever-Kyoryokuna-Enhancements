@@ -7,6 +7,10 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.17.1
+	["Missing buffs: when a boss was pulled before you were in combat yourself, buffs you had could show as missing for a couple of seconds. They no longer do."] =
+		"Buffs em falta: quando um boss era puxado antes de estares tu em combate, buffs que tinhas podiam aparecer em falta durante uns segundos. Já não aparecem.",
+
 	-- Release notes 0.17.0
 	["/ke errors clear empties the list of recorded errors (old ones stayed in it for good)."] =
 		"/ke errors clear apaga a lista dos erros registados (os antigos ficavam lá para sempre).",

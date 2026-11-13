@@ -19,7 +19,8 @@
 --     used. The same buff from someone else counts too, and so do the group versions (Arcane Brilliance
 --     for Arcane Intellect...). Every rank counts: buffs are matched by name, items by every rank's item.
 --   - In combat the game may hide the auras (or the counts) from addons: then the icons stay as they were
---     last known, instead of guessing. /ke buffscan shows what can be read.
+--     last known, instead of guessing. The same under the game's other restrictions, e.g. from a boss
+--     pull, before the character is in combat itself. /ke buffscan shows what can be read.
 
 local _, ns = ...
 local L = ns.L
@@ -622,6 +623,42 @@ local function InCombat()
 	return (InCombatLockdown and InCombatLockdown()) or (UnitAffectingCombat and UnitAffectingCombat("player")) or false
 end
 
+-- The game hides auras from addons not only in the character's own fight: also while one of its addon
+-- restrictions is on (C_RestrictedActions): a boss encounter (from the pull, maybe before the character
+-- is in combat itself: its buffs then looked gone for a moment), a keystone dungeon, a PvP match, some
+-- maps. ADDON_RESTRICTION_STATE_CHANGED says so before one becomes active ("Activating", the auras still
+-- readable) and after one ends; while it's being sent, IsAddOnRestrictionActive answers false, so the
+-- state it gives is kept.
+local RESTRICTIONS = {"Combat", "Encounter", "ChallengeMode", "PvPMatch", "Map"}
+local restrictionStates = {}
+
+-- The restrictions on now, by name ({} when none)
+local function ActiveRestrictions()
+	local list = {}
+	local types = Enum and Enum.AddOnRestrictionType
+	if not types then return list end
+	local inactive = Enum.AddOnRestrictionState and Enum.AddOnRestrictionState.Inactive or 0
+	local isActive = C_RestrictedActions and C_RestrictedActions.IsAddOnRestrictionActive
+	for _, name in ipairs(RESTRICTIONS) do
+		local value = types[name]
+		if value ~= nil then
+			local state = restrictionStates[value]
+			local on = state ~= nil and state ~= inactive
+			if not on and isActive then
+				local ok, active = pcall(isActive, value)
+				on = ok and not ns.IsSecret(active) and active == true
+			end
+			if on then list[#list + 1] = name end
+		end
+	end
+	return list
+end
+
+-- Whether the game may hide auras from addons now: in a fight, or under one of its restrictions
+local function AurasHidden()
+	return InCombat() or #ActiveRestrictions() > 0
+end
+
 local MAIN_HAND, OFF_HAND = 16, 17
 local WEAPON_CLASS = (Enum and Enum.ItemClass and Enum.ItemClass.Weapon) or 2
 
@@ -675,8 +712,9 @@ function MissingBuffs.Scan()
 		watched[#watched + 1] = {name = name, answer = on == nil and "hidden" or (on and "on" or "off"), secrecy = secrecy}
 	end
 	table.sort(watched, function(a, b) return a.name < b.name end)
+	local restrictions = ActiveRestrictions()
 	return {inCombat = InCombat(), readable = names ~= nil, count = count or 0, names = list, weapons = ReadWeapons(),
-		watched = watched}
+		watched = watched, restrictions = #restrictions > 0 and table.concat(restrictions, ", ") or "none"}
 end
 
 -- How many of an item family the bags hold (every rank); nil when the game hides it
@@ -1331,7 +1369,9 @@ function MissingBuffs.Update()
 	-- All the buffs; when the game hides some (in combat), each one watched asked for by its name
 	local before = lastActive or {}
 	local active = ReadActiveNames() or ReadWatched(entry, before)
-	local fighting = InCombat()
+	-- In a fight, or under a restriction of the game (a boss pulled, before the character's own fight):
+	-- the auras may be hidden
+	local fighting = AurasHidden()
 	local weapons = ReadWeapons()
 	if weapons then lastWeapons = weapons else weapons = lastWeapons end
 	local watchesWeapons, seenChanged = false, false
@@ -1520,6 +1560,13 @@ for _, event in ipairs({"PLAYER_ENTERING_WORLD", "PLAYER_DEAD", "PLAYER_ALIVE", 
 	"PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED", "UI_SCALE_CHANGED"}) do
 	ns.RegisterEvent(event, function() MissingBuffs.Update() end)
 end
+-- A restriction of the game about to start (the auras still readable) or just ended: e.g. a boss pulled
+-- before the character is in combat itself (see AurasHidden)
+ns.RegisterEvent("ADDON_RESTRICTION_STATE_CHANGED", function(_, restriction, state)
+	if restriction == nil then return end
+	restrictionStates[restriction] = state
+	MissingBuffs.Update()
+end)
 
 -- The character's own auras only (the bus would get every unit's)
 local auraFrame = CreateFrame("Frame")

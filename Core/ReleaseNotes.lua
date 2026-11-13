@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.17.1",
+		fixed = {
+			"Missing buffs: when a boss was pulled before you were in combat yourself, buffs you had could show as missing for a couple of seconds. They no longer do.",
+		},
+	},
+	{
 		version = "0.17.0",
 		new = {
 			"Hide the quest tracker (General page): the list of the quests you follow, on the right of the screen, stays hidden, on the characters you choose.",
