@@ -7,6 +7,10 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.18.1
+	["Proc alerts: a lit button (like Stormstrike's) could stay lit in combat through its ability's whole cooldown. It now goes dark while the ability cools down."] =
+		"Alertas de procs: um botão aceso (como o do Stormstrike) podia ficar aceso em combate durante todo o cooldown da habilidade. Agora apaga-se enquanto a habilidade está em cooldown.",
+
 	-- Release notes 0.18.0
 	["Proc alerts: shamans get Elemental Focus (its Clearcasting), with the art of a mage's Clearcasting."] =
 		"Alertas de procs: os shamans passam a ter o Elemental Focus (o Clearcasting dele), com a arte do Clearcasting do mage.",

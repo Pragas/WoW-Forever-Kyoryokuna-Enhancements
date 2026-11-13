@@ -8,6 +8,12 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.18.1
+
+- Proc alerts: an ability that lights its button while it can be used (Stormstrike, Ice Barrier, Holy Shock, Exorcism, Hammer of Wrath...) stayed lit in combat through its whole cooldown. In combat the game hides cooldown times, and the module's own `Known()` gave a hidden value back as itself (it was written `ns.Known(value) or value`): the maths on the hidden times then broke the update with an error, so the glow was never turned off. `Known()` now gives nil for a hidden value, also in Supplies, which had the same line. While the times are hidden, the ability is looked at again every half a second (one wait at a time), so its button lights again once the cooldown is over.
+- `/ke procscan`: for each ability that lights its button, the rank known, whether it's usable, and its cooldown as the game gives it ("hidden" for what it hides); and the buttons the addon lights now, so a glow not listed there is someone else's (the game's or another addon's).
+- Tests: Stormstrike cooling down in combat with hidden times (as in the game, a hidden number is a number, and maths on it breaks): its button dark, no error, looked at again once, lit again after the cooldown; procscan says the times are hidden and lists the lit button. And every ability that becomes usable, of every class (12), alone, cooling down in combat with hidden times: no error, nothing lit (with the old line, all 12 broke the same way).
+
 ## 0.18.0
 
 - Proc alerts: Elemental Focus for shamans (the talent, 16164; its proc is the buff named Clearcasting, 16246), as SpellActivationOverlay has it in Forever: the art of a mage's Clearcasting (`GENERIC_ARC_05`) on both sides, at 150%, moving as the animation picked, like every proc. It was the only proc SpellActivationOverlay shows in Forever that the addon didn't have. It needs the talent to proc; its row is on every shaman's list, off at first (`procAlerts.elementalFocus`). The row is named by the talent first, "Elemental Focus (Clearcasting)" in the game's names (a proc can now have a `talent`), so it's found by the name players know.

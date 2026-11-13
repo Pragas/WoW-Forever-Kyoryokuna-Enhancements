@@ -201,8 +201,12 @@ local slots = {}
 local testing
 local testTimer
 
+-- The value if the addon may use it, nil if the game hides it. (Written as "ns.Known(value) or value", a
+-- hidden value came back as itself: a hidden cooldown time then broke the maths below in combat, and a
+-- button stayed lit through its ability's cooldown.)
 local function Known(value)
-	return ns.Known and ns.Known(value) or value
+	if ns.Known then return ns.Known(value) end
+	return value
 end
 
 local function PlayerClass()
@@ -710,7 +714,19 @@ end
 -- known, not on cooldown (the global one aside), and usable, or only
 -- short of rage or energy. What the game hides keeps the last answer.
 local lastReady = {}
-local retryAt = {}
+
+-- Looked at again then: one wait per ability at a time (a later one waits for the earlier to come)
+local checkAt = {}
+local function CheckAgain(spell, at)
+	if not (C_Timer and C_Timer.After and GetTime) then return end
+	local pending = checkAt[spell]
+	if pending and pending <= at and pending > GetTime() then return end
+	checkAt[spell] = at
+	C_Timer.After(math.max(0.05, at - GetTime() + 0.05), function()
+		if checkAt[spell] == at then checkAt[spell] = nil end
+		ns.SafeCall(ProcAlerts.UpdateAuras)
+	end)
+end
 
 local function InCombat()
 	return (UnitAffectingCombat and Known(UnitAffectingCombat("player")) == true) or (InCombatLockdown and InCombatLockdown()) or false
@@ -764,20 +780,43 @@ local function CounterReady(effect)
 		local okCooldown, info = pcall(C_Spell.GetSpellCooldown, spell)
 		if okCooldown and type(info) == "table" then
 			onCooldown = Known(info.isActive) == true and Known(info.isOnGCD) ~= true
-			-- Usable but cooling down: looked at again when it's done (the game may not say)
-			local start, duration = Known(info.startTime), Known(info.duration)
-			if usable and onCooldown and type(start) == "number" and type(duration) == "number" and C_Timer and C_Timer.After then
-				local doneAt = start + duration
-				if retryAt[spell] ~= doneAt then
-					retryAt[spell] = doneAt
-					C_Timer.After(math.max(0.05, doneAt - GetTime() + 0.05), function() ns.SafeCall(ProcAlerts.UpdateAuras) end)
-				end
+			-- Usable but cooling down: looked at again when it's done (the game may not say), or every half a
+			-- second while the game hides when (its times are hidden in combat)
+			if usable and onCooldown then
+				local start, duration = Known(info.startTime), Known(info.duration)
+				local doneAt = type(start) == "number" and type(duration) == "number" and start + duration or nil
+				CheckAgain(spell, doneAt or (GetTime and GetTime() or 0) + 0.5)
 			end
 		end
 	end
 	local ready = not onCooldown and (usable == true or (noPower == true and not CostsMana(spell)))
 	lastReady[spell] = ready
 	return ready
+end
+
+-- What the game says of an ability that becomes usable, for /ke procscan ("hidden": a value it hides)
+local function Said(value)
+	if value ~= nil and Known(value) == nil then return "hidden" end
+	return tostring(value)
+end
+local function CounterNote(effect)
+	local spell = KnowsSpell(effect.spell) and effect.spell or SpellOnBars(effect)
+	if not spell then return ", not known" end
+	local note = ", rank " .. tostring(spell)
+	if C_Spell and C_Spell.IsSpellUsable then
+		local ok, usable, noPower = pcall(C_Spell.IsSpellUsable, spell)
+		note = note .. (ok and (", usable " .. Said(usable) .. ", short of power " .. Said(noPower)) or ", usable: refused")
+	end
+	if C_Spell and C_Spell.GetSpellCooldown then
+		local ok, info = pcall(C_Spell.GetSpellCooldown, spell)
+		if ok and type(info) == "table" then
+			note = note .. string.format(", cooldown: active %s, global %s, start %s, duration %s", Said(info.isActive),
+				Said(info.isOnGCD), Said(info.startTime), Said(info.duration))
+		else
+			note = note .. ", cooldown: " .. (ok and "none" or "refused")
+		end
+	end
+	return note
 end
 
 -- The test that stays (the options' "Show" beside a proc): that proc at its most stacks, until hidden
@@ -1034,7 +1073,7 @@ function ProcAlerts.Scan()
 			end
 			local read
 			if effect.kind == "counter" then
-				read = "ready: " .. tostring(CounterReady(effect))
+				read = "ready: " .. tostring(CounterReady(effect)) .. CounterNote(effect)
 			elseif C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID then
 				local ok, aura = pcall(C_UnitAuras.GetPlayerAuraBySpellID, effect.spell)
 				if not ok then
@@ -1060,6 +1099,16 @@ function ProcAlerts.Scan()
 			lines[#lines + 1] = tostring(effect.name) .. ": " .. (text ~= nil and tostring(text) or "an error the game hides")
 		end
 	end
+	-- The buttons the addon lights now (a glow not listed here is someone else's: the game's or another addon's)
+	local lit = {}
+	for button, glow in pairs(glows) do
+		if glow:IsShown() then
+			local spell = ButtonSpell(button)
+			lit[#lit + 1] = tostring(button.GetName and button:GetName() or "?") .. " (" .. tostring(spell and SpellNameOf(spell) or "nothing") .. ")"
+		end
+	end
+	table.sort(lit)
+	lines[#lines + 1] = "buttons lit by the addon: " .. (#lit > 0 and table.concat(lit, ", ") or "none")
 	return lines
 end
 

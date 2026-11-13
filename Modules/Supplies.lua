@@ -54,8 +54,11 @@ local itemInfo = {}
 -- The best of each kind now: {id, count} or nil (for the options page and the tests)
 local best = {}
 
+-- The value if the addon may use it, nil if the game hides it ("ns.Known(value) or value" gave a hidden
+-- value back as itself)
 local function Known(value)
-	return ns.Known and ns.Known(value) or value
+	if ns.Known then return ns.Known(value) end
+	return value
 end
 
 local function SpellName(id)

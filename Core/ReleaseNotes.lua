@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.18.1",
+		fixed = {
+			"Proc alerts: a lit button (like Stormstrike's) could stay lit in combat through its ability's whole cooldown. It now goes dark while the ability cools down.",
+		},
+	},
+	{
 		version = "0.18.0",
 		new = {
 			"Proc alerts: shamans get Elemental Focus (its Clearcasting), with the art of a mage's Clearcasting.",
