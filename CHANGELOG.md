@@ -8,6 +8,11 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.18.0
+
+- Proc alerts: Elemental Focus for shamans (the talent, 16164; its proc is the buff named Clearcasting, 16246), as SpellActivationOverlay has it in Forever: the art of a mage's Clearcasting (`GENERIC_ARC_05`) on both sides, at 150%, moving as the animation picked, like every proc. It was the only proc SpellActivationOverlay shows in Forever that the addon didn't have. It needs the talent to proc; its row is on every shaman's list, off at first (`procAlerts.elementalFocus`). The row is named by the talent first, "Elemental Focus (Clearcasting)" in the game's names (a proc can now have a `talent`), so it's found by the name players know.
+- Tests: Elemental Focus on both sides with Clearcasting's art, moving, gone with its buff; its row named "Elemental Focus (Clearcasting)", or the addon's own name when the game gives none.
+
 ## 0.17.1
 
 - Fixed: missing buffs, at a boss pull the buffs the game may hide (seen with a mage's armor and Arcane Intellect, in a dungeon) showed as missing for about 2 seconds, then went. The game hides them from addons not only in the character's own fight but under any of its addon restrictions (`C_RestrictedActions`: Combat, Encounter, ChallengeMode, PvPMatch, Map), and a boss encounter starts at the pull, before the character is in combat itself: the read left them out and they were taken as gone until the character's own fight began. Those restrictions now count as a fight: the buffs stay as they were, and their own icons, moved by the game, take over. `ADDON_RESTRICTION_STATE_CHANGED` is listened to (the game sends it before a restriction is enforced, "Activating", while the auras can still be read; its state is kept, as `IsAddOnRestrictionActive` answers false while it's being sent), and the game is asked too (a restriction already on after a /reload). The chat's restriction doesn't count. `/ke buffscan` says which restrictions are on.

@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.18.0",
+		new = {
+			"Proc alerts: shamans get Elemental Focus (its Clearcasting), with the art of a mage's Clearcasting.",
+		},
+	},
+	{
 		version = "0.17.1",
 		fixed = {
 			"Missing buffs: when a boss was pulled before you were in combat yourself, buffs you had could show as missing for a couple of seconds. They no longer do.",

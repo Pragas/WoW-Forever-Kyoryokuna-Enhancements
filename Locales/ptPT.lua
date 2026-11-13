@@ -7,6 +7,10 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.18.0
+	["Proc alerts: shamans get Elemental Focus (its Clearcasting), with the art of a mage's Clearcasting."] =
+		"Alertas de procs: os shamans passam a ter o Elemental Focus (o Clearcasting dele), com a arte do Clearcasting do mage.",
+
 	-- Release notes 0.17.1
 	["Missing buffs: when a boss was pulled before you were in combat yourself, buffs you had could show as missing for a couple of seconds. They no longer do."] =
 		"Buffs em falta: quando um boss era puxado antes de estares tu em combate, buffs que tinhas podiam aparecer em falta durante uns segundos. Já não aparecem.",

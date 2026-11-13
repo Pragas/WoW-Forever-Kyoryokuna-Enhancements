@@ -58,7 +58,8 @@ local TOP_TURNED = {"TOP_CW"}
 -- the spell (an aura's ID; for a "counter", an ability that becomes usable, like Victory Rush after a
 -- kill), also (other IDs of the same aura; only the ones known to be the proc: other spells of the same
 -- name can be auras always on, whose art would never go away), a name for when the game doesn't give
--- one, combatOnly (only shown in combat), test (the stacks its test shows; else its most), and its art:
+-- one, talent (the talent that gives a proc named otherwise: the page shows "Talent (Proc)"), combatOnly
+-- (only shown in combat), test (the stacks its test shows; else its most), and its art:
 -- {stacks (nil: any; a number: that many; the game shows it from that many up), art, sides,
 -- scale, shade (0-255, grey to white) or color ({r, g, b}, 0-255), alpha (0-255), pulse (false: stays still
 -- whatever animation is picked; only for the first stacks of a proc whose moving says it's at its most)}
@@ -145,6 +146,11 @@ local EFFECTS = {
 			{stacks = 4, art = ART.MAELSTROM_4, sides = TOP, shade = 224},
 			{stacks = 5, art = ART.MAELSTROM_5, sides = TOP},
 		}},
+		-- The Elemental Focus talent: its proc is a buff named Clearcasting (as a mage's), with its art, on
+		-- both sides (as SpellActivationOverlay's)
+		{key = "elementalFocus", spell = 16246, talent = 16164, name = "Elemental Focus", overlays = {
+			{art = ART.GENERIC_ARC_05, sides = BOTH_SIDES, scale = 1.5},
+		}},
 	},
 	WARLOCK = {
 		{key = "nightfall", spell = 17941, name = "Nightfall", overlays = {
@@ -208,9 +214,17 @@ function ProcAlerts.GetEffects()
 	return EFFECTS[PlayerClass()] or {}
 end
 
+-- A proc's name, as the game gives it (else the addon's); a talent's proc named otherwise, "Talent (Proc)",
+-- so it's found by the talent's name (Elemental Focus (Clearcasting))
 function ProcAlerts.SpellName(effect)
 	local name = C_Spell and C_Spell.GetSpellName and Known(C_Spell.GetSpellName(effect.spell))
-	return type(name) == "string" and name or effect.name
+	name = type(name) == "string" and name or effect.name
+	if effect.talent then
+		local talent = C_Spell and C_Spell.GetSpellName and Known(C_Spell.GetSpellName(effect.talent))
+		talent = type(talent) == "string" and talent or effect.name
+		if talent ~= name then return string.format("%s (%s)", talent, name) end
+	end
+	return name
 end
 
 -- Every proc's art follows the animation picked, at any stacks; a proc whose first stacks stay still (its

@@ -155,6 +155,7 @@ ns.DEFAULTS = {
 		cutthroat = false,
 		riposte = false,
 		maelstromWeapon = false,
+		elementalFocus = false,
 		nightfall = false,
 		decimation = false,
 		eyeOfKilrogg = false,
