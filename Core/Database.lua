@@ -142,6 +142,7 @@ ns.DEFAULTS = {
 		clearcasting = false,
 		fingersOfFrost = false,
 		heatingUp = false,
+		frozen = false,
 		-- The other classes' (each character only sees its own class')
 		eclipse = false,
 		omenOfClarity = false,
@@ -160,20 +161,23 @@ ns.DEFAULTS = {
 		decimation = false,
 		eyeOfKilrogg = false,
 		victoryRush = false,
+		overpower = false,
+		revenge = false,
 		-- Abilities that only light their button
 		iceBarrier = false,
-		overpower = false,
 		execute = false,
-		revenge = false,
 		counterattack = false,
 		holyShock = false,
 		exorcism = false,
 		hammerOfWrath = false,
 		stormstrike = false,
-		-- Abilities with art that can also light their button: the art, the button, or both
+		-- Abilities with art that can also light their button: the art, the button, or both. Overpower and
+		-- Revenge only lit their button before they had art (0.19.0), so they keep it, with the art too.
 		victoryRushAlert = "ART",
 		riposteAlert = "ART",
 		mongooseBiteAlert = "ART",
+		overpowerAlert = "BOTH",
+		revengeAlert = "BOTH",
 	},
 	-- The look of the missing buffs' two groups: each character's own (kept in characters[...].look, see
 	-- Modules\MissingBuffs.lua); the settings hold the one of the character playing, and these defaults
@@ -252,7 +256,7 @@ ns.CHOICES = {
 	missingBuffsUtility = {growth = GROWTH, countPosition = COUNT_POSITIONS, animation = ANIMATIONS, glow = GLOWS},
 	supplies = {bothIcon = {FOOD = true, DRINK = true}},
 	procAlerts = {victoryRushAlert = ALERT_KINDS, riposteAlert = ALERT_KINDS, mongooseBiteAlert = ALERT_KINDS,
-		animation = ANIMATIONS},
+		overpowerAlert = ALERT_KINDS, revengeAlert = ALERT_KINDS, animation = ANIMATIONS},
 	performance = {show = {BOTH = true, FPS = true, PING = true}, ping = {WORLD = true, HOME = true, BOTH = true}},
 }
 

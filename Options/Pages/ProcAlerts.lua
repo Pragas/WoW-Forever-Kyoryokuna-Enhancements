@@ -84,6 +84,8 @@ ns.AddOptionsPage("Proc Alerts", function(b)
 			elseif effect.kind == "counter" then
 				label = label .. "  |cff9d9d9d(" .. L["when usable"] .. ")|r"
 				tooltip = L["Shown while this ability can be used (e.g. after a kill, a parry or a dodge)."]
+			elseif effect.unit == "target" then
+				tooltip = L["Shown while your target is frozen, by you or by someone else."]
 			end
 			-- Every proc moves as picked below; one whose moving says it's at its most waits for those stacks
 			local movesFrom = P.MovesFrom(effect)

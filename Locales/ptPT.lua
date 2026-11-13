@@ -7,6 +7,12 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.19.0
+	["Proc alerts: mages can see when their target is frozen (Frost Nova, Frostbite...), with the Frozen Fingers art on top, in combat too."] =
+		"Alertas de procs: os mages podem ver quando o alvo está congelado (Frost Nova, Frostbite...), com a arte do Frozen Fingers em cima, também em combate.",
+	["Proc alerts: Overpower and Revenge get art of their own, besides their glowing button; you pick the art, the button or both."] =
+		"Alertas de procs: o Overpower e o Revenge passam a ter arte própria, além do botão aceso; escolhes a arte, o botão ou os dois.",
+
 	-- Release notes 0.18.1
 	["Proc alerts: a lit button (like Stormstrike's) could stay lit in combat through its ability's whole cooldown. It now goes dark while the ability cools down."] =
 		"Alertas de procs: um botão aceso (como o do Stormstrike) podia ficar aceso em combate durante todo o cooldown da habilidade. Agora apaga-se enquanto a habilidade está em cooldown.",
@@ -531,6 +537,9 @@ ns.LOCALES.ptPT = {
 	["when usable"] = "quando disponível",
 	["Shown while this ability can be used (e.g. after a kill, a parry or a dodge)."] =
 		"Aparece enquanto esta habilidade pode ser usada (por exemplo, depois de uma morte, de um parry ou de um dodge).",
+	["Frozen target"] = "Alvo congelado",
+	["Shown while your target is frozen, by you or by someone else."] =
+		"Aparece enquanto o teu alvo está congelado, por ti ou por outra pessoa.",
 	["Proc alerts for every class: druid, hunter, paladin, priest, rogue, shaman, warlock and warrior, and abilities that become usable (Victory Rush, Riposte, Mongoose Bite). \"Test\" beside a proc keeps it on the screen while you set the look."] =
 		"Alertas de procs para todas as classes: druid, hunter, paladin, priest, rogue, shaman, warlock e warrior, e habilidades que ficam disponíveis (Victory Rush, Riposte, Mongoose Bite). \"Testar\" ao lado de um proc deixa-o fixo no ecrã enquanto afinas o aspeto.",
 	-- Proc alerts, phase 3

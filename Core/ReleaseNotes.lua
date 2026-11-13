@@ -19,6 +19,13 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.19.0",
+		new = {
+			"Proc alerts: mages can see when their target is frozen (Frost Nova, Frostbite...), with the Frozen Fingers art on top, in combat too.",
+			"Proc alerts: Overpower and Revenge get art of their own, besides their glowing button; you pick the art, the button or both.",
+		},
+	},
+	{
 		version = "0.18.1",
 		fixed = {
 			"Proc alerts: a lit button (like Stormstrike's) could stay lit in combat through its ability's whole cooldown. It now goes dark while the ability cools down.",

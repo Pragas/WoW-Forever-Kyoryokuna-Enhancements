@@ -45,6 +45,7 @@ local ART = {
 	NIGHTFALL = 449492,
 	RAGING_BLOW = 962497,
 	SERENDIPITY = 469752,
+	SWORD_AND_BOARD = 449494,
 	WHITE_TIGER = 603339,
 }
 
@@ -58,7 +59,9 @@ local TOP_TURNED = {"TOP_CW"}
 -- the spell (an aura's ID; for a "counter", an ability that becomes usable, like Victory Rush after a
 -- kill), also (other IDs of the same aura; only the ones known to be the proc: other spells of the same
 -- name can be auras always on, whose art would never go away), a name for when the game doesn't give
--- one, talent (the talent that gives a proc named otherwise: the page shows "Talent (Proc)"), combatOnly
+-- one, talent (the talent that gives a proc named otherwise: the page shows "Talent (Proc)"), label (a
+-- name of the addon's, translated, for one that isn't a spell: "Frozen target"), unit ("target": a
+-- debuff on the target, from anyone, always shown by the game's AuraContainer for the target), combatOnly
 -- (only shown in combat), test (the stacks its test shows; else its most), and its art:
 -- {stacks (nil: any; a number: that many; the game shows it from that many up), art, sides,
 -- scale, shade (0-255, grey to white) or color ({r, g, b}, 0-255), alpha (0-255), pulse (false: stays still
@@ -87,6 +90,23 @@ local EFFECTS = {
 			{stacks = 1, art = ART.HOT_STREAK, sides = BOTH_SIDES, shade = 200, alpha = 100, pulse = false},
 			{stacks = 2, art = ART.HOT_STREAK, sides = BOTH_SIDES, shade = 222, alpha = 100, pulse = false},
 			{stacks = 3, art = ART.HOT_STREAK, sides = BOTH_SIDES},
+		}},
+		-- The target frozen, by anyone (Frost Nova, Frostbite, a Freezing Trap...): a debuff on the target,
+		-- with the IDs SpellActivationOverlay has for it (2.9.0, "Frozen" in Forever), the art on top, turned.
+		-- The game hides the target's debuffs in combat and tells nothing when the target changes, so it's
+		-- always shown by the game's AuraContainer for the target, asked to look again on a new target.
+		{key = "frozen", spell = 122, label = "Frozen target", name = "Frozen target", unit = "target", also = {
+			12494, -- Frostbite
+			865, 6131, 10230, 27088, 42917, -- Frost Nova (its other ranks)
+			3355, 14308, 14309, -- Freezing Trap
+			33395, -- Freeze
+			55080, -- Shattered Barrier
+			44572, 428739, -- Deep Freeze
+			49203, -- Hungering Cold
+			83301, 83302, -- Improved Cone of Cold
+			82691, -- Ring of Frost
+		}, overlays = {
+			{art = ART.FROZEN_FINGERS, sides = TOP_TURNED},
 		}},
 	},
 	DRUID = {
@@ -167,10 +187,16 @@ local EFFECTS = {
 		{key = "victoryRush", spell = 402927, name = "Victory Rush", kind = "counter", overlays = {
 			{art = ART.SERENDIPITY, sides = TOP, scale = 0.9, color = {255, 32, 32}},
 		}},
-		-- Only their buttons light up
-		{key = "overpower", spell = 7384, name = "Overpower", kind = "counter", overlays = {}},
+		-- With art since SpellActivationOverlay 2.9.0 (Forever): Overpower on top, turned; Revenge on both
+		-- sides. Their buttons lit before they had art, so both warn with the art and the button at first.
+		{key = "overpower", spell = 7384, name = "Overpower", kind = "counter", overlays = {
+			{art = ART.BANDITS_GUILE, sides = TOP_TURNED, scale = 1.2, alpha = 234},
+		}},
+		{key = "revenge", spell = 6572, name = "Revenge", kind = "counter", overlays = {
+			{art = ART.SWORD_AND_BOARD, sides = BOTH_SIDES, scale = 1.1},
+		}},
+		-- Only its button lights up
 		{key = "execute", spell = 5308, name = "Execute", kind = "counter", overlays = {}},
-		{key = "revenge", spell = 6572, name = "Revenge", kind = "counter", overlays = {}},
 	},
 }
 -- Abilities whose button lights up but which have no art (phase 3), added to their classes
@@ -195,7 +221,9 @@ end
 ProcAlerts.EFFECTS = EFFECTS
 
 local holder, label
-local container
+-- The game's AuraContainers, by unit ("player"; "target" for the target's debuffs): false when the game
+-- has none
+local containers = {}
 local ownFrames = {}
 local slots = {}
 local testing
@@ -221,6 +249,8 @@ end
 -- A proc's name, as the game gives it (else the addon's); a talent's proc named otherwise, "Talent (Proc)",
 -- so it's found by the talent's name (Elemental Focus (Clearcasting))
 function ProcAlerts.SpellName(effect)
+	-- One that isn't a spell (the target frozen): the addon's own name, translated
+	if effect.label then return L[effect.label] end
 	local name = C_Spell and C_Spell.GetSpellName and Known(C_Spell.GetSpellName(effect.spell))
 	name = type(name) == "string" and name or effect.name
 	if effect.talent then
@@ -562,34 +592,35 @@ local function IsSecret(spell)
 	return ok and (secrecy == Enum.SecrecyLevel.ContextuallySecret or secrecy == Enum.SecrecyLevel.AlwaysSecret) or false
 end
 
--- The game's AuraContainer, made once (nil when the game has none)
--- What happened when the container was made, for /ke procscan
-local containerNote = "not tried yet"
+-- The game's AuraContainer of a unit, made once (nil when the game has none)
+-- What happened when each container was made, for /ke procscan
+local containerNotes = {}
+local CONTAINER_NAMES = {player = "KyoryokunaEnhancementsProcAuraContainer", target = "KyoryokunaEnhancementsProcTargetAuraContainer"}
 
-local function GetContainer()
-	if container ~= nil then return container or nil end
-	container = false
+local function GetContainer(unit)
+	unit = unit or "player"
+	if containers[unit] ~= nil then return containers[unit] or nil end
+	containers[unit] = false
 	if not (C_Secrets and C_Secrets.GetSpellAuraSecrecy) then
-		containerNote = "the game has no C_Secrets"
+		containerNotes[unit] = "the game has no C_Secrets"
 		return nil
 	end
 	if C_AddOns and C_AddOns.LoadAddOn then
 		local okLoad, loaded, reason = pcall(C_AddOns.LoadAddOn, "Blizzard_AuraContainer")
 		if not okLoad or (not loaded and reason ~= "ALREADY_LOADED") then
-			containerNote = "Blizzard_AuraContainer not loaded: " .. tostring(okLoad and reason or loaded)
+			containerNotes[unit] = "Blizzard_AuraContainer not loaded: " .. tostring(okLoad and reason or loaded)
 		end
 	end
-	local ok, frame = pcall(CreateFrame, "AuraContainer", "KyoryokunaEnhancementsProcAuraContainer", GetHolder(),
-		"CustomAuraContainerTemplate")
+	local ok, frame = pcall(CreateFrame, "AuraContainer", CONTAINER_NAMES[unit], GetHolder(), "CustomAuraContainerTemplate")
 	if not ok or not frame then
-		containerNote = "not made: " .. tostring(frame)
+		containerNotes[unit] = "not made: " .. tostring(frame)
 		return nil
 	end
-	containerNote = "made"
+	containerNotes[unit] = "made"
 	frame:SetAllPoints(GetHolder())
-	frame:SetUnit("player")
+	frame:SetUnit(unit)
 	frame:SetEnabled(true)
-	container = frame
+	containers[unit] = frame
 	return frame
 end
 
@@ -654,15 +685,18 @@ local function SetUpSlot(button, slot)
 end
 
 local function MakeSlots(effect)
-	local frame = GetContainer()
+	local frame = GetContainer(effect.unit)
 	if not frame then return false end
+	-- The character's buffs, or the target's debuffs
+	local filter = effect.unit == "target" and "HARMFUL" or "HELPFUL"
 	for index, overlay in ipairs(effect.overlays) do
 		for _, side in ipairs(overlay.sides) do
-			local slot = {effect = effect, overlay = overlay, side = side, key = "KE_" .. effect.key .. "_" .. index .. "_" .. side}
+			local slot = {effect = effect, overlay = overlay, side = side, key = "KE_" .. effect.key .. "_" .. index .. "_" .. side,
+				container = frame}
 			-- The aura, and the other IDs the game gives the same proc
 			local spells = {[effect.spell] = true}
 			for _, other in ipairs(effect.also or {}) do spells[other] = true end
-			local ok, button = pcall(frame.AddAuraSlot, frame, slot.key, "HELPFUL", {
+			local ok, button = pcall(frame.AddAuraSlot, frame, slot.key, filter, {
 				templateNames = {"KyoryokunaEnhancementsProcAuraTemplate"},
 				initializeFrame = function(made) slot.button = made; SetUpSlot(made, slot) end,
 				candidateFilters = {includeSpellIDs = spells},
@@ -683,19 +717,37 @@ end
 
 -- Showing ----------------------------------------------------------------------------------------
 
--- Effects whose aura the game hides go to the AuraContainer, once (from login, out of combat)
+-- Effects whose aura the game hides go to the AuraContainer, once (from login, out of combat); the
+-- target's debuffs always do (hidden in combat, and the game says nothing when the target changes)
 local prepared = false
 local function Prepare()
 	if prepared then return end
 	prepared = true
 	for _, effect in ipairs(ProcAlerts.GetEffects()) do
-		effect.byGame = effect.kind ~= "counter" and IsSecret(effect.spell) and MakeSlots(effect) or false
+		effect.byGame = effect.kind ~= "counter" and (effect.unit == "target" or IsSecret(effect.spell)) and MakeSlots(effect)
+			or false
 	end
+end
+
+-- A debuff on the target (one of the effect's IDs), when the game has no AuraContainer to show it: read
+-- while the game lets the addon, 1 when there, nil without it
+local function ReadTargetStacks(effect)
+	if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return nil end
+	local wanted = {[effect.spell] = true}
+	for _, other in ipairs(effect.also or {}) do wanted[other] = true end
+	for index = 1, 40 do
+		local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "target", index, "HARMFUL")
+		if not ok or type(aura) ~= "table" then return nil end
+		local id = Known(aura.spellId)
+		if id and wanted[id] then return 1 end
+	end
+	return nil
 end
 
 -- The stacks of a proc on the character (its aura, or one of the other IDs of the same proc), nil
 -- without it
 local function ReadStacks(effect)
+	if effect.unit == "target" then return ReadTargetStacks(effect) end
 	if not (C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID) then return nil end
 	local spells = {effect.spell}
 	for _, other in ipairs(effect.also or {}) do spells[#spells + 1] = other end
@@ -939,8 +991,9 @@ function ProcAlerts.Update()
 		HideOwn()
 		SetGlows({})
 		for _, slot in ipairs(slots) do
-			if slot.enabled ~= false and container and container.SetAuraSlotEnabled then
-				pcall(container.SetAuraSlotEnabled, container, slot.key, false)
+			local frame = slot.container
+			if slot.enabled ~= false and frame and frame.SetAuraSlotEnabled then
+				pcall(frame.SetAuraSlotEnabled, frame, slot.key, false)
 				slot.enabled = false
 			end
 		end
@@ -953,8 +1006,9 @@ function ProcAlerts.Update()
 		local on = settings.enabled and settings[slot.effect.key] == true and not showingTest
 		-- Only when something changed: turning a place on again, or setting it up again, may make the game
 		-- lose it
-		if slot.enabled ~= on and container and container.SetAuraSlotEnabled then
-			pcall(container.SetAuraSlotEnabled, container, slot.key, on)
+		local frame = slot.container
+		if slot.enabled ~= on and frame and frame.SetAuraSlotEnabled then
+			pcall(frame.SetAuraSlotEnabled, frame, slot.key, on)
 			slot.enabled = on
 		end
 		local look = settings.size .. ":" .. settings.distance .. ":" .. tostring(settings.animation) .. ":" .. tostring(settings.animTime)
@@ -1023,15 +1077,31 @@ end
 
 ns.RegisterEvent("PLAYER_ENTERING_WORLD", Changed)
 
--- The character's own auras only
+-- The character's own auras; the target's only for a debuff read by the addon (when the game has no
+-- AuraContainer to show it)
+local function ReadsTarget()
+	local settings = Settings()
+	for _, effect in ipairs(ProcAlerts.GetEffects()) do
+		if effect.unit == "target" and not effect.byGame and settings[effect.key] == true then return true end
+	end
+	return false
+end
 local auraFrame = CreateFrame("Frame")
 if auraFrame.RegisterUnitEvent then
-	auraFrame:RegisterUnitEvent("UNIT_AURA", "player")
+	auraFrame:RegisterUnitEvent("UNIT_AURA", "player", "target")
 else
 	auraFrame:RegisterEvent("UNIT_AURA")
 end
 auraFrame:SetScript("OnEvent", function(_, _, unit)
-	if unit == "player" and ns.db and Settings().enabled and not testing then ns.SafeCall(ProcAlerts.UpdateAuras) end
+	if not (ns.db and Settings().enabled and not testing) then return end
+	if unit == "player" or (unit == "target" and ReadsTarget()) then ns.SafeCall(ProcAlerts.UpdateAuras) end
+end)
+
+-- A new target: the game's container for the target is asked to look again (the game doesn't tell it;
+-- Blizzard_AuraContainer leaves that to whoever uses it, "e.g. target changes")
+ns.RegisterEvent("PLAYER_TARGET_CHANGED", function()
+	local frame = containers.target
+	if frame and frame.UpdateAllAuras then pcall(frame.UpdateAllAuras, frame) end
 end)
 
 -- What's usable (Victory Rush, Riposte, Mongoose Bite), and combat (some only show in it)
@@ -1057,7 +1127,8 @@ function ProcAlerts.Scan()
 	local _, class = UnitClass("player")
 	lines[#lines + 1] = string.format("on: %s, class: %s, in combat: %s, test: %s", tostring(settings.enabled), tostring(class),
 		tostring(InCombat()), tostring(fixedKey or testing or false))
-	lines[#lines + 1] = "AuraContainer: " .. containerNote .. ", slots: " .. #slots
+	lines[#lines + 1] = "AuraContainer: " .. tostring(containerNotes.player or "not tried yet") .. ", for the target: "
+		.. tostring(containerNotes.target or "not tried yet") .. ", slots: " .. #slots
 	-- What the game itself said about its spell alerts lately (newest first)
 	local said = ProcAlerts.NativeAlerts and ProcAlerts.NativeAlerts() or {}
 	lines[#lines + 1] = "game alerts lately: " .. (#said > 0 and "" or "none")
@@ -1074,6 +1145,9 @@ function ProcAlerts.Scan()
 			local read
 			if effect.kind == "counter" then
 				read = "ready: " .. tostring(CounterReady(effect)) .. CounterNote(effect)
+			elseif effect.unit == "target" then
+				-- In combat the game hides the target's debuffs: "none seen" then says nothing
+				read = "on the target: " .. (ReadTargetStacks(effect) and "seen" or "none seen")
 			elseif C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID then
 				local ok, aura = pcall(C_UnitAuras.GetPlayerAuraBySpellID, effect.spell)
 				if not ok then
@@ -1254,7 +1328,7 @@ end
 
 -- For the tests
 function ProcAlerts.ResetForTests()
-	prepared, container, slots = false, nil, {}
+	prepared, containers, slots = false, {}, {}
 	for _, effect in ipairs(ProcAlerts.GetEffects()) do effect.byGame = nil end
 end
 

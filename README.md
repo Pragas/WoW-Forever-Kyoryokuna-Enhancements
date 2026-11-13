@@ -12,7 +12,7 @@ This link always gives the newest version. Don't use the green **Code → Downlo
 
 ## What it does
 
-- **Proc Alerts:** the game's spell alert art beside your character when a proc happens, for every class and in combat too. Abilities that become usable can also make their action button glow. You can move the alerts, choose their look and animation, and test each one.
+- **Proc Alerts:** the game's spell alert art beside your character when a proc happens, for every class and in combat too. Abilities that become usable can also make their action button glow, and a mage can see when the target is frozen. You can move the alerts, choose their look and animation, and test each one.
 - **Trainer:**
   - Tick the spells you want at your class trainer, then learn only those.
   - A new rank you learn takes the place of the old one on your action bars.
