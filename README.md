@@ -16,7 +16,7 @@ This link always gives the newest version. Don't use the green **Code → Downlo
 - **Trainer:**
   - Tick the spells you want at your class trainer, then learn only those.
   - A new rank you learn takes the place of the old one on your action bars.
-- **Missing Buffs:** the buffs and conjured items your character should have show faded on the screen while they're missing, and so does what goes on your weapons (a shaman's imbues, a rogue's poisons, an oil or a stone) while a weapon has none. Click one to cast or conjure it (out of combat). Each of the two groups can move (pulse, breathe, blink or float) and glow (the game's glow, its moving outline, or a border) in the color you pick. What each character watches and how its groups look are its own, and can be copied from another character of its class.
+- **Missing Buffs:** the buffs and conjured items your character should have show faded on the screen while they're missing, and so does what goes on your weapons (a shaman's imbues, a rogue's poisons, an oil or a stone) while a weapon has none. Click one to cast or conjure it (out of combat). Each of the two groups can show only in combat, and can move (pulse, breathe, blink or float) and glow (the game's glow, its moving outline, or a border) in the color you pick. What each character watches and how its groups look are its own, and can be copied from another character of its class.
 - **Supplies:** macros that eat and drink the best food and drink in your bags, kept up to date by the addon.
 - **Error Messages:** hide the game's red messages you don't want (their sound still plays), and silence their voice.
 - **FPS and Latency:** your FPS and ping on the screen, where you want them, colored by how good they are.

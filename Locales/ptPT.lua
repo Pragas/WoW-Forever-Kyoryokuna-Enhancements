@@ -7,6 +7,10 @@
 local _, ns = ...
 
 ns.LOCALES.ptPT = {
+	-- Release notes 0.20.0
+	["Missing buffs: each group, Essential and Utility, can show only in combat (\"Only in combat\" in its settings), so nothing of it shows out of combat."] =
+		"Buffs em falta: cada grupo, Essenciais e Utilidade, pode aparecer só em combate (\"Só em combate\" nas opções do grupo), para que nada dele apareça fora de combate.",
+
 	-- Release notes 0.19.1
 	["Error messages: turning \"Silence the voice of the messages\" off turned the game's voice on, even for a player who had it off. It's now put back as it was."] =
 		"Mensagens de erro: desligar \"Calar a voz das mensagens\" ligava a voz do jogo, mesmo a quem a tinha desligada. Agora volta ao que estava.",
@@ -276,8 +280,10 @@ ns.LOCALES.ptPT = {
 		"Nas armas (encantamentos, venenos): mão principal %s, mão secundária %s.",
 	["no weapon"] = "sem arma",
 	["hidden"] = "escondido",
-	["When something you chose is missing, its icon shows on the screen, grey and faded, in and out of combat (not while you're dead). Each thing goes to one of two groups, Essential or Utility, each with its own place and look."] =
-		"Quando falta alguma coisa que escolheste, o ícone dela aparece no ecrã, cinzento e desvanecido, dentro e fora de combate (não enquanto estás morto). Cada coisa vai para um de dois grupos, Essenciais ou Utilidade, cada um com o seu sítio e aspeto.",
+	["When something you chose is missing, its icon shows on the screen, grey and faded (not while you're dead). Each thing goes to one of two groups, Essential or Utility, each with its own place and look, shown in and out of combat or only in combat."] =
+		"Quando falta alguma coisa que escolheste, o ícone dela aparece no ecrã, cinzento e desvanecido (não enquanto estás morto). Cada coisa vai para um de dois grupos, Essenciais ou Utilidade, cada um com o seu sítio e aspeto, mostrado dentro e fora de combate ou só em combate.",
+	["The icons of this group show only while you're in combat. Out of combat nothing of this group shows, even when something is missing."] =
+		"Os ícones deste grupo só aparecem enquanto estás em combate. Fora de combate não aparece nada deste grupo, mesmo que falte alguma coisa.",
 	["Show what's missing"] = "Mostrar o que está em falta",
 	["Buffs of %s (%s)"] = "Buffs de %s (%s)",
 	["Tick the buffs to watch, and pick their group. Buffs that can't be on together, like the armors of a mage, are one line: any of them is enough, and you can pick the icon. The same buff from someone else counts too."] =

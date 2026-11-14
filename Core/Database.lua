@@ -183,8 +183,10 @@ ns.DEFAULTS = {
 	-- Modules\MissingBuffs.lua); the settings hold the one of the character playing, and these defaults
 	-- are a new character's first look.
 	-- The number on an item's icon (how many the bags hold): hidden at 0 unless asked, in a corner or in
-	-- the middle, with a size of its own
+	-- the middle, with a size of its own. onlyInCombat: the group shows only while the character is in
+	-- combat (since 0.20.0; off, in and out of combat, as before).
 	missingBuffsEssential = {
+		onlyInCombat = false,
 		iconSize = 40,
 		alpha = 50,
 		spacing = 4,
@@ -205,6 +207,7 @@ ns.DEFAULTS = {
 		borderSize = 2,
 	},
 	missingBuffsUtility = {
+		onlyInCombat = false,
 		iconSize = 32,
 		alpha = 50,
 		spacing = 4,

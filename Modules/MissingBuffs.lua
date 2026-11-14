@@ -4,14 +4,15 @@
 
 -- Missing buffs (Missing Buffs page): what a character should always have on it, read from its
 -- spellbook. The player ticks what to watch; while one is missing, its icon shows on the screen, grey and
--- faded, in and out of combat (not while dead).
+-- faded, in and out of combat (not while dead), or only in combat when its group asks so.
 --
 --   - Three kinds: buffs (missing when not on the character), conjured items (missing when the bags
 --     hold fewer than a minimum: mana gems, conjured food and water, healthstones...), and what goes on
 --     the weapons (a shaman's imbues, a rogue's poisons: missing while a weapon in the character's hands
 --     has none). Those aren't auras: they're the weapons' temporary enchants, read from the weapons.
 --   - Two groups, each with its own place and look: Essential and Utility. Each thing ticked goes to the
---     group the player picks (buffs start in Essential, items in Utility).
+--     group the player picks (buffs start in Essential, items in Utility). Each group can show only in
+--     combat: out of combat nothing of it shows (while moving the groups, it does).
 --   - The choice is kept for each character. A new character with nothing chosen can copy the choice of
 --     another character of its class (the page offers it, and the chat says so once).
 --   - Buffs that can't be on together (the armors of a mage, the aspects of a hunter...) are one
@@ -621,6 +622,14 @@ end
 
 local function InCombat()
 	return (InCombatLockdown and InCombatLockdown()) or (UnitAffectingCombat and UnitAffectingCombat("player")) or false
+end
+
+-- The character's own fight, for the groups shown only in combat: from PLAYER_REGEN_DISABLED to
+-- PLAYER_REGEN_ENABLED. The game sends the first one just before its lockdown starts, so the icons such a
+-- group shows then can still get their click buttons (see SyncClickers).
+local regenOff = false
+local function InFight()
+	return regenOff or InCombat()
 end
 
 -- The game hides auras from addons not only in the character's own fight: also while one of its addon
@@ -1376,6 +1385,12 @@ function MissingBuffs.Update()
 	if weapons then lastWeapons = weapons else weapons = lastWeapons end
 	local watchesWeapons, seenChanged = false, false
 	local dead = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
+	-- The groups shown now: out of the character's fight, not the ones shown only in combat
+	local inFight = InFight()
+	local groupShown = {}
+	for group, section in pairs(GROUP_SETTINGS) do
+		groupShown[group] = inFight or not ns.db[section].onlyInCombat
+	end
 	local shown = {[ESSENTIAL] = {}, [UTILITY] = {}}
 	-- The buffs' own icons the game shows or not (in combat), after the others of their group
 	local byGame = {[ESSENTIAL] = {}, [UTILITY] = {}}
@@ -1417,10 +1432,12 @@ function MissingBuffs.Update()
 						if own and fighting and not moving then missing = true else own = nil end
 					end
 				end
-				-- While moving, everything chosen shows, so the groups can be placed as they will look
-				if moving or (missing and not dead) then
+				-- While moving, everything chosen shows, so the groups can be placed as they will look. (A
+				-- buff's own icon left out is put away below, not being in use.)
+				local groupKey = GROUP_SETTINGS[watch.group] and watch.group or ESSENTIAL
+				if moving or (missing and not dead and groupShown[groupKey]) then
 					local groups = own and byGame or shown
-					local group = groups[watch.group] or groups[ESSENTIAL]
+					local group = groups[groupKey]
 					group[#group + 1] = {texture = IconOf(choice, watch, entry), count = itemCount, choice = choice, own = own}
 				end
 			end
@@ -1554,12 +1571,21 @@ ns.RegisterEvent("PLAYER_LOGIN", function()
 	MissingBuffs.Update()
 end)
 ns.RegisterEvent("SPELLS_CHANGED", OnSpellsChanged)
--- PLAYER_REGEN_ENABLED: the fight is over, the click buttons can follow the icons again
--- PLAYER_REGEN_DISABLED: the fight starts, the buffs the game may hide follow its frames
 for _, event in ipairs({"PLAYER_ENTERING_WORLD", "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "BAG_UPDATE_DELAYED",
-	"PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED", "UI_SCALE_CHANGED"}) do
+	"UI_SCALE_CHANGED"}) do
 	ns.RegisterEvent(event, function() MissingBuffs.Update() end)
 end
+-- The fight starts: the buffs the game may hide follow its frames, and the groups shown only in combat
+-- come, while their click buttons can still be set
+ns.RegisterEvent("PLAYER_REGEN_DISABLED", function()
+	regenOff = true
+	MissingBuffs.Update()
+end)
+-- The fight is over: the click buttons can follow the icons again; the groups shown only in combat go
+ns.RegisterEvent("PLAYER_REGEN_ENABLED", function()
+	regenOff = false
+	MissingBuffs.Update()
+end)
 -- A restriction of the game about to start (the auras still readable) or just ended: e.g. a boss pulled
 -- before the character is in combat itself (see AurasHidden)
 ns.RegisterEvent("ADDON_RESTRICTION_STATE_CHANGED", function(_, restriction, state)

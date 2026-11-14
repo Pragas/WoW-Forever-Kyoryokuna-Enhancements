@@ -106,7 +106,7 @@ ns.AddOptionsPage(PAGE, function(b)
 	end
 
 	b:Header("Missing buffs")
-	b:Text("When something you chose is missing, its icon shows on the screen, grey and faded, in and out of combat (not while you're dead). Each thing goes to one of two groups, Essential or Utility, each with its own place and look.", GREY)
+	b:Text("When something you chose is missing, its icon shows on the screen, grey and faded (not while you're dead). Each thing goes to one of two groups, Essential or Utility, each with its own place and look, shown in and out of combat or only in combat.", GREY)
 	b:Check("missingBuffs.enabled", "Show what's missing")
 
 	-- First, so the groups can be put in place before setting the rest up
@@ -172,9 +172,11 @@ ns.AddOptionsPage(PAGE, function(b)
 		end
 	end
 
-	-- Each group's look
+	-- Each group's look, and when it shows
 	local function Look(header, section)
 		b:Header(header)
+		b:Check(section .. ".onlyInCombat", "Only in combat",
+			"The icons of this group show only while you're in combat. Out of combat nothing of this group shows, even when something is missing.", on)
 		b:Slider(section .. ".iconSize", "Icon size", 1, " px", nil, on)
 		b:Slider(section .. ".alpha", "Opacity", 5, "%", "How see-through the icons are: lower is more faded.", on)
 		b:Slider(section .. ".spacing", "Space between icons", 1, " px", nil, on)

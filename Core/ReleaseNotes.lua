@@ -19,6 +19,12 @@ local L = ns.L
 
 ns.RELEASE_NOTES = {
 	{
+		version = "0.20.0",
+		new = {
+			"Missing buffs: each group, Essential and Utility, can show only in combat (\"Only in combat\" in its settings), so nothing of it shows out of combat.",
+		},
+	},
+	{
 		version = "0.19.1",
 		fixed = {
 			"Error messages: turning \"Silence the voice of the messages\" off turned the game's voice on, even for a player who had it off. It's now put back as it was.",

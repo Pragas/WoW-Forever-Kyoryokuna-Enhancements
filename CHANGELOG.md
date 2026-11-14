@@ -8,6 +8,13 @@ Versions follow MAJOR.MINOR.PATCH:
 - **MINOR**: new features or options;
 - **MAJOR**: big changes, e.g. ones that need setting the addon up again.
 
+## 0.20.0
+
+- Missing buffs: "Only in combat" for each group (`missingBuffsEssential.onlyInCombat`, `missingBuffsUtility.onlyInCombat`, off at first, so nothing changes until it's ticked). On, the group's icons show only while the character is in combat; out of combat nothing of that group shows, even when something is missing. While moving the groups, they show as always, so they can be placed. It's part of the group's look, so it's kept for each character and copied with "Copy from" (characters from earlier versions get it off).
+- The character's fight is followed from `PLAYER_REGEN_DISABLED` to `PLAYER_REGEN_ENABLED` (and the game's lockdown or `UnitAffectingCombat`, e.g. after a reload in combat). The game sends `PLAYER_REGEN_DISABLED` just before its lockdown starts, so the icons a group shown only in combat brings then still get their click buttons ("Click an icon to cast the buff" / "to conjure the item").
+- Missing Buffs page: the check at the top of each group's settings; the page's first text says a group can show only in combat (translated).
+- Tests: a group shown only in combat hides out of combat and comes with the fight, alone (the other group stays as it was); its click buttons are set at the start of the fight and gone after it; shown while moving; a buff's own icon (one the game hides in combat) put away while the group is hidden under a restriction of the game before the character's own fight; kept for each character.
+
 ## 0.19.1
 
 - Error messages: "Silence the voice of the messages" turned off set the game's voice of the messages (`Sound_EnableErrorSpeech`) to on, whatever it was before the addon silenced it: a player who had it off in the game's options got it on. The value before is now kept in the saved data (`errorVoiceBefore`, also across sessions) and put back as it was. Data saved by earlier versions only noted "silenced by the addon" (`errorVoiceMuted`): the value then is unknown, so the voice comes back, as those versions did. The option's tooltip says "put back as it was" (translated too).
